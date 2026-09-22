@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>牛来跑酷网页游戏 - (grok-4.6)</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23F5A623'/><circle cx='38' cy='42' r='12' fill='%23FFF6E6'/><circle cx='64' cy='60' r='14' fill='%23FFF6E6'/><text x='50' y='62' font-size='34' text-anchor='middle'>🐮</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="grain" aria-hidden="true"></div>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <header class="hud" id="hud" hidden>
+      <div class="hud-left">
+        <p class="hud-kicker">牛来跑酷</p>
+        <p class="hud-score" id="hud-score">0</p>
+        <p class="hud-meta" id="hud-meta">金币 0 · 0 米</p>
+      </div>
+      <div class="hud-center" id="hud-boost" hidden>
+        <span class="boost-dot"></span>
+        <span id="hud-boost-text">苹果加成</span>
+      </div>
+      <div class="hud-right">
+        <p id="hud-runinfo">牛来 · 草原 · 正常</p>
+        <button type="button" class="ghost" id="btn-pause">暂停</button>
+      </div>
+    </header>
+
+    <div class="touch" id="touch" hidden>
+      <button type="button" id="btn-slide">滑铲</button>
+      <button type="button" id="btn-jump">跳跃</button>
+    </div>
+
+    <section class="panel menu" id="menu">
+      <div class="menu-head">
+        <div class="menu-title">
+          <p class="eyebrow">NIULAI PARKOUR</p>
+          <h1>牛来跑酷</h1>
+        </div>
+        <p class="subtitle">空格 / 点击跳跃，↓ 滑铲，可二段跳</p>
+        <div class="menu-head-actions">
+          <p class="hint" id="best-hint">最高纪录：0</p>
+          <button type="button" class="start" id="btn-start">开始奔跑</button>
+        </div>
+      </div>
+
+      <div class="menu-grid">
+        <aside class="cast">
+          <h2>角色</h2>
+          <div class="cast-list" id="cast-list"></div>
+        </aside>
+
+        <div class="preview-col">
+          <canvas id="preview" width="420" height="320"></canvas>
+          <p class="preview-caption" id="preview-caption">牛来 · 小牛犊</p>
+        </div>
+
+        <div class="gear">
+          <h2>跑酷服饰</h2>
+          <div class="gear-block">
+            <p>帽子 <span id="hat-name"></span></p>
+            <div class="swatches" id="hat-swatches"></div>
+          </div>
+          <div class="gear-block">
+            <p>衣服套装 <span id="suit-name"></span></p>
+            <div class="swatches" id="suit-swatches"></div>
+          </div>
+          <div class="gear-block">
+            <p>鞋子 <span id="shoe-name"></span></p>
+            <div class="swatches" id="shoe-swatches"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="picks">
+        <div class="picks-tracks">
+          <h2>赛道</h2>
+          <div class="track-row" id="track-row"></div>
+        </div>
+        <div class="picks-diff">
+          <h2>难度</h2>
+          <div class="diff-row" id="diff-row"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel overlay" id="pause" hidden>
+      <h2>暂停</h2>
+      <p>赛道还在，牛来也还在。深呼吸后再跑。</p>
+      <div class="row">
+        <button type="button" class="start" id="btn-resume">继续</button>
+        <button type="button" class="ghost" id="btn-pause-menu">返回选择</button>
+      </div>
+    </section>
+
+    <section class="panel overlay" id="over" hidden>
+      <p class="eyebrow">本局结束</p>
+      <h2>撞上障碍了</h2>
+      <p class="over-score" id="over-score">0</p>
+      <p class="over-meta" id="over-meta"></p>
+      <p class="hint" id="over-best"></p>
+      <div class="row">
+        <button type="button" class="start" id="btn-retry">再跑一次</button>
+        <button type="button" class="ghost" id="btn-over-menu">重新选择</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

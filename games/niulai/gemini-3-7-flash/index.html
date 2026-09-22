@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>牛来跑酷网页游戏 - (gemini)</title>
+  <meta name="description" content="《牛来跑酷》网页游戏，携手小牛犊牛来、牛妈妈、豹拉等8位伙伴，在5大极限赛道开启酷炫极速跑酷！">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23F5A623'/><circle cx='38' cy='42' r='12' fill='%23FFF6E6'/><circle cx='64' cy='60' r='14' fill='%23FFF6E6'/><text x='50' y='62' font-size='34' text-anchor='middle'>🐮</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23F5A623'/><circle cx='38' cy='42' r='12' fill='%23FFF6E6'/><circle cx='64' cy='60' r='14' fill='%23FFF6E6'/><text x='50' y='62' font-size='34' text-anchor='middle'>🐮</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+SC:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 游戏主容器 -->
+  <div id="game-container">
+    <!-- 游戏画布 -->
+    <canvas id="game-canvas" width="1280" height="720"></canvas>
+
+    <!-- 顶部 HUD 仪表盘 -->
+    <div id="game-hud" class="hud-layer hidden">
+      <div class="hud-top">
+        <div class="hud-card player-info-card">
+          <div class="character-mini-avatar" id="hud-avatar">🐮</div>
+          <div class="character-meta">
+            <span class="character-name" id="hud-char-name">牛来</span>
+            <span class="track-badge" id="hud-track-badge">🌲 森林</span>
+          </div>
+        </div>
+
+        <div class="hud-card fever-bar-container" id="hud-fever-card">
+          <div class="fever-title">
+            <span class="fever-icon">⚡</span>
+            <span class="fever-text">狂热加速 (10x金币)</span>
+            <span class="fever-timer" id="fever-timer-text">0.0s</span>
+          </div>
+          <div class="fever-track">
+            <div class="fever-fill" id="fever-progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="hud-stats-group">
+          <div class="hud-pill score-pill">
+            <span class="pill-icon">🏆</span>
+            <div class="pill-data">
+              <span class="pill-label">总得分</span>
+              <span class="pill-value" id="hud-score">0</span>
+            </div>
+          </div>
+
+          <div class="hud-pill coin-pill">
+            <span class="pill-icon">🪙</span>
+            <div class="pill-data">
+              <span class="pill-label">金币</span>
+              <span class="pill-value" id="hud-coins">0</span>
+            </div>
+          </div>
+
+          <div class="hud-pill distance-pill">
+            <span class="pill-icon">🚩</span>
+            <div class="pill-data">
+              <span class="pill-label">距离</span>
+              <span class="pill-value" id="hud-distance">0 m</span>
+            </div>
+          </div>
+
+          <button id="btn-hud-pause" class="hud-btn-icon" title="暂停游戏">⏸️</button>
+          <button id="btn-hud-audio" class="hud-btn-icon" title="音效开关">🔊</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 移动端触控按键 (仅在触屏设备或小屏幕激活) -->
+    <div id="touch-controls" class="touch-controls-layer hidden">
+      <button id="touch-btn-slide" class="touch-btn slide-btn">
+        <span class="touch-icon">⬇️</span>
+        <span class="touch-text">滑铲 (SLIDE)</span>
+      </button>
+      <button id="touch-btn-jump" class="touch-btn jump-btn">
+        <span class="touch-icon">⬆️</span>
+        <span class="touch-text">跳跃 (JUMP)</span>
+      </button>
+    </div>
+
+    <!-- 主菜单 / 选角换装赛道大厅 -->
+    <div id="menu-overlay" class="modal-overlay">
+      <div class="modal-window glass-panel main-menu-panel">
+        <div class="game-logo-banner">
+          <div class="logo-badge">🔥 热门奔跑</div>
+          <h1 class="game-title">牛来跑酷</h1>
+          <p class="game-subtitle">NIU LAI PARKOUR · 极速狂飙 纵享丝滑</p>
+        </div>
+
+        <!-- 主内容区域：4大独立配置板块 (解耦层级，杜绝重叠) -->
+        <div class="menu-content-grid">
+          <!-- 模块 1：角色选择 (8位可选) -->
+          <div class="card-subpanel char-panel-section">
+            <div class="section-title">
+              <span>🎭 选择奔跑角色 (8位可选)</span>
+              <span class="sub-tag" id="current-char-badge">主角 · 牛来</span>
+            </div>
+            <div class="character-select-grid" id="char-select-container">
+              <!-- 8个角色卡片动态注入 -->
+            </div>
+          </div>
+
+          <!-- 模块 2：实时更衣间与动态模型穿搭预览 -->
+          <div class="card-subpanel wardrobe-panel-section">
+            <div class="section-title">
+              <span>👕 实时更衣间 · 动态穿搭舞台</span>
+              <span class="sub-tag">6x3 潮流穿搭</span>
+            </div>
+
+            <!-- 动态预览舞台 -->
+            <div class="preview-canvas-wrapper">
+              <canvas id="preview-canvas" width="360" height="280"></canvas>
+              <div class="preview-role-tag" id="preview-role-name">主角 · 牛来</div>
+            </div>
+
+            <!-- 服饰部件切换 Tab -->
+            <div class="wardrobe-tabs">
+              <button class="wardrobe-tab-btn active" data-tab="hat">🧢 帽子 (<span id="count-hat">6</span>)</button>
+              <button class="wardrobe-tab-btn" data-tab="suit">🎽 衣服 (<span id="count-suit">6</span>)</button>
+              <button class="wardrobe-tab-btn" data-tab="shoes">👟 跑鞋 (<span id="count-shoes">6</span>)</button>
+            </div>
+
+            <!-- 服饰选项网格 -->
+            <div class="wardrobe-grid" id="wardrobe-items-container">
+              <!-- 动态注入 6 种服饰 -->
+            </div>
+          </div>
+
+          <!-- 模块 3：跑酷赛道选择 (5大场景) -->
+          <div class="card-subpanel track-panel-section">
+            <div class="section-title">
+              <span>🗺️ 选择跑酷赛道 (5大场景)</span>
+              <span class="sub-tag" id="current-track-badge">🌲 青青草原</span>
+            </div>
+            <div class="track-select-grid" id="track-select-container">
+              <!-- 5个赛道卡片动态注入 -->
+            </div>
+          </div>
+
+          <!-- 模块 4：游戏难度选择 (3档难度) -->
+          <div class="card-subpanel diff-panel-section">
+            <div class="section-title">
+              <span>⚡ 游戏难度模式</span>
+            </div>
+            <div class="diff-select-group" id="diff-select-container">
+              <button class="diff-btn active" data-diff="easy">
+                <span class="diff-icon">🌱</span>
+                <span class="diff-name">简单</span>
+                <span class="diff-desc">速度轻松 · 适合新手</span>
+              </button>
+              <button class="diff-btn" data-diff="normal">
+                <span class="diff-icon">🔥</span>
+                <span class="diff-name">正常</span>
+                <span class="diff-desc">节奏畅快 · 标准挑战</span>
+              </button>
+              <button class="diff-btn" data-diff="hard">
+                <span class="diff-icon">⚡</span>
+                <span class="diff-name">困难</span>
+                <span class="diff-desc">极速狂飙 · 考验反应</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部控制栏与开始按钮 -->
+        <div class="menu-bottom-bar">
+          <div class="key-guide-tip">
+            <span class="guide-item"><kbd>W</kbd> / <kbd>↑</kbd> / <kbd>空格</kbd> 跳跃</span>
+            <span class="guide-item"><kbd>S</kbd> / <kbd>↓</kbd> 滑铲</span>
+            <span class="guide-item"><kbd>P</kbd> 暂停</span>
+            <span class="guide-item">🍎 吃到苹果触发 <strong>10秒狂热 10倍金币加速</strong></span>
+          </div>
+
+          <div class="action-btn-group">
+            <button id="btn-start-game" class="btn-primary-glow">
+              <span class="btn-icon">🚀</span>
+              <span class="btn-label">立即开跑！</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 暂停弹窗 -->
+    <div id="pause-overlay" class="modal-overlay hidden">
+      <div class="modal-window glass-panel pause-panel">
+        <h2 class="pause-title">⏸️ 游戏已暂停</h2>
+        <div class="pause-stats">
+          <p>当前得分: <strong id="pause-score">0</strong></p>
+          <p>已收集金币: <strong id="pause-coins">0</strong></p>
+        </div>
+        <div class="pause-actions">
+          <button id="btn-resume" class="btn-primary-glow">继续游戏</button>
+          <button id="btn-pause-restart" class="btn-secondary">重新开始</button>
+          <button id="btn-pause-menu" class="btn-outline">返回大厅</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏结束结算弹窗 -->
+    <div id="gameover-overlay" class="modal-overlay hidden">
+      <div class="modal-window glass-panel gameover-panel">
+        <div class="gameover-header">
+          <div class="gameover-icon">💥</div>
+          <h2 class="gameover-title">跑酷结束</h2>
+          <p class="gameover-subtitle" id="gameover-tip">撞上了障碍物，稍作调整再来一次！</p>
+        </div>
+
+        <div class="score-summary-card">
+          <div class="score-main-block">
+            <span class="score-main-label">最终总分</span>
+            <span class="score-main-value" id="go-final-score">0</span>
+            <div class="new-record-badge hidden" id="go-new-record">🎉 刷新最高纪录！</div>
+          </div>
+
+          <div class="score-details-grid">
+            <div class="detail-item">
+              <span class="detail-icon">🪙</span>
+              <span class="detail-label">收集金币</span>
+              <span class="detail-val" id="go-coins">0</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">🍎</span>
+              <span class="detail-label">狂热苹果</span>
+              <span class="detail-val" id="go-apples">0 个</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">🚩</span>
+              <span class="detail-label">奔跑距离</span>
+              <span class="detail-val" id="go-distance">0 m</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">👑</span>
+              <span class="detail-label">历史最高分</span>
+              <span class="detail-val" id="go-best-score">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gameover-actions">
+          <button id="btn-restart-direct" class="btn-primary-glow">
+            <span class="btn-icon">🔄</span>
+            <span>再来一局 (保持配置)</span>
+          </button>
+          <button id="btn-return-lobby" class="btn-secondary">
+            <span class="btn-icon">⚙️</span>
+            <span>重选角色 / 赛道 / 穿搭</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏核心模块脚本 -->
+  <script src="js/config.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

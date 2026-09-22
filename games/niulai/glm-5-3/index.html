@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>牛来跑酷网页游戏 - (glm-5.3)</title>
+<meta name="description" content="和《牛来》的小牛犊一起跑遍森林、城市、沙漠、雪山、草原！">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23F5A623'/><circle cx='38' cy='42' r='12' fill='%23FFF6E6'/><circle cx='64' cy='60' r='14' fill='%23FFF6E6'/><text x='50' y='62' font-size='34' text-anchor='middle'>🐮</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+
+  <!-- ══════════ HUD ══════════ -->
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="hud-score-label">得分</div>
+      <div class="hud-score" id="hud-score">0</div>
+      <div class="hud-sub">
+        <span class="pill coin-pill"><b class="coin-ico"></b><span id="hud-coins">0</span></span>
+        <span class="pill" id="hud-dist">0 m</span>
+        <span class="pill speed-pill" id="hud-speed">x1.0</span>
+      </div>
+    </div>
+    <div id="boost-wrap" class="hidden">
+      <div class="boost-label">🍎 苹果加速 · 金币×10</div>
+      <div class="boost-track"><div id="boost-bar"></div></div>
+    </div>
+    <div class="hud-right">
+      <button class="icon-btn hud-btn" id="btn-pause" title="暂停 (P)">⏸</button>
+    </div>
+    <div id="touch-pads" class="hidden">
+      <div class="tpad-group">
+        <div class="tpad" data-act="up">▲</div>
+        <div class="tpad" data-act="down">▼</div>
+      </div>
+      <div class="tpad-group">
+        <div class="tpad tpad-txt" data-act="slide">滑</div>
+        <div class="tpad tpad-txt" data-act="jump">跳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 主菜单 ══════════ -->
+  <div id="menu" class="screen">
+    <div class="menu-inner">
+      <header class="menu-top">
+        <div class="logo-wrap">
+          <div class="logo-badge">
+            <h1 class="logo"><span class="logo-niu">牛来</span>跑酷</h1>
+          </div>
+          <div class="logo-sub">NIU LI PARKOUR · 和小牛犊跑遍五大地形</div>
+        </div>
+        <div class="menu-top-btns">
+          <button class="icon-btn" id="btn-help" title="玩法说明">?</button>
+          <button class="icon-btn" id="btn-music" title="音乐开关">♪</button>
+          <button class="icon-btn" id="btn-sfx" title="音效开关">🔊</button>
+        </div>
+      </header>
+
+      <div class="menu-main">
+        <aside class="preview-panel">
+          <div class="pv-stage">
+            <canvas id="pv-char" width="300" height="340"></canvas>
+          </div>
+          <div class="pv-name" id="pv-name">牛来</div>
+          <div class="pv-desc" id="pv-desc">勇敢的小牛犊，草原跑酷新星！</div>
+          <div class="pv-tags" id="pv-tags"></div>
+        </aside>
+
+        <div class="config-panel">
+          <section class="cfg">
+            <h2 class="cfg-title"><span class="cfg-emoji">🐂</span>选择角色</h2>
+            <div class="char-grid" id="char-grid"></div>
+          </section>
+
+          <section class="cfg">
+            <h2 class="cfg-title"><span class="cfg-emoji">🎽</span>跑酷装扮</h2>
+            <div class="outfit-block" id="outfit-block"></div>
+          </section>
+
+          <section class="cfg cfg-duo">
+            <div class="cfg-duo-col">
+              <h2 class="cfg-title"><span class="cfg-emoji">🏞️</span>赛道</h2>
+              <div class="track-grid" id="track-grid"></div>
+            </div>
+            <div class="cfg-duo-col">
+              <h2 class="cfg-title"><span class="cfg-emoji">🔥</span>难度</h2>
+              <div class="diff-seg" id="diff-seg"></div>
+              <div class="diff-desc" id="diff-desc"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer class="menu-bottom">
+        <div class="best-line" id="best-line">最佳纪录 --</div>
+        <button class="btn-start" id="btn-start"><span>开始跑酷</span><em>▶</em></button>
+        <div class="keys-hint">W/S 或 ↑/↓ 切道 · 空格 跳 · K/X 滑铲 · P 暂停</div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ══════════ 暂停 ══════════ -->
+  <div id="pause-ov" class="overlay hidden">
+    <div class="ov-card">
+      <div class="ov-title">休息一下 🐾</div>
+      <div class="ov-btns">
+        <button class="btn-main" id="btn-resume">继续奔跑</button>
+        <button class="btn-ghost" id="btn-quit">返回菜单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 游戏结束 ══════════ -->
+  <div id="over-ov" class="overlay hidden">
+    <div class="ov-card go-card">
+      <div class="go-emoji" id="go-emoji">💫</div>
+      <div class="ov-title" id="go-title">哎哟，撞到了！</div>
+      <div class="go-score-label">本局得分</div>
+      <div class="go-score" id="go-score">0</div>
+      <div class="go-new hidden" id="go-new">🏆 新纪录！</div>
+      <div class="go-stats">
+        <div class="go-stat"><b id="go-coins">0</b><span>金币</span></div>
+        <div class="go-stat"><b id="go-dist">0</b><span>距离</span></div>
+        <div class="go-stat"><b id="go-apples">0</b><span>苹果</span></div>
+      </div>
+      <div class="ov-btns">
+        <button class="btn-main" id="btn-retry">再来一局</button>
+        <button class="btn-ghost" id="btn-tomenu">更换配置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 帮助 ══════════ -->
+  <div id="help-ov" class="overlay hidden">
+    <div class="ov-card help-card">
+      <div class="ov-title">怎么跑 🐮</div>
+      <div class="help-grid">
+        <div class="help-row"><span class="k">W / S · ↑ / ↓</span>切换上/下跑道</div>
+        <div class="help-row"><span class="k">空格 / J</span>跳跃（躲地面障碍）</div>
+        <div class="help-row"><span class="k">K / X / Shift</span>滑铲（钻悬挂障碍）</div>
+        <div class="help-row"><span class="k">P / Esc</span>暂停</div>
+        <div class="help-row"><span class="k">手机</span>上下滑切道 · 点按跳 · 左滑或按钮滑铲</div>
+      </div>
+      <div class="help-tips">
+        <p>🪙 金币 +1 分，吃到 🍎 苹果后加速 10 秒，期间每枚金币 <b>+10 分</b>（可叠加时长）！</p>
+        <p>🚧 障碍物随难度变多变密，撞上就结束啦。</p>
+      </div>
+      <div class="ov-btns"><button class="btn-main" id="btn-help-close">知道啦</button></div>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/chars.js"></script>
+<script src="js/outfits.js"></script>
+<script src="js/tracks.js"></script>
+<script src="js/game.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

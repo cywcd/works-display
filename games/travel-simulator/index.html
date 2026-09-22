@@ -1,0 +1,3704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a44">
+<title>国庆旅行模拟器 3D · 今年国庆你准备花多少钱</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g transform='translate(0 3)'><circle cx='26' cy='63' r='15' fill='%231f2a44'/><circle cx='74' cy='63' r='15' fill='%231f2a44'/><rect x='12' y='27' width='76' height='39' rx='19.5' fill='%231f2a44'/><rect x='22' y='40.5' width='8' height='18' rx='2' fill='%232dd4bf'/><rect x='17' y='45.5' width='18' height='8' rx='2' fill='%232dd4bf'/><circle cx='69' cy='40.5' r='4.6' fill='%23ef4444'/><circle cx='60.5' cy='46.5' r='4.6' fill='%23fbbf24'/><circle cx='77.5' cy='46.5' r='4.6' fill='%2322c55e'/><circle cx='69' cy='52.5' r='4.6' fill='%23ea580c'/><circle cx='40' cy='56' r='5' fill='%2364748a'/><circle cx='54' cy='56' r='5' fill='%2364748a'/></g></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'" onerror="this.remove()">
+<style>
+:root{
+  --orange:#f97316; --orange-deep:#ea580c; --orange-soft:#ffedd5;
+  --cream:#fff8ef; --card:#fffdf8; --ink:#1f2a44; --ink2:#475569;
+  --teal:#0d9488; --teal-deep:#0f766e; --gold:#f59e0b; --red:#dc2626;
+  --blue:#2563eb; --green:#16a34a; --purple:#7c3aed;
+  --shadow:0 10px 30px rgba(31,42,68,.12), 0 2px 8px rgba(31,42,68,.08);
+  --shadow-sm:0 3px 10px rgba(31,42,68,.10);
+  --radius:18px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--ink);color:var(--ink);
+  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%;
+  user-select:none;
+}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit}
+.hidden{display:none!important}
+.font-fun{font-family:"ZCOOL KuaiLe","Noto Sans SC",sans-serif;font-weight:400}
+
+/* ============ 屏幕容器 ============ */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* ============ 通用组件 ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 26px;border-radius:999px;font-size:17px;font-weight:900;
+  transition:transform .12s ease, box-shadow .12s ease, filter .12s;
+  box-shadow:var(--shadow-sm);
+}
+.btn:active{transform:scale(.95)}
+.btn-primary{background:linear-gradient(135deg,#fb923c,#ea580c);color:#fff;box-shadow:0 8px 20px rgba(234,88,12,.35)}
+.btn-teal{background:linear-gradient(135deg,#2dd4bf,#0d9488);color:#fff;box-shadow:0 8px 20px rgba(13,148,136,.35)}
+.btn-ghost{background:#fff;color:var(--ink);border:2px solid #e2e8f0}
+.btn-dark{background:var(--ink);color:#fff}
+.btn:disabled{filter:grayscale(.7) opacity .45;cursor:not-allowed;box-shadow:none}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;background:#f1f5f9;color:var(--ink2)}
+.chip.money{background:#dcfce7;color:#15803d}
+.chip.time{background:#e0f2fe;color:#0369a1}
+.chip.bad{background:#fee2e2;color:#b91c1c}
+.chip.good{background:#ccfbf1;color:#0f766e}
+
+/* ============ 首页 ============ */
+#home{background:linear-gradient(180deg,#1f2a44 0%,#2b3a63 55%,#ea580c 130%);align-items:center}
+#home3d{position:absolute;inset:0}
+#home3d canvas{display:block;width:100%;height:100%}
+.home-veil{position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 0%,transparent 40%,rgba(31,42,68,.55) 100%);pointer-events:none}
+.home-inner{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;padding:calc(18px + env(safe-area-inset-top,0px)) 20px calc(14px + var(--safe-b));width:100%;max-width:560px;margin:0 auto}
+.home-title{text-align:center;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.18)}
+.home-title h1{font-size:clamp(34px,8.5vw,52px);line-height:1.1;letter-spacing:2px}
+.home-title .sub{margin-top:6px;font-size:15px;color:#ffd9a8;font-weight:700;letter-spacing:6px}
+.home-badge3d{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 14px;border-radius:999px;background:linear-gradient(135deg,#2dd4bf,#0d9488);color:#fff;font-size:13px;font-weight:900;box-shadow:0 6px 16px rgba(13,148,136,.5);animation:badgePulse 2s ease-in-out infinite}
+@keyframes badgePulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.home-modes{width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:clamp(24px,10vh,108px)}
+.mode-card{background:rgba(255,253,248,.96);border-radius:var(--radius);padding:13px 14px;text-align:left;box-shadow:var(--shadow);border:3px solid transparent;transition:transform .12s,border-color .15s}
+.mode-card:active{transform:scale(.97)}
+.mode-card.sel{border-color:var(--orange);background:#fff7ed}
+.mode-card .mc-top{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:900}
+.mode-card .mc-emoji{font-size:24px}
+.mode-card .mc-desc{margin-top:4px;font-size:12px;color:var(--ink2);line-height:1.4}
+.mode-card .mc-money{margin-top:6px;font-size:12px;font-weight:700;color:var(--orange-deep)}
+.home-actions{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.home-actions .btn{width:100%;padding:16px;font-size:18px}
+.home-row{display:flex;gap:10px}
+.home-row .btn{flex:1;padding:13px;font-size:15px}
+.home-foot{margin-top:10px;font-size:11px;color:rgba(255,255,255,.75);text-align:center;line-height:1.6}
+
+/* 右上角小图标钮 */
+.icon-btn{position:absolute;z-index:5;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;transition:transform .12s}
+.icon-btn:active{transform:scale(.9)}
+#soundBtn{top:calc(12px + env(safe-area-inset-top,0px));right:14px}
+
+/* ============ 通用选择屏（同行/目的地） ============ */
+.pick-screen{background:linear-gradient(180deg,#fff8ef,#ffe9d2);padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + var(--safe-b));overflow-y:auto}
+.pick-head{text-align:center;margin-bottom:14px}
+.pick-head h2{font-size:28px;color:var(--ink)}
+.pick-head p{font-size:13px;color:var(--ink2);margin-top:4px}
+.pick-list{display:flex;flex-direction:column;gap:12px;width:100%;max-width:560px;margin:0 auto}
+.pick-card{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:var(--radius);padding:15px 16px;box-shadow:var(--shadow-sm);border:3px solid transparent;transition:transform .12s,border-color .15s;text-align:left;width:100%}
+.pick-card:active{transform:scale(.98)}
+.pick-card.sel{border-color:var(--orange);background:#fff7ed}
+.pick-card .pc-emoji{font-size:38px;flex:0 0 52px;height:52px;display:flex;align-items:center;justify-content:center;background:var(--orange-soft);border-radius:14px}
+.pick-card .pc-main{flex:1;min-width:0}
+.pick-card .pc-name{font-size:18px;font-weight:900}
+.pick-card .pc-desc{font-size:13px;color:var(--ink2);margin-top:3px;line-height:1.4}
+.pick-card .pc-tags{margin-top:7px;display:flex;flex-wrap:wrap;gap:5px}
+.pick-card .pc-go{flex:0 0 auto;background:var(--orange);color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center}
+.pick-foot{width:100%;max-width:560px;margin:16px auto 0}
+.pick-foot .btn{width:100%}
+.city-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:560px;margin:0 auto}
+.city-card{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-sm);border:3px solid transparent;text-align:left;position:relative;overflow:hidden;min-height:128px;display:flex;flex-direction:column}
+.city-card:active{transform:scale(.97)}
+.city-card.sel{border-color:var(--orange);background:#fff7ed}
+.city-card .cc-emoji{font-size:34px}
+.city-card .cc-name{font-size:19px;font-weight:900;margin-top:2px}
+.city-card .cc-tags{margin-top:auto;display:flex;flex-wrap:wrap;gap:5px;padding-top:8px}
+.city-card .cc-crowd{position:absolute;top:10px;right:10px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fee2e2;color:#b91c1c}
+
+/* ============ 游戏屏布局 ============ */
+#game{background:var(--cream)}
+.stage-wrap{position:relative;flex:0 0 42vh;width:100%;overflow:hidden;background:#1f2a44}
+#stage3d{position:absolute;inset:0}
+#stage3d canvas{display:block;width:100%;height:100%}
+/* emoji 降级舞台 */
+#stageEmoji{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#7dd3fc 0%,bae6fd 55%,#fde68a 100%);overflow:hidden}
+#stageEmoji.on{display:flex}
+.se-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:84px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.2));animation:sePop 3.4s ease both}
+.se-prop{position:absolute;font-size:44px;animation:seFloat 3.4s ease-in-out both}
+@keyframes sePop{0%{transform:scale(.3) translateY(60px);opacity:0}15%{transform:scale(1.08) translateY(0);opacity:1}25%{transform:scale(1)}75%{opacity:1}100%{transform:scale(1.12) translateY(-26px);opacity:0}}
+@keyframes seFloat{0%{transform:translateY(30px) scale(.6);opacity:0}25%{opacity:1}80%{opacity:1}100%{transform:translateY(-70px) scale(1.1);opacity:0}}
+.se-actors{display:flex;gap:6px;position:absolute;bottom:22%}
+.se-actors span{font-size:46px;animation:seBob 1s ease-in-out infinite}
+.se-actors span:nth-child(2){animation-delay:.15s}.se-actors span:nth-child(3){animation-delay:.3s}.se-actors span:nth-child(4){animation-delay:.45s}
+@keyframes seBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.se-city{position:absolute;top:14%;font-size:40px;letter-spacing:14px;opacity:.85}
+
+/* 电影黑边 */
+.bar{position:absolute;left:0;right:0;height:9%;background:#000;z-index:6;pointer-events:none;transition:transform .35s cubic-bezier(.7,0,.2,1)}
+.bar-top{top:0;transform:translateY(-101%)}
+.bar-bot{bottom:0;transform:translateY(101%)}
+.stage-wrap.cine .bar-top,.stage-wrap.cine .bar-bot{transform:translateY(0)}
+.cine-sub{position:absolute;left:50%;bottom:11%;transform:translate(-50%,20px);z-index:7;background:rgba(0,0,0,.62);backdrop-filter:blur(4px);
+  color:#fff;padding:9px 20px;border-radius:999px;font-size:16px;font-weight:700;line-height:1.35;opacity:0;transition:opacity .3s,transform .3s;display:flex;gap:8px;align-items:center;max-width:92%;overflow:hidden}
+.stage-wrap.cine .cine-sub{opacity:1;transform:translate(-50%,0)}
+.cine-sub .cs-emoji{font-size:20px}
+.cine-sub .cs-city{font-size:12px;color:#fdba74;font-weight:500}
+.cine-progress{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.15);z-index:7;opacity:0;transition:opacity .3s}
+.stage-wrap.cine .cine-progress{opacity:1}
+.cine-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#fb923c,#fbbf24);border-radius:0 4px 4px 0}
+.cine-controls{position:absolute;z-index:8;top:10px;right:10px;display:flex;gap:8px;opacity:0;pointer-events:none;transition:opacity .3s}
+.stage-wrap.cine .cine-controls{opacity:1;pointer-events:auto}
+.cine-controls button{padding:7px 13px;border-radius:999px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px}
+.cine-controls button.on{background:var(--orange)}
+.cine-tag{position:absolute;z-index:7;top:10px;left:12px;color:rgba(255,255,255,.85);font-size:11px;font-weight:700;letter-spacing:2px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.flash{position:absolute;inset:0;background:#fff;z-index:9;pointer-events:none;opacity:0}
+.flash.go{animation:flashGo .45s ease}
+@keyframes flashGo{0%{opacity:0}12%{opacity:.95}100%{opacity:0}}
+
+/* 游戏侧栏/底栏 */
+.game-panel{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--cream)}
+.hud{background:var(--card);box-shadow:var(--shadow-sm);padding:9px 12px 8px;position:relative;z-index:3}
+.hud-row1{display:flex;align-items:center;gap:10px}
+.hud-day{font-size:14px;font-weight:900;line-height:1.15}
+.hud-day small{display:block;font-size:11px;color:var(--ink2);font-weight:500}
+.hud-city{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;background:var(--orange-soft);color:var(--orange-deep);padding:4px 10px;border-radius:999px}
+.hud-weather{font-size:12px;color:var(--ink2);display:flex;gap:6px;align-items:center}
+.hud-spacer{flex:1}
+.hud-time{font-size:12px;font-weight:700;color:var(--teal-deep)}
+.hud-menu{flex:0 0 auto;width:34px;height:34px;border-radius:11px;border:2px solid #e2e8f0;background:#fff;color:var(--ink);font-size:17px;font-weight:900;line-height:1;padding:0;cursor:pointer;box-shadow:0 2px 6px rgba(15,23,42,.08);transition:transform .08s}
+.hud-menu:active{transform:scale(.92)}
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.stat{position:relative}
+.stat .st-label{display:flex;justify-content:space-between;font-size:10px;color:var(--ink2);font-weight:700;line-height:1.3}
+.stat .st-val{font-variant-numeric:tabular-nums}
+.st-track{height:7px;border-radius:999px;background:#eef2f7;margin-top:2px;overflow:hidden}
+.st-track i{display:block;height:100%;border-radius:999px;transition:width .5s cubic-bezier(.3,.8,.3,1),background .3s}
+.st-money .st-track{display:none}
+.st-money .st-label{justify-content:center;font-size:11px}
+.st-money .st-val{font-size:15px;color:var(--green);font-weight:900}
+.st-money.neg .st-val{color:var(--red)}
+#floatLayer{position:absolute;inset:0;pointer-events:none;z-index:8;overflow:hidden}
+.float-num{position:absolute;font-size:13px;font-weight:900;white-space:nowrap;text-shadow:0 1px 2px rgba(255,255,255,.9);animation:floatUp 1.5s ease-out forwards}
+@keyframes floatUp{0%{transform:translateY(4px);opacity:0}15%{opacity:1;100%{transform:translateY(-34px);opacity:0}}}
+
+/* 动作区 */
+.action-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px 12px}
+.sec-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900;margin:4px 2px 9px;color:var(--ink)}
+.sec-title::after{content:"";flex:1;height:2px;background:repeating-linear-gradient(90deg,#e2e8f0 0 6px,transparent 6px 12px)}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.act-card{position:relative;background:var(--card);border-radius:15px;padding:11px 11px 9px;box-shadow:var(--shadow-sm);text-align:left;display:flex;flex-direction:column;gap:4px;transition:transform .12s;overflow:hidden}
+.act-card:active:not(:disabled){transform:scale(.97)}
+.act-card:disabled{opacity=.5;filter:grayscale(.6)}
+.act-card.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.act-head{display:flex;align-items:center;gap:7px}
+.act-emoji{font-size:26px}
+.act-name{font-size:14px;font-weight:900;line-height:1.25}
+.act-desc{font-size:11px;color:var(--ink2);line-height:1.35;min-height:29px}
+.act-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.act-chips .chip{font-size:10.5px;padding:1px 7px}
+.hand{padding:6px 12px calc(8px + var(--safe-b));background:linear-gradient(180deg,rgba(255,248,239,0),#ffedd5 60%);border-top:1px dashed #fdba74}
+.hand-scroll{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:none}
+.hand-scroll::-webkit-scrollbar{display:none}
+.hand-label{font-size:11px;font-weight:700;color:var(--orange-deep);margin-bottom:2px;display:flex;justify-content:space-between}
+.card-item{flex:0 0 118px;background:linear-gradient(160deg,#fff,#fff7ed);border:2px solid #fdba74;border-radius:13px;padding:8px 9px;box-shadow:var(--shadow-sm);text-align:left;transition:transform .12s}
+.card-item:active{transform:scale(.95)}
+.card-item.used{opacity:.4;border-style:dashed}
+.card-item .ci-emoji{font-size:20px}
+.card-item .ci-name{font-size:12.5px;font-weight:900;margin-top:1px}
+.card-item .ci-desc{font-size:10px;color:var(--ink2);line-height:1.3;margin-top:2px}
+.card-item .ci-mode{font-size:9.5px;font-weight:900;color:var(--purple);margin-top:3px}
+.card-item.passive .ci-mode{color:var(--teal-deep)}
+.day-end-row{display:flex;gap:8px;margin-top:10px}
+.day-end-row .btn{flex:1;padding:12px;font-size:14px}
+
+/* ============ 弹窗 ============ */
+#modalMask{position:fixed;inset:0;z-index:30;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:22px;opacity:0;pointer-events:none;transition:opacity .25s}
+#modalMask.show{opacity:1;pointer-events:auto}
+#modalBox{background:var(--card);border-radius:22px;width:100%;max-width:440px;max-height:86vh;overflow-y:auto;
+  padding:22px 20px calc(18px + var(--safe-b));box-shadow:var(--shadow);transform:scale(.85) translateY(20px);transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+#modalMask.show #modalBox{transform:scale(1) translateY(0)}
+.mb-emoji{font-size:46px;text-align:center}
+.mb-title{font-size:21px;font-weight:900;text-align:center;margin-top:6px}
+.mb-desc{font-size:14px;color:var(--ink2);line-height:1.65;margin-top:9px;text-align:center}
+.mb-result{margin-top:12px;border-radius:14px;padding:11px 14px;font-size:13.5px;font-weight:700;text-align:center;background:#f8fafc}
+.mb-opts{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.mb-opt{background:#fff;border:2px solid #e2e8f0;border-radius:14px;padding:13px 15px;text-align:left;transition:transform .12s,border-color .15s}
+.mb-opt:active{transform:scale(.98)}
+.mb-opt.sel{border-color:var(--orange);background:#fff7ed}
+.mb-opt .mo-label{font-size:15px;font-weight:900;display:flex;align-items:center;gap:7px}
+.mb-opt .mo-hint{font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.4}
+.mb-opt .mo-chips{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px}
+.mb-btns{display:flex;gap:9px;margin-top:16px}
+.mb-btns .btn{flex:1}
+.mb-stat-row{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:10px}
+
+/* 老板审批等待动画 */
+.boss-emoji{font-size:62px;text-align:center;animation:bossSigh 1.6s ease-in-out infinite}
+@keyframes bossSigh{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(-4deg)}}
+.boss-dots{text-align:center;font-size:30px;font-weight:900;letter-spacing:5px;color:var(--orange-deep);margin-top:4px}
+.boss-dots span{display:inline-block;animation:dotBlink 1.2s infinite}
+.boss-dots span:nth-child(2){animation-delay:.2s}
+.boss-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotBlink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* Toast */
+#toast{position:fixed;left:50%;bottom:calc(16% + var(--safe-b));transform:translate(-50%,20px);z-index:40;
+  background:rgba(31,42,68,.92);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;font-weight:700;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:88%;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* 发牌弹窗 */
+.deal-row{display:flex;gap:10px;margin-top:16px}
+.deal-card{flex:1;background:#fff;border:2px solid #e2e8f0;border-radius:15px;padding:14px 10px;text-align:center;transition:transform .12s,border-color .15s}
+.deal-card:active{transform:scale(.96)}
+.deal-card.sel{border-color:var(--orange);background:#fff7ed}
+.deal-card .dc-emoji{font-size:34px}
+.deal-card .dc-name{font-size:13.5px;font-weight:900;margin-top:4px}
+.deal-card .dc-desc{font-size:11px;color:var(--ink2);margin-top:4px;line-height:1.4}
+.deal-card .dc-mode{margin-top:6px;font-size:10px;font-weight:900;color:var(--purple)}
+
+/* ============ 结算屏 ============ */
+#final{background:linear-gradient(180deg,#1f2a44,#312e81 60%,#7c2d12);overflow-y:auto}
+.final-inner{width:100%;max-width:560px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top,0px)) 18px calc(24px + var(--safe-b));display:flex;flex-direction:column;align-items:center}
+.final-tag{color:#fdba74;font-size:22px;font-weight:900;letter-spacing:2px;margin-top:6px}
+.final-emoji{font-size:84px;margin:14px 0 6px;filter:drop-shadow(0 10px 20px rgba(0,0,0,.4));animation:endBob 2.4s ease-in-out infinite}
+@keyframes endBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.final-title{font-size:36px;color:#fff;text-align:center}
+.final-desc{font-size:15px;color:#e2e8f0;line-height:1.7;margin-top:12px;text-align:center;background:rgba(255,255,255,.08);padding:14px 18px;border-radius:15px}
+/* 人格卡片海报仅用于保存到相册，页面上不展示（标题/描述已在顶部呈现） */
+.share-card{display:none}
+.final-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;margin-top:14px}
+.fs-item{background:rgba(255,255,255,.1);border-radius:13px;padding:10px 6px;text-align:center;color:#fff}
+.fs-item b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.fs-item span{font-size:11.5px;color:#cbd5e1}
+.final-btns{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px}
+.final-btns .btn{width:100%}
+.final-btns .row2{display:flex;gap:10px}
+.final-btns .row2 .btn{flex:1;padding:13px;font-size:14px}
+.ach-row{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:12px}
+.ach-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(253,186,117,.18);color:#fde68a;border:1px solid rgba(253,186,117,.4);padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700}
+
+/* 图鉴 */
+.codex-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.codex-item{background:#fff;border-radius:13px;padding:11px;text-align:left;border:2px solid #e2e8f0}
+.codex-item.locked{filter:grayscale(1);opacity:.55}
+.codex-item .ci2-emoji{font-size:26px}
+.codex-item .ci2-name{font-size:13px;font-weight:900;margin-top:2px}
+.codex-item .ci2-desc{font-size:10.5px;color:var(--ink2);margin-top:2px;line-height:1.35}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+
+/* ============ 响应式适配 ============ */
+
+/* ---- 小屏手机（≤420px）：压缩 HUD 横排，预算独占一行，防止"日期+城市+天气+时间+菜单"溢出 ---- */
+@media (max-width:420px){
+  .hud{padding:8px 10px 7px}
+  .hud-row1{gap:7px}
+  .hud-day{font-size:13px}
+  .hud-day small{font-size:10px}
+  .hud-city{font-size:12px;padding:3px 9px}
+  .hud-weather{font-size:11px;gap:4px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hud-time{font-size:11.5px;white-space:nowrap}
+  .stat-grid{grid-template-columns:repeat(4,1fr);gap:5px 4px;margin-top:7px}
+  .st-money{grid-column:1/-1}
+  .st-money .st-label{font-size:12px}
+  .st-money .st-val{font-size:14px}
+}
+/* 极窄屏（≤340px，如 iPhone SE1/mini 竖屏）：天气信息降级 */
+@media (max-width:340px){
+  .hud-row1{gap:6px}
+  .hud-weather{display:none}
+  .stat .st-label{font-size:9.5px}
+  .action-area{padding:9px 10px}
+  .action-grid{gap:8px}
+  .act-card{padding:10px 9px 8px}
+  .act-desc{min-height:0}
+  .cine-sub{font-size:14px;padding:7px 15px;max-width:94%}
+  .cine-sub .cs-city{display:none}
+  #modalMask{padding:14px}
+  .home-inner{padding-left:14px;padding-right:14px}
+  .home-modes{gap:8px}
+  .home-row{gap:7px}
+  .home-row .btn{font-size:12.5px;padding:12px 7px}
+  .pick-head h2{font-size:25px}
+  .city-card{min-height:118px;padding:12px}
+  .final-emoji{font-size:68px;margin:10px 0 4px}
+  .final-title{font-size:29px}
+  .final-desc{font-size:14px;padding:12px 14px}
+  .fs-item b{font-size:18px}
+}
+
+/* ---- 矮屏手机竖屏（高度≤720px，如 iPhone SE）：收紧首页标题与卡片间距，防底部裁切 ---- */
+@media (max-height:720px){
+  .home-modes{margin-top:16px}
+  .mode-card{padding:10px 12px}
+  .home-actions{gap:8px;margin-top:10px}
+  .home-actions .btn{padding:13px}
+  .home-foot{margin-top:8px}
+}
+
+/* ---- 矮屏手机（横屏/低高度）：压缩舞台占比与首页元素 ---- */
+@media (max-width:919px) and (max-height:620px){
+  .stage-wrap{flex-basis:38vh}
+  .home-inner{overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:calc(10px + var(--safe-b))}
+  .home-title h1{font-size:clamp(28px,7vw,38px)}
+  .home-title .sub{font-size:13px;letter-spacing:3px;margin-top:3px}
+  .home-badge3d{margin-top:6px;padding:4px 12px;font-size:12px}
+  .home-modes{gap:8px;margin-top:14px}
+  .mode-card{padding:10px 13px}
+  .mode-card .mc-desc{margin-top:2px}
+  .home-actions{gap:8px;margin-top:10px}
+  .home-actions .btn{padding:13px;font-size:16px}
+  .home-row .btn{padding:11px;font-size:14px}
+  .home-foot{font-size:10.5px;margin-top:8px;line-height:1.5}
+  .pick-head{margin-bottom:10px}
+  .pick-head h2{font-size:24px}
+  .pick-list{gap:10px}
+  .pick-card{padding:12px 14px}
+}
+
+/* ---- 大屏手机/平板竖屏（560–919px）：游戏屏收敛为 560px 居中"手机列" ---- */
+@media (min-width:560px) and (max-width:919px){
+  #game{max-width:560px;margin:0 auto;box-shadow:0 0 46px rgba(0,0,0,.30)}
+}
+
+/* ---- 桌面/宽屏（≥920px）：左右分栏并整体限宽居中 ---- */
+@media (min-width:920px){
+  #game{flex-direction:row;max-width:1180px;margin:0 auto}
+  .stage-wrap{flex:0 0 auto;width:58%;height:100%;box-shadow:8px 0 28px rgba(0,0,0,.16)}
+  .game-panel{flex:1;height:100%;max-width:560px}
+  .action-grid{grid-template-columns:1fr 1fr}
+}
+/* 超宽屏给游戏列加边框，与背景区分 */
+@media (min-width:1200px){
+  #game{border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08)}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= 首页 ================= -->
+<section class="screen active" id="home">
+  <div id="home3d"></div>
+  <div class="home-veil"></div>
+  <button class="icon-btn" id="soundBtn" title="声音">🔊</button>
+  <div class="home-inner">
+    <div class="home-title">
+      <h1 class="font-fun">国庆旅行模拟器</h1>
+      <div class="sub">今年国庆，你准备花多少钱？</div>
+      <div class="home-badge3d">🎮 全 3D 过场版</div>
+    </div>
+    <div class="home-modes" id="homeModes"></div>
+    <div class="home-actions">
+      <button class="btn btn-primary" id="startBtn">🧳 开始新旅行</button>
+      <div class="home-row">
+        <button class="btn btn-dark" id="continueBtn">▶ 继续上次</button>
+        <button class="btn btn-ghost" id="challengeBtn">🔢 挑战码</button>
+        <button class="btn btn-ghost" id="codexBtn">🏅 图鉴</button>
+      </div>
+    </div>
+    <div class="home-foot">中秋 + 国庆 · 请对假最多连休 13 天 · 5 座城市任你挑<br>每个动作都是一段 3D 小电影 · 剧情纯属虚构，如有雷同说明你也在路上</div>
+  </div>
+</section>
+
+<!-- ================= 同行人选择 ================= -->
+<section class="screen pick-screen" id="companion">
+  <div class="pick-head">
+    <h2 class="font-fun">这趟，和谁一起？</h2>
+    <p>同行人决定预算倍率、回忆加成和专属剧情</p>
+  </div>
+  <div class="pick-list" id="companionList"></div>
+</section>
+
+<!-- ================= 目的地选择 ================= -->
+<section class="screen pick-screen" id="destination">
+  <div class="pick-head">
+    <h2 class="font-fun">第一站，去哪？</h2>
+    <p>国庆黄金周，人从众程度仅供参考 😅</p>
+  </div>
+  <div class="city-grid" id="cityGrid"></div>
+  <div class="pick-foot"><button class="btn btn-primary" id="confirmCityBtn" disabled>出发！</button></div>
+</section>
+
+<!-- ================= 游戏主屏 ================= -->
+<section class="screen" id="game">
+  <div class="stage-wrap" id="stageWrap">
+    <div id="stage3d"></div>
+    <div id="stageEmoji">
+      <div class="se-city" id="seCity">🏯</div>
+      <div class="se-actors" id="seActors"></div>
+      <div class="se-layer" id="seMain">🍜</div>
+      <div class="se-prop" id="seProp" style="left:22%;bottom:30%">💨</div>
+    </div>
+    <div class="cine-tag" id="cineTag">OCT. HOLIDAY</div>
+    <div class="bar bar-top"></div>
+    <div class="bar bar-bot"></div>
+    <div class="cine-sub" id="cineSub"><span class="cs-emoji">🍜</span><span class="cs-text">正在旅行…</span><span class="cs-city"></span></div>
+    <div class="cine-progress"><i id="cineBar"></i></div>
+    <div class="cine-controls">
+      <button id="fastBtn">⏩ 极速</button>
+      <button id="skipBtn">跳过 ⏭</button>
+    </div>
+    <div class="flash" id="stageFlash"></div>
+  </div>
+
+  <div class="game-panel">
+    <div class="hud">
+      <div id="floatLayer"></div>
+      <div class="hud-row1">
+        <div class="hud-day">第 <span id="hudDay">1</span> / <span id="hudTotal">7</span> 天<small id="hudDate">10月1日 · 周四</small></div>
+        <div class="hud-city"><span id="hudCityEmoji">🏯</span><span id="hudCityName">北京</span></div>
+        <div class="hud-weather" id="hudWeather">☀️ 晴 · 人从众</div>
+        <div class="hud-spacer"></div>
+        <div class="hud-time">🕘 <span id="hudTime">12</span>h</div>
+        <button class="hud-menu" id="menuBtn" title="游戏菜单">☰</button>
+      </div>
+      <div class="stat-grid" id="statGrid"></div>
+    </div>
+    <div class="action-area" id="actionArea">
+      <div class="sec-title" id="actSecTitle">今天安排点什么？</div>
+      <div class="action-grid" id="actionGrid"></div>
+      <div class="day-end-row">
+        <button class="btn btn-teal" id="endDayBtn">🌙 回酒店休息，结束今天</button>
+      </div>
+    </div>
+    <div class="hand" id="handBox">
+      <div class="hand-label"><span>🎴 我的手牌</span><span id="handHint">点击使用</span></div>
+      <div class="hand-scroll" id="handScroll"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 结算屏 ================= -->
+<section class="screen" id="final">
+  <div class="final-inner">
+    <div class="final-tag">🎒 国庆旅行人格卡片</div>
+    <div class="final-emoji" id="finalEmoji">🧳</div>
+    <div class="final-title font-fun" id="finalTitle">普通打工人的假期</div>
+    <div class="final-desc" id="finalDesc"></div>
+    <canvas class="share-card" id="shareCanvas" width="900" height="900"></canvas>
+    <div class="final-stats" id="finalStats"></div>
+    <div class="ach-row" id="finalAchs"></div>
+    <div class="final-btns">
+      <button class="btn btn-primary" id="saveShareBtn">💾 保存人格卡片到本地相册</button>
+      <div class="row2">
+        <button class="btn btn-dark" id="replaySameBtn">🔁 同码再战</button>
+        <button class="btn btn-ghost" id="backHomeBtn">🏠 回到首页</button>
+      </div>
+      <button class="btn btn-teal" id="codexBtn2">🏅 查看图鉴</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 弹窗 ================= -->
+<div id="modalMask"><div id="modalBox"></div></div>
+<div id="toast"></div>
+
+<script src="libs/three.min.js" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js';document.head.appendChild(s);})()"></script>
+<script>
+"use strict";
+/* ============================================================
+ * 1. 基础工具 / RNG / 存档
+ * ============================================================ */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+/* 颜色插值：必须按 RGB 通道分别插值，直接对打包整数 lerp 会穿过脏颜色 */
+const cLerp = (a, b, t) => ((Math.round(((a>>16)&255)+(((b>>16)&255)-((a>>16)&255))*t)<<16)
+  | (Math.round(((a>>8)&255)+(((b>>8)&255)-((a>>8)&255))*t)<<8)
+  | Math.round((a&255)+((b&255)-(a&255))*t));
+const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+const CODE_A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // 31 进制，去除易混字符
+function seedToCode(seed, modeIdx, compIdx){
+  let s = seed >>> 0, out = "";
+  for(let i=0;i<5;i++){ out = CODE_A[s % 31] + out; s = Math.floor(s/31); }
+  const head = modeIdx * 4 + compIdx; // 0..15
+  let chk = (head + (seed>>>0) % 31) % 31;
+  return CODE_A[head] + out + CODE_A[chk];
+}
+function codeToSeed(code){
+  code = (code||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
+  if(code.length !== 7) return null;
+  const idx = [];
+  for(const ch of code){ const i = CODE_A.indexOf(ch); if(i < 0) return null; idx.push(i); }
+  const head = idx[0];
+  let s = 0;
+  for(let i=1;i<=5;i++) s = s * 31 + idx[i];
+  if(idx[6] !== (head + (s % 31)) % 31) return null;
+  return { seed: s >>> 0, modeIdx: Math.floor(head/4), compIdx: head % 4 };
+}
+const LS_SAVE="guoqing3d_save_v1", LS_SET="guoqing3d_set_v1", LS_CODEX="guoqing3d_codex_v1", LS_LAST="guoqing3d_last_v1";
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* ============================================================
+ * 2. 静态数据
+ * ============================================================ */
+const DAY_HOURS = 12;
+/* 中秋 3 天 + 国庆 7 天 = 法定假期；9.28-9.30 三个工作日请 3 天假，把中秋与国庆连上，共 13 天 */
+const BASE_DAYS = 10, LEAVE_DAYS = 3, LONG_DAYS = 13, SHORT_DAYS = 7;
+/* 两套行程节奏：短假 7 天（10.1-10.7）/ 长假 13 天（中秋 9.25 起），索引按游戏内第 N 天 */
+const SCHEDULE = {
+  long: {
+    label:["9月25日 · 周五（中秋）","9月26日 · 周六（中秋）","9月27日 · 周日（中秋）",
+      "9月28日 · 周一（请假·连上啦）","9月29日 · 周二（请假·连上啦）","9月30日 · 周三（请假·连上啦）",
+      "10月1日 · 周四（国庆）","10月2日 · 周五","10月3日 · 周六","10月4日 · 周日",
+      "10月5日 · 周一","10月6日 · 周二","10月7日 · 周三"],
+    moves:[5,8,11], cards:[4,6,9,11]
+  },
+  short:{
+    label:["10月1日 · 周四（国庆）","10月2日 · 周五","10月3日 · 周六","10月4日 · 周日",
+      "10月5日 · 周一","10月6日 · 周二","10月7日 · 周三"],
+    moves:[3,5], cards:[2,4,6]
+  }
+};
+/* 特种兵模式：更频繁换城，仍按总天数动态生成 */
+function commandoMoveDays(total){
+  const arr=[]; for(let d=2;d<total;d+=2) arr.push(d); return arr;
+}
+function daysOf(total){ return total===LONG_DAYS?SCHEDULE.long:SCHEDULE.short; }
+
+const CITIES = {
+  beijing:  {name:"北京", emoji:"🏯", weather:["晴 干燥","微风 晴","降温 大风"], accent:0xc0392b, ground:0x9aa3ab,
+             tags:["皇城根","人从众","历史课"], crowd:[9,10,10,8]},
+  shanghai: {name:"上海", emoji:"🌆", weather:["多云","小雨转晴","江边大风"], accent:0x2f6fb2, ground:0x8f9aa6,
+             tags:["魔都","洋气","不夜城"], crowd:[8,9,9,8]},
+  chengdu:  {name:"成都", emoji:"🐼", weather:["多云","小雨","雾都既视感"], accent:0x3f8f5b, ground:0x8fa68e,
+             tags:["巴适","慢生活","熊猫"], crowd:[7,8,8,6]},
+  chongqing:{name:"重庆", emoji:"🌶️", weather:["阴天","小雨","大雾"], accent:0xd9622b, ground:0x9c8f83,
+             tags:["8D魔幻","火锅","赛博"], crowd:[7,8,9,7]},
+  xian:     {name:"西安", emoji:"🏮", weather:["晴 干燥","多云","早晚凉"], accent:0xc9962e, ground:0xa89a82,
+             tags:["盛唐","碳水天堂","兵马俑"], crowd:[8,9,8,7]}
+};
+const CITY_KEYS = Object.keys(CITIES);
+// 拥挤指数：短假按 10.1 起算；长假经历"中秋高峰→请假低谷→国庆高峰"三段
+function crowdOf(key, day){
+  const c = CITIES[key].crowd;
+  let d = day;
+  if(typeof G!=="undefined" && G && G.totalDays===LONG_DAYS){
+    if(day===1) return c[0];   // 中秋第一天
+    if(day<=3) return c[1];    // 中秋假期
+    if(day<=6) return c[3];    // 请假工作日，人最少
+    d = day-6;                // 第7天=10月1日，换算为国庆第1天
+  }
+  if(d <= 2) return c[0];
+  if(d <= 5) return c[1];
+  if(d <= 8) return c[2];
+  return c[3];
+}
+function weatherOf(key, day, rng){
+  const arr = CITIES[key].weather;
+  return arr[Math.floor(rng() * arr.length)];
+}
+
+const MODES = [
+  {id:"normal",  name:"普通打工人", emoji:"🧳", moneyMul:1.0,  desc:"标准预算，标准人挤人，标准的国庆记忆", money:3800},
+  {id:"budget",  name:"极限穷游党", emoji:"🎒", moneyMul:0.55, desc:"睡青旅挤大巴，每一块钱都要花在刀刃上", money:2150},
+  {id:"luxury",  name:"钞能力度假", emoji:"💎", moneyMul:2.6,  desc:"五星酒店专车接送，国庆也可以不排队", money:9800},
+  {id:"commando",name:"特种兵拉练", emoji:"⚡", moneyMul:0.85, desc:"假期有几天就冲几天，睁开眼就是下一站！", money:3300, forcedMove:true}
+];
+
+const COMPANIONS = {
+  solo:    {name:"独自出发", emoji:"🎒", count:1, costMul:1.0,  meMul:1.0,  base:3000,
+            desc:"一个人说走就走，自由但偶尔社恐", start:{hp:90,en:90,st:20,me:20}},
+  lover:   {name:"二人世界", emoji:"💑", count:2, costMul:1.55,meMul:1.3,  base:4000,
+            desc:"牵手看世界，预算也是两个人的", start:{hp:92,en:88,st:16,me:24}},
+  friends: {name:"三五好友", emoji:"👯", count:3, costMul:1.25,meMul:1.15, base:3600,
+            desc:"拼房拼车拼快乐，人多戏也多", start:{hp:92,en:92,st:18,me:22}},
+  family:  {name:"拖家带口", emoji:"👨‍👩‍👧", count:4, costMul:1.9, meMul:1.2,  base:5200,
+            desc:"上有老下有小，幸福和疲惫齐飞", start:{hp:92,en:86,st:30,me:22}}
+};
+const COMP_KEYS = Object.keys(COMPANIONS);
+/* 各同伴在 3D 舞台上的角色构成：拖家带口 = 爸爸/妈妈/小孩/老人，年龄特征明确 */
+const COMP_ROLES = {
+  solo:["traveler"],
+  lover:["traveler","traveler"],
+  friends:["traveler","traveler","traveler"],
+  family:["dad","mom","kid","elder"]
+};
+
+// 动作：cost 元 / time 小时 / hp,en,st,me 增量（st 为压力，正数不好）
+const ACTIONS = [
+  // —— 美食 ——
+  {id:"f_street", type:"food", emoji:"🍢", name:"路边小吃摊", desc:"烟火气最浓的地方，肠胃最勇敢的选择", cost:25, time:2, hp:-2,en:15,st:-8,me:12},
+  {id:"f_noodle", type:"food", emoji:"🍜", name:"苍蝇馆子嗦面", desc:"门面破破，味道爆爆", cost:32, time:2, hp:2,en:20,st:-5,me:8},
+  {id:"f_hotpot", type:"food", emoji:"🍲", name:"排队网红火锅", desc:"取号机吐出：前方187桌", cost:168, time:4, hp:4,en:30,st:12,me:22},
+  {id:"f_tea",    type:"food", emoji:"🥟", name:"老字号早茶", desc:"一盅两件，喝到日头高", cost:72, time:3, hp:3,en:22,st:-6,me:14},
+  {id:"f_duck",   type:"food", emoji:"🦆", name:"北京烤鸭", desc:"枣木挂炉，片片带皮", cost:198, time:3, hp:5,en:25,me:20, city:["beijing"]},
+  {id:"f_xlb",    type:"food", emoji:"🥟", name:"小笼生煎双拼", desc:"先开窗，后喝汤，别着急", cost:58, time:2, en:18,me:10, city:["shanghai"]},
+  {id:"f_chuan",  type:"food", emoji:"🍡", name:"苍蝇串串香", desc:"数签签的时候手在发抖", cost:86, time:3, hp:-3,en:24,st:-4,me:16, city:["chengdu","chongqing"]},
+  {id:"f_rjm",    type:"food", emoji:"🌯", name:"肉夹馍配凉皮", desc:"碳水加碳水，快乐平方", cost:30, time:1.5, en:16,me:8, city:["xian"]},
+  {id:"f_milk",   type:"food", emoji:"🧋", name:"网红奶茶", desc:"排队40分钟，喝完5分钟", cost:23, time:1, en:6,st:-6,me:6},
+  {id:"f_fine",   type:"food", emoji:"🍽️", name:"黑珍珠餐厅", desc:"人均四位数，拍照两小时", cost:498, time:4, hp:12,en:20,st:-15,me:24},
+  // —— 景点 ——
+  {id:"s_landmark",type:"spot", emoji:"⭐", name:"城市地标打卡", desc:"来都来了，总得到此一游", cost:88, time:4, en:-18,st:14,me:24},
+  {id:"s_museum", type:"spot", emoji:"🏛️", name:"省博逛展", desc:"免费，但要提前七天预约", cost:0, time:3, en:-10,st:-8,me:18},
+  {id:"s_old",    type:"spot", emoji:"🏮", name:"老城小巷漫步", desc:"商业化了，但真的好逛", cost:20, time:3, en:-8,st:-5,me:14},
+  {id:"s_park",   type:"spot", emoji:"🌳", name:"公园躺平发呆", desc:"看大爷下棋，参悟人生", cost:0, time:2, en:6,st:-12,me:8},
+  {id:"s_temple", type:"spot", emoji:"🛕", name:"古刹上一炷香", desc:"香火很旺，心忽然静了", cost:10, time:2, st:-10,me:10},
+  {id:"s_night",  type:"spot", emoji:"🌃", name:"登高看夜景", desc:"万家灯火，值回票价", cost:128, time:3, en:-12,st:4,me:26},
+  {id:"s_panda",  type:"spot", emoji:"🐼", name:"大熊猫基地", desc:"看花花营业三分钟，值一年", cost:55, time:4, en:-14,st:8,me:28, city:["chengdu"]},
+  {id:"s_bund",   type:"spot", emoji:"🌉", name:"外滩江景", desc:"风很大，人很多，景很绝", cost:0, time:2, en:-6,st:6,me:16, city:["shanghai"]},
+  {id:"s_wall",   type:"spot", emoji:"🚲", name:"城墙上骑行", desc:"一圈骑下来腿已经不是自己的", cost:45, time:3, en:-16,st:-4,me:20, city:["xian"]},
+  {id:"s_hyd",    type:"spot", emoji:"🕳️", name:"洪崖洞", desc:"现实版千与千寻，8D魔幻本魔", cost:0, time:3, en:-10,st:10,me:20, city:["chongqing"]},
+  {id:"s_great",  type:"spot", emoji:"🧱", name:"冲长城当好汉", desc:"好汉坡上，好汉渐稀", cost:118, time:5, en:-30,st:16,me:30, city:["beijing"]},
+  // —— 娱乐 ——
+  {id:"u_bar",    type:"fun", emoji:"🍸", name:"清吧小酌两杯", desc:"微醺是结束一天的正确方式", cost:148, time:3, hp:-4,st:-14,me:14},
+  {id:"u_ktv",    type:"fun", emoji:"🎤", name:"量贩KTV嘶吼", desc:"跑调跑到隔壁包间来敲门", cost:128, time:3, en:-12,st:-18,me:16},
+  {id:"u_wheel",  type:"fun", emoji:"🎡", name:"幸福摩天轮", desc:"升到最高处要许愿的哦", cost:88, time:2, en:-6,st:-10,me:18},
+  {id:"u_show",   type:"fun", emoji:"🎭", name:"大型实景演出", desc:"买票时肉疼，看完喊真香", cost:268, time:3, en:-8,st:-6,me:24},
+  {id:"u_escape", type:"fun", emoji:"🔦", name:"密室逃脱", desc:"全程抱着队友不撒手", cost:128, time:3, en:-10,st:8,me:18},
+  {id:"u_mahjong",type:"fun", emoji:"🀄", name:"茶馆搓麻将", desc:"成都人的快乐星球", cost:68, time:3, st:-12,me:10, city:["chengdu","chongqing"]},
+  {id:"u_arcade", type:"fun", emoji:"🎮", name:"电玩城抓娃娃", desc:"再抓最后一次！真的最后一次", cost:58, time:2, en:-4,st:-10,me:8},
+  // —— 购物 ——
+  {id:"p_souvenir",type:"shop",emoji:"🛍️", name:"文创店扫货", desc:"这个冰箱贴看起来很需要我", cost:128, time:2, st:-4,me:6},
+  {id:"p_mall",   type:"shop", emoji:"🛒", name:"商场专柜血拼", desc:"国庆满减，四舍五入不要钱", cost:520, time:4, en:-10,st:-8,me:8},
+  {id:"p_local",  type:"shop", emoji:"📦", name:"特产打包邮寄", desc:"快递费比特产还贵", cost:188, time:2, me:4},
+  {id:"p_luxury", type:"shop", emoji:"👜", name:"免税店奢侈品", desc:"包，就是用来治百病的", cost:2200, time:3, st:-10,me:10},
+  {id:"p_night",  type:"shop", emoji:"🏮", name:"夜市淘小玩意", desc:"十块钱三件，砍价全靠演技", cost:88, time:3, en:-8,st:-2,me:12},
+  // —— 休息 ——
+  {id:"r_hotel",  type:"rest", emoji:"😴", name:"回酒店躺平", desc:"床，人类文明的终点站", cost:0, time:3, en:35,st:-12},
+  {id:"r_massage",type:"rest", emoji:"💆", name:"足疗按摩", desc:"技师一按，全身讨饶", cost:138, time:2, en:22,st:-20,hp:4},
+  {id:"r_cafe",   type:"rest", emoji:"☕", name:"咖啡馆续命", desc:"没有这杯，下午就没了", cost:42, time:1.5, en:14,st:-8},
+  {id:"r_spa",    type:"rest", emoji:"♨️", name:"温泉SPA", desc:"泡完整个人重新长出来", cost:268, time:3, en:30,st:-25,hp:8},
+  {id:"r_siesta", type:"rest", emoji:"🪑", name:"长椅眯一会儿", desc:"零成本回血，就是脖子酸", cost:0, time:1, en:10,st:-4},
+  // —— 拍照 ——
+  {id:"q_pro",    type:"photo",emoji:"📸", name:"约拍旅拍大片", desc:"摄影师：下巴再低一点", cost:320, time:3, en:-8,st:4,me:26},
+  {id:"q_selfie", type:"photo",emoji:"🤳", name:"网红机位自拍", desc:"同个位置，三十个博主", cost:0, time:1, en:-4,st:4,me:10},
+  {id:"q_pola",   type:"photo",emoji:"📷", name:"拍立得定格", desc:"甩一甩，脸慢慢浮现", cost:35, time:0.5, me:6}
+];
+const ACT_MAP = {}; ACTIONS.forEach(a => ACT_MAP[a.id] = a);
+
+// 交通方式（换城/出发/返程）
+const TRANSPORTS = [
+  {id:"train", emoji:"🚄", name:"高铁", cost:260, time:2.5, en:-6, st:2,  desc:"又快又稳，就是票靠抢"},
+  {id:"plane", emoji:"✈️", name:"飞机", cost:560, time:1.5, en:-8, st:6,  desc:"国庆机票，懂得都懂"},
+  {id:"car",   emoji:"🚗", name:"自驾", cost:160, time:5,   en:-14,st:12, desc:"高速车展，风雨同舟"},
+  {id:"bus",   emoji:"🚌", name:"大巴", cost:95,  time:4,   en:-12,st:8,  desc:"便宜是唯一的优点"}
+];
+/* 绿皮站票：余额不足时的兜底回家方式（¥0，最慢最挤） */
+const GREEN_TICKET={id:"bus", emoji:"🎫", name:"绿皮站票", cost:0, time:4, en:-20, st:10, desc:"站也要站回家"};
+
+/* 事件：options 中 effects 为数值增量；gamble=[{chance,...effects,win?}]，chance 和必须为 1 */
+const EVENTS = [
+  {id:"e_queue", title:"排队三小时", emoji:"🕰️", weight:10, when:[1,2,3,4,5], desc:"网红店门口队伍拐了十八个弯，取号机吐出一张纸：前方187桌。",
+   options:[{label:"死排到底！",hint:"意志力的胜利",effects:{en:-14,st:16,me:8}},
+            {label:"换一家巷子里的",hint:"说不定有惊喜",effects:{st:-2,me:-4}}]},
+  {id:"e_toilet", title:"厕所自由", emoji:"🚻", weight:8, desc:"人有三急，景区女厕所门口的队比景点还长。",
+   options:[{label:"十元免排队神器",effects:{money:-10,st:-8}},
+            {label:"相信自己的膀胱",effects:{hp:-6,st:8}}]},
+  {id:"e_rain", title:"国庆的雨", emoji:"🌧️", weight:7, desc:"暴雨说下就下，你只给手机准备了防水袋。",
+   options:[{label:"就地买把伞",effects:{money:-25,en:-4}},
+            {label:"雨中狂奔",effects:{hp:-8,st:10,me:4}}]},
+  {id:"e_lostnav", title:"导航原地转圈", emoji:"🗺️", weight:8, desc:"地图说你已到达目的地，但眼前是一堵墙——8D城市日常。",
+   options:[{label:"抓个路人问问",effects:{en:-8,st:8}},
+            {label:"凭感觉瞎逛",hint:"可能撞见宝藏",effects:{en:-6,me:14}}]},
+  {id:"e_scalper", title:"黄牛的诱惑", emoji:"🎫", weight:7, when:[1,2,3,4,5], desc:"“票子要伐？现票！”黄牛大哥神秘兮兮地凑过来。",
+   options:[{label:"加价拿下，不能白来",effects:{money:-320,me:16,st:-6}},
+            {label:"坚决不惯着",effects:{st:2}}]},
+  {id:"e_lostkid", title:"孩子不见了", emoji:"😱", weight:9, comp:["family"], desc:"一回头孩子消失在人海，全家血压瞬间拉满。",
+   options:[{label:"分头疯狂寻找",effects:{en:-16,st:20,me:8}},
+            {label:"找工作人员广播",hint:"专业的事交给专业的人",effects:{money:-20,en:-8,st:10,me:14}}]},
+  {id:"e_photobomb", title:"路人抢镜", emoji:"📸", weight:8, desc:"回看照片，每张C位都有同一个陌生人的剪刀手。",
+   options:[{label:"再看一眼…",gamble:[{chance:.4,label:"竟然成了神作",effects:{me:12},win:true},
+                                  {chance:.6,label:"只能全部重拍",effects:{me:-6,st:6}}]}]},
+  {id:"e_overeat", title:"扶墙而出", emoji:"🤰", weight:7, desc:"太好吃没刹住，现在你饱到怀疑人生。",
+   options:[{label:"散步消食",effects:{en:-8,hp:-4,me:6}},
+            {label:"健胃消食片安排",effects:{money:-20,hp:4}}]},
+  {id:"e_spicy", title:"灵魂出窍辣", emoji:"🌶️", weight:8, city:["chengdu","chongqing"], desc:"锅底端上来的瞬间，你的胃开始写遗书。",
+   options:[{label:"头铁继续涮",effects:{hp:-6,me:12,st:4}},
+            {label:"认怂换鸳鸯锅",effects:{me:-4,st:-4}}]},
+  {id:"e_subway", title:"挤成一张相片", emoji:"🚇", weight:9, when:[1,2,3,4,5,6], desc:"晚高峰地铁，你被人潮推着飘上了车，全程脚没沾地。",
+   options:[{label:"挤挤更健康",effects:{en:-10,st:12}},
+            {label:"下车打车",effects:{money:-60,st:-4}}]},
+  {id:"e_oldpal", title:"偶遇老同学", emoji:"🤝", weight:6, desc:"一万公里外的街头，居然撞见大学睡你上铺的兄弟。",
+   options:[{label:"这顿我请！",effects:{money:-190,me:20,st:-8}},
+            {label:"咖啡馆叙叙旧",effects:{money:-55,me:10}}]},
+  {id:"e_auntie", title:"本地阿姨安利", emoji:"👵", weight:7, desc:"排队时本地阿姨凑来：“这家不好吃的呀，跟阿姨走！”",
+   options:[{label:"听阿姨的话",effects:{money:-45,me:14}},
+            {label:"坚持网红店",effects:{st:4}}]},
+  {id:"e_wrongticket", title:"买错了车票", emoji:"🎟️", weight:6, desc:"刷身份证时机器红了——你买的是明天的票。",
+   options:[{label:"含泪重买",effects:{money:-130,en:-6}},
+            {label:"将错就错多玩一天",effects:{me:8,st:6}}]},
+  {id:"e_sunset", title:"绝美晚霞", emoji:"🌇", weight:8, desc:"天空突然烧成橘红色，整条街的人都举起了手机。",
+   options:[{label:"停下来看完再走",effects:{me:16,en:4}},
+            {label:"赶路要紧",effects:{me:-4}}]},
+  {id:"e_tantrum", title:"地上打滚式购物", emoji:"🧒", weight:8, comp:["family"], desc:"孩子在纪念品店躺平：“我就要那个最大的！”",
+   options:[{label:"买！都可以买！",effects:{money:-130,st:8,me:2}},
+            {label:"蹲下来讲道理",effects:{st:12,en:-6}}]},
+  {id:"e_loverphoto", title:"拍到内存告急", emoji:"💞", weight:8, comp:["lover"], desc:"“再拍一张嘛，刚才眨眼了”——这是第317张。",
+   options:[{label:"你是我的专属摄影师",effects:{en:-8,me:14}},
+            {label:"意思两张得了",effects:{me:6,st:-2}}]},
+  {id:"e_aa", title:"抢买单大战", emoji:"💸", weight:7, comp:["friends"], desc:"结账时三位朋友同时掏出手机，场面一度十分感人。",
+   options:[{label:"抢赢了（其实是输了）",effects:{money:-210,me:10}},
+            {label:"强行AA制",effects:{money:-85,st:-2}}]},
+  {id:"e_nobatt", title:"手机只剩1%", emoji:"🪫", weight:8, desc:"充电宝还在酒店，而地图、钱包、门票都在手机里。",
+   options:[{label:"共享充电宝续命",effects:{money:-8,st:-6}},
+            {label:"享受失联的下午",effects:{st:8,me:6}}]},
+  {id:"e_noisy", title:"隔壁在装修", emoji:"🔨", weight:6, desc:"凌晨一点，隔壁仿佛在装修三室一厅。",
+   options:[{label:"前台硬刚换房",effects:{en:10,st:-10}},
+            {label:"枕头捂住忍一夜",effects:{en:-6,st:8}}]},
+  {id:"e_cold", title:"满30减15", emoji:"🥶", weight:6, desc:"昨天短袖今天羽绒，你的行李箱表示无能为力。",
+   options:[{label:"现买一件保命",effects:{money:-160,hp:6}},
+            {label:"靠年轻硬扛",effects:{hp:-12,st:6}}]},
+  {id:"e_thief", title:"拥挤中的手", emoji:"🦹", weight:6, when:[1,2,3,4,5], desc:"人群里有只手若隐若现，你后脖颈一凉。",
+   options:[{label:"死死护住包",gamble:[{chance:.72,label:"小偷悻悻离开",effects:{st:4},win:true},
+                                  {chance:.28,label:"钱包还是没了",effects:{money:-320,st:14}}]}]},
+  {id:"e_delay", title:"列车晚点未定", emoji:"⏸️", weight:7, desc:"广播开始循环：“您乘坐的列车晚点，开车时间未定”。",
+   options:[{label:"维权要赔偿",effects:{money:150,en:-10,st:10}},
+            {label:"佛系刷手机",effects:{en:-14,st:4,me:4}}]},
+  {id:"e_free", title:"景区免门票", emoji:"🎊", weight:5, desc:"赶上当地文旅大放送，今天景点全部免票！",
+   options:[{label:"刷身份证冲！",effects:{me:12,money:90}},
+            {label:"先吃顿好的庆祝",effects:{me:4,hp:2}}]},
+  {id:"e_streetshot", title:"被街拍了", emoji:"📷", weight:5, desc:"摄影师递来相机：“你刚才那张太有感觉了，底片要吗？”",
+   options:[{label:"买！这钱花得值",effects:{money:-110,me:14}},
+            {label:"挥挥手婉拒",effects:{me:2}}]},
+  {id:"e_stomach", title:"肠胃半夜起义", emoji:"🚽", weight:7, desc:"路边小吃的账，半夜连本带利找上门。",
+   options:[{label:"药店走一趟",effects:{money:-45,hp:-8}},
+            {label:"多喝热水硬扛",effects:{hp:-14,en:-8}}]},
+  {id:"e_jam", title:"高速大型车展", emoji:"🚗", weight:8, when:[1,2,6,12,13], desc:"高速变停车场，有人已经下车打起了羽毛球。",
+   options:[{label:"既来之则安之",effects:{en:-12,st:12,me:4}},
+            {label:"弃车步行前进",effects:{en:-16,me:8}}]},
+  {id:"e_bargain", title:"砍价拉扯战", emoji:"🤑", weight:6, desc:"老板开价三百，你妈教过你：从脚踝开始砍。",
+   options:[{label:"演技派上场",effects:{money:-45,me:12,st:6}},
+            {label:"社恐直接扫码",effects:{money:-95}}]},
+  {id:"e_boss", title:"老板来消息了", emoji:"💼", weight:7, desc:"假期第二天，老板：“在吗？有个很小的需求…”",
+   options:[{label:"已读不回装死",effects:{st:-8,me:4}},
+            {label:"含泪就地加班",effects:{money:220,en:-10,st:14}}]},
+  {id:"e_blister", title:"脚的告别仪式", emoji:"🩹", weight:8, desc:"后脚跟一热，新鞋正式向你宣战。",
+   options:[{label:"创可贴安排上",effects:{money:-15,en:6}},
+            {label:"瘸着也要逛完",effects:{hp:-8,en:-8,me:6}}]},
+  {id:"e_perfect", title:"天公作美", emoji:"🌤️", weight:6, desc:"22度、微风、阳光通透，连排队都显得温柔。",
+   options:[{label:"享受每一秒",effects:{me:10,en:6}},
+            {label:"趁机多刷一个景点",effects:{en:-6,me:14}}]},
+  {id:"e_cat", title:"景区猫总", emoji:"🐈", weight:6, desc:"一只肥猫横在步道中央，游客自动排队撸它。",
+   options:[{label:"加入撸猫队伍",effects:{st:-14,me:8}},
+            {label:"云吸一张就走",effects:{me:6,st:-4}}]},
+  {id:"e_parentbuy", title:"妈妈的代购任务", emoji:"📱", weight:6, desc:"妈妈微信：“那个特产啊，帮我带十袋。”",
+   options:[{label:"任务必达",effects:{money:-230,me:8}},
+            {label:"回头网购糊弄",effects:{money:-95,st:6}}]},
+  {id:"e_lottery", title:"发票刮刮乐", emoji:"🎟️", weight:5, desc:"餐厅买单送了张刮奖券，你随手一刮——",
+   options:[{label:"开刮！",gamble:[{chance:.12,label:"我是天选之人！+800",effects:{money:800,me:10},win:true},
+                              {chance:.88,label:"谢谢惠顾",effects:{money:-30,st:2}}]}]},
+  {id:"e_ringtoss", title:"夜市套圈", emoji:"⭕", weight:5, desc:"最大的玩偶在最远的位置，老板：“再买十个圈送五个！”",
+   options:[{label:"看我封神一投",gamble:[{chance:.25,label:"套中了！全场欢呼",effects:{money:60,me:14},win:true},
+                                    {chance:.75,label:"二十个圈全军覆没",effects:{money:-25,me:2}}]}]},
+  {id:"e_quiz", title:"民俗知识挑战", emoji:"🧠", weight:5, desc:"景区大爷拉你答题，说答对有现金红包。",
+   options:[{label:"接受挑战",gamble:[{chance:.55,label:"知识就是财富",effects:{money:88,me:10},win:true},
+                               {chance:.45,label:"当场社死",effects:{me:2,st:4}}]}]},
+  {id:"e_hostel", title:"青旅拼饭邀请", emoji:"🍲", weight:5, desc:"青旅客厅有人喊：“拼火锅，三缺一！”",
+   options:[{label:"加入加入！",effects:{money:-65,me:16,st:-10}},
+            {label:"社恐式微笑摇头",effects:{st:2}}]},
+  {id:"e_overbook", title:"民宿翻车了", emoji:"🏚️", weight:5, desc:"房东：“不好意思房子租给别人了，你取消一下订单吧。”",
+   options:[{label:"临时五星酒店自救",effects:{money:-420,en:14,st:-12}},
+            {label:"连锁酒店将就一晚",effects:{money:-190,st:4}}]},
+  {id:"e_zhaopian", title:"网红店照骗", emoji:"🙃", weight:7, desc:"实景和种草图之间，差了整整一百个滤镜。",
+   options:[{label:"来都来了，含泪打卡",effects:{money:-100,me:-4,st:6}},
+            {label:"转战隔壁无名小巷",effects:{me:12}}]},
+  {id:"e_anniv", title:"今天什么日子？", emoji:"💍", weight:6, comp:["lover"], desc:"她忽然抬头：“亲爱的，今天几号来着？”——一股寒意从脚底升起。",
+   options:[{label:"惊喜早就准备好了",effects:{money:-360,me:26,st:-10}},
+            {label:"大脑一片空白",effects:{st:18,me:-8}}]},
+  {id:"e_parentcall", title:"爸妈准时查岗", emoji:"📞", weight:6, comp:["family"], desc:"妈妈的视频通话准时到来：“孩子穿秋裤了没有？”",
+   options:[{label:"耐心汇报十分钟",effects:{en:-6,st:4}},
+            {label:"发个定位糊弄过去",effects:{st:8}}]},
+  {id:"e_routefight", title:"路线之争", emoji:"🧭", weight:6, comp:["friends"], desc:"有人要去博物馆有人要逛街，气氛逐渐凝固。",
+   options:[{label:"民主投票解决",effects:{st:-4,me:6}},
+            {label:"分头行动晚上见",effects:{me:-4,st:6}}]},
+  {id:"e_solofly", title:"一个人爽翻", emoji:"🕊️", weight:8, comp:["solo"], desc:"不用等人、不用商量、想吃就吃——这就是自由。",
+   options:[{label:"好好享受孤独",effects:{st:-12,me:12}},
+            {label:"发朋友圈拉仇恨",effects:{me:16,st:-6}}]},
+  {id:"e_museumfull", title:"博物馆约满了", emoji:"📆", weight:6, desc:"省博未来三天全约满，门口退票党和黄牛暗流涌动。",
+   options:[{label:"死磕退票通道",gamble:[{chance:.4,label:"蹲到一张退票！",effects:{me:14},win:true},
+                                    {chance:.6,label:"遗憾门口合影",effects:{st:8,me:-2}}]}]},
+  {id:"e_overweight", title:"行李超重", emoji:"🧳", weight:5, desc:"值机柜台：“您的行李，超了8公斤。”",
+   options:[{label:"当场穿上五件衣服",effects:{me:-6,st:8}},
+            {label:"补交运费保平安",effects:{money:-170}}]},
+  {id:"e_stars", title:"意外的星空", emoji:"✨", weight:5, desc:"回程小巴绕着山转，抬头是密密麻麻的银河。",
+   options:[{label:"静静看到发呆",effects:{me:14,st:-8}},
+            {label:"眼记住了就好",effects:{me:10,st:-4}}]},
+  {id:"e_likes", title:"朋友圈炸了", emoji:"❤️", weight:6, desc:"随手发的九宫格，一觉醒来点赞99+。",
+   options:[{label:"红了的感觉真好",effects:{me:12,st:-6}},
+            {label:"趁热再发一条",effects:{me:16,st:-2,en:-4}}]}
+];
+
+// 手牌：active 使用生效；passive 获得即挂起，由 G.flags 驱动；global 类持续整局
+const CARDS = [
+  {id:"c_redbull",emoji:"🥤",name:"红牛续命水",desc:"体力+30，压力-4，立刻回血",mode:"active",eff:{en:30,st:-4}},
+  {id:"c_pill",emoji:"💊",name:"布洛芬特效药",desc:"血条+20，压力-10",mode:"active",eff:{hp:20,st:-10}},
+  {id:"c_lucky",emoji:"🐟",name:"锦鲤附体",desc:"下一次赌运气必中大奖",mode:"active",flag:"luckyNext"},
+  {id:"c_cash",emoji:"🎫",name:"隐形满减券",desc:"天降200元报销金",mode:"active",eff:{money:200}},
+  {id:"c_bank",emoji:"🔋",name:"满电充电宝",desc:"体力+18",mode:"active",eff:{en:18}},
+  {id:"c_local",emoji:"☎️",name:"本地熟人接应",desc:"免费换一座城市，免交通费",mode:"active",flag:"freeMove"},
+  {id:"c_vip",emoji:"🎟️",name:"绿色通道VIP",desc:"下次逛景点：压力-20、回忆+10",mode:"active",flag:"vipNext"},
+  {id:"c_filter",emoji:"✨",name:"神仙滤镜",desc:"下次拍照：回忆+15",mode:"active",flag:"filterNext"},
+  {id:"c_snack",emoji:"🍪",name:"妈妈塞的零食盒",desc:"体力+12、血条+6",mode:"active",eff:{en:12,hp:6}},
+  {id:"c_reimb",emoji:"💰",name:"意外报销单",desc:"公司居然给报了，+420元",mode:"active",eff:{money:420}},
+  {id:"c_eye",emoji:"😴",name:"蒸汽眼罩",desc:"压力-15、体力+10",mode:"active",eff:{st:-15,en:10}},
+  {id:"c_alarm",emoji:"⏰",name:"错峰早起鸟",desc:"明天所有动作体力消耗减半",mode:"active",flag:"earlyNext"},
+  {id:"c_mask",emoji:"😷",name:"防疫健康包",desc:"血条+12，安心上路",mode:"active",eff:{hp:12}},
+  {id:"p_railcard",emoji:"🚄",name:"高铁联名卡",desc:"下次交通费半价",mode:"passive",flag:"nextTransport"},
+  {id:"p_light",emoji:"🎒",name:"轻装上阵",desc:"换城时：体力+10、压力-15",mode:"passive",flag:"lightPack"},
+  {id:"p_groupon",emoji:"🍲",name:"团购达人券",desc:"下次吃饭免单！",mode:"passive",flag:"nextFoodFree"},
+  {id:"p_deal",emoji:"👥",name:"多人成团价",desc:"下次购物7折",mode:"passive",flag:"groupDeal"},
+  {id:"p_upgrade",emoji:"🏨",name:"酒店免费升房",desc:"今晚睡觉：体力额外+15",mode:"passive",flag:"nightFree"},
+  {id:"p_insurance",emoji:"🛡️",name:"旅行意外险",desc:"自动抵消一次倒霉事件",mode:"passive",flag:"insurance"},
+  {id:"p_charm",emoji:"🧿",name:"开过光的平安符",desc:"整局所有压力增量-5",mode:"passive",global:"charm"},
+  {id:"p_radar",emoji:"📡",name:"探店雷达",desc:"下次购物：回忆+10",mode:"passive",flag:"nextShop"},
+  {id:"p_film",emoji:"🎞️",name:"复古胶片相机",desc:"整局每次拍照回忆额外+8",mode:"passive",global:"film"},
+  {id:"p_thermos",emoji:"🍵",name:"枸杞保温杯",desc:"整局每次休息体力额外+8",mode:"passive",global:"thermos"},
+  {id:"p_headphone",emoji:"🎧",name:"降噪耳机",desc:"整局换城压力-10",mode:"passive",global:"walkman"},
+  {id:"p_scratch",emoji:"🎰",name:"三连刮刮乐",desc:"获得即开刮：50-300元随机",mode:"passive",onDraw:"scratch"},
+  {id:"p_foodie",emoji:"🍴",name:"吃货黑卡",desc:"整局每次干饭血条额外+5",mode:"passive",global:"foodie"}
+];
+const CARD_MAP = {}; CARDS.forEach(c => CARD_MAP[c.id] = c);
+
+// 结局：按顺序首匹配
+const ENDINGS = [
+  {id:"perfect", emoji:"🏆", name:"国庆大满贯", desc:"钱没少、人没垮、回忆满载——你把国庆过成了教科书级答案。朋友圈里，你就是传说。"},
+  {id:"hospital", emoji:"🏥", name:"扶墙而归", desc:"假期最后一天是在医院/诊所度过的。旅行的意义是什么？是活着回来上班。"},
+  {id:"broke", emoji:"💸", name:"兜比脸干净", desc:"返程钱包里只剩身份证和一张过期优惠券。下个月的花呗，不敢想。"},
+  {id:"zen", emoji:"🧘", name:"佛系躺平大师", desc:"全程不慌不忙、不争不抢，排队也能入定。你悟了，国庆是你们的，我只要内心平静。"},
+  {id:"photographer", emoji:"📸", name:"朋友圈摄影家", desc:"整个假期拍了3000张照片，九宫格连发九条。点赞多少不重要，记录本身就是意义。"},
+  {id:"foodie", emoji:"🍜", name:"舌尖上的国庆", desc:"景点没记住几个，但每家馆子的招牌菜倒背如流。这趟，胃先到的终点。"},
+  {id:"shopper", emoji:"🛍️", name:"购物车之神", desc:"行李多到需要再买一个行李箱。你拉动的不是消费，是整个黄金周的GDP。"},
+  {id:"gambler", emoji:"🎲", name:"赌怪", desc:"刮奖、套圈、抽盲盒，你相信运气，运气居然也偶尔相信你。"},
+  {id:"commando", emoji:"⚡", name:"特种兵之王", desc:"三城连转，日均两万步，睡眠四小时。返程高铁上睡得像昏迷——但每张照片都在笑。"},
+  {id:"familywin", emoji:"👨‍👩‍👧", name:"人生赢家", desc:"老人玩得开心，孩子没丢，夫妻还能笑着说话——带娃出游界的满级人类。"},
+  {id:"social", emoji:"🎉", name:"气氛组组长", desc:"KTV、酒吧、拼饭、密室，哪里有局哪里有你。这个国庆，你就是快乐本体。"},
+  {id:"sufferer", emoji:"😵", name:"渡劫归来", desc:"堵车、排队、雨淋、辣哭……你不是在度假，是在历劫。上班反而像疗养。"},
+  {id:"free", emoji:"🍃", name:"自由的灵魂", desc:"地图没有目的地，行程全凭心情。你带走的不是特产，是一整段风一样的回忆。"},
+  {id:"saver", emoji:"💰", name:"省钱冠军", desc:"整个假期几乎一分钱没多花，攻略精确到毛。钱是留住了，但回忆好像也跟着省没了……"},
+  {id:"worker", emoji:"💼", name:"普通打工人的假期", desc:"有开心也有肉疼，有风景也有排队——这就是大多数人的国庆。真实，也挺好。"}
+];
+function matchEnding(g){
+  if(g.hp>=85 && g.stress<=28 && g.memory>=75 && g.money>=1000) return "perfect";
+  if(g.hp<=20) return "hospital";
+  if(g.money<=50) return "broke";
+  if(g.stress<=15) return "zen";
+  if(g.memory>=85 && g.stats.photo>=6) return "photographer";
+  if(g.stats.food>=10) return "foodie";
+  if(g.stats.shop>=4) return "shopper";
+  if(g.stats.gambles>=3 || g.stats.gambleWins>=2) return "gambler";
+  if(g.visited.length>=3 && g.energy<=50) return "commando";
+  if(g.companion==="family" && g.hp>=70 && g.memory>=70 && g.stress<=35) return "familywin";
+  if(g.stats.fun>=6 && g.memory>=60 && g.stress<=40) return "social";
+  if(g.stress>=75) return "sufferer";
+  if(g.memory>=70 && g.visited.length>=2) return "free";
+  if(g.money >= g.startMoney*0.9 && g.memory<55) return "saver";
+  return "worker";
+}
+
+const ACHIEVEMENTS = [
+  {id:"go", emoji:"🚉", name:"启程", desc:"完成假期第一天"},
+  {id:"cities5", emoji:"🗺️", name:"五城打卡王", desc:"一趟假期到访全部5座城市"},
+  {id:"foodie", emoji:"🍚", name:"干饭人", desc:"旅途中累计10顿美食"},
+  {id:"ironman", emoji:"🦵", name:"日行三万步", desc:"单日完成5个动作"},
+  {id:"gambler", emoji:"🎲", name:"小赌怡情", desc:"赌赢2次"},
+  {id:"lucky", emoji:"🍀", name:"锦鲤本鲤", desc:"赌赢3次"},
+  {id:"cards", emoji:"🎴", name:"卡牌收藏家", desc:"旅途中的发牌一张不落（4张手牌）"},
+  {id:"calm", emoji:"😇", name:"情绪稳定大师", desc:"全程压力从未超过60"},
+  {id:"commando", emoji:"⚡", name:"特种兵", desc:"到访至少3座城市"},
+  {id:"zenend", emoji:"🧘", name:"平和收官", desc:"收官时压力不超过20"},
+  {id:"perfect", emoji:"👑", name:"大满贯选手", desc:"达成「假期大满贯」结局"},
+  {id:"finish", emoji:"🎉", name:"全勤旅客", desc:"完整走完整个假期"}
+];
+/* ============================================================
+ * 3. 3D 引擎：单渲染器 / 单 rAF / deltaTime / 资源缓存 / 粒子池
+ * ============================================================ */
+const TD = (function(){
+  const T = window.THREE;
+  if(!T) return {available:false};
+  const DPR = Math.min(window.devicePixelRatio || 1, 1.6);
+
+  /* ---------- 几何体 / 材质缓存（全游戏共享，不随场景销毁） ---------- */
+  const GEO = {
+    box: new T.BoxGeometry(1,1,1),
+    cyl: new T.CylinderGeometry(1,1,1,10),
+    cyl8: new T.CylinderGeometry(1,1,1,8),
+    cone: new T.ConeGeometry(1,1,10),
+    sph: new T.SphereGeometry(1,12,9),
+    plane: new T.PlaneGeometry(1,1),
+    torus: new T.TorusGeometry(1,.18,8,18),
+    ground: new T.CircleGeometry(15,30)
+  };
+  const lambert = {}, basic = {};
+  function mL(hex){ return lambert[hex] || (lambert[hex] = new T.MeshLambertMaterial({color:hex})); }
+  function mB(hex, opacity){
+    const key = hex + "_" + (opacity===undefined?1:opacity);
+    if(basic[key]) return basic[key];
+    const m = new T.MeshBasicMaterial({color:hex, transparent:opacity!==undefined && opacity<1, opacity:opacity===undefined?1:opacity});
+    return basic[key] = m;
+  }
+  function mk(geo, mat, x,y,z, sx,sy,sz, rx,ry,rz){
+    const m = new T.Mesh(geo, mat);
+    if(x!==undefined) m.position.set(x,y,z);
+    if(sx!==undefined) m.scale.set(sx,sy,sz);
+    if(rx||ry||rz) m.rotation.set(rx||0,ry||0,rz||0);
+    return m;
+  }
+  const B = (hex,x,y,z,sx,sy,sz,rx,ry,rz)=>mk(GEO.box,mL(hex),x,y,z,sx,sy,sz,rx,ry,rz);
+  const C = (hex,x,y,z,rxh,h,sz3)=>mk(GEO.cyl,mL(hex),x,y,z,rxh,h,sz3); // 圆柱：x,y,z,半径,高,zScale
+  const CN = (hex,x,y,z,r,h,rz)=>mk(GEO.cone,mL(hex),x,y,z,r,h,1,0,0,rz);
+  const S = (hex,x,y,z,r)=>mk(GEO.sph,mL(hex),x,y,z,r,r,r);
+  const BB = (hex,x,y,z,sx,sy,sz,op)=>mk(GEO.box,mB(hex,op),x,y,z,sx,sy,sz); // 自发光小盒（灯/窗）
+
+  /* ---------- emoji 贴图 / 精灵 ---------- */
+  const texCache = {};
+  function emojiTex(emoji){
+    if(texCache[emoji]) return texCache[emoji];
+    const cv = document.createElement("canvas"); cv.width = cv.height = 128;
+    const x = cv.getContext("2d");
+    x.font = "96px serif"; x.textAlign = "center"; x.textBaseline = "middle";
+    x.fillText(emoji, 64, 72);
+    const tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding;
+    texCache[emoji] = tx; return tx;
+  }
+  function emojiMesh(emoji, s){
+    const m = new T.Sprite(new T.SpriteMaterial({map:emojiTex(emoji),transparent:true,depthWrite:false}));
+    m.scale.set(s,s,1); return m;
+  }
+
+  /* ---------- 渲染器 / 相机 ---------- */
+  let renderer = null, surface = null, rafId = 0, last = 0, time = 0;
+  let gameScene=null, cam=null, groundMat=null, cityGroup=null, actorsGroup=null, propsGroup=null, train=null, plane=null, clouds=[], actors=[];
+  let homeScene=null, homeCam=null, homePlatform=null, homeTrain=null;
+  const DAY_SKY = 0xa9d8f0, DUSK_SKY = 0x2a3a66, NIGHT_SKY = 0x141b33, SUNSET_SKY = 0xe87a4e;
+  const camPos = new T.Vector3(0,2.1,6.4), camLook = new T.Vector3(0,1.1,0);
+  const tV1 = new T.Vector3(), tV2 = new T.Vector3(), tCol = new T.Color();
+
+  function ensureRenderer(){
+    if(renderer) return;
+    renderer = new T.WebGLRenderer({antialias:true, powerPreference:"high-performance"});
+    renderer.setPixelRatio(DPR);
+    renderer.outputEncoding = T.sRGBEncoding;
+    renderer.domElement.style.display = "block";
+    document.addEventListener("visibilitychange", ()=>{ last = performance.now(); });
+    last = performance.now();
+    rafId = requestAnimationFrame(loop);
+  }
+  function resizeTo(el){
+    if(!renderer || !el) return;
+    const w = el.clientWidth || 360, h = el.clientHeight || 300;
+    renderer.setSize(w, h, false);
+    const a = w / h;
+    if(cam){ cam.aspect = a; cam.updateProjectionMatrix(); }
+    if(homeCam){ homeCam.aspect = a; homeCam.updateProjectionMatrix(); }
+  }
+
+  /* ---------- 粒子池（零分配热路径） ---------- */
+  const BIT_N = 56, bitPool = [], bitGeo = new T.BoxGeometry(.12,.12,.12);
+  const EMO_N = 18, emoPool = [];
+  for(let i=0;i<BIT_N;i++){
+    const m = new T.Mesh(bitGeo, mB(0xffffff)); m.visible = false;
+    bitPool.push({m, vx:0,vy:0,vz:0,life:0,max:1,grav:5,rot:0,rs:0});
+  }
+  for(let i=0;i<EMO_N;i++){
+    const m = new T.Sprite(new T.SpriteMaterial({map:emojiTex("✨"),transparent:true,depthWrite:false}));
+    m.visible = false;
+    emoPool.push({m,vx:0,vy:0,vz:0,life:0,max:1,grav:2});
+  }
+  function spawnBit(px,py,pz,hex,count,opt){
+    opt = opt || {};
+    let n = 0;
+    for(let i=0;i<BIT_N && n<count;i++){
+      const p = bitPool[i]; if(p.life>0) continue;
+      p.m.material = mB(hex);
+      p.m.visible = true; p.m.position.set(px,py,pz);
+      const s = (opt.size||1)*(0.7+Math.random()*0.6);
+      p.m.scale.setScalar(s);
+      const sp = opt.spread||2.2;
+      p.vx=(Math.random()-.5)*sp; p.vy=Math.random()*(opt.up||3)+.6; p.vz=(Math.random()-.5)*sp;
+      p.max = p.life = (opt.life||1)*(0.7+Math.random()*.6);
+      p.grav = opt.grav===undefined?5:opt.grav;
+      p.rs = (Math.random()-.5)*6;
+      n++;
+    }
+  }
+  function spawnEmoji(px,py,pz,emo,count,opt){
+    opt = opt || {};
+    let n = 0;
+    for(let i=0;i<EMO_N && n<count;i++){
+      const p = emoPool[i]; if(p.life>0) continue;
+      p.m.material.map = emojiTex(emo); p.m.material.needsUpdate = true;
+      const s = opt.size||.5; p.m.scale.set(s,s,1);
+      p.m.visible = true; p.m.position.set(px,py,pz);
+      const sp = opt.spread||1.2;
+      p.vx=(Math.random()-.5)*sp; p.vy=Math.random()*(opt.up||2)+.5; p.vz=(Math.random()-.5)*sp;
+      p.max = p.life = (opt.life||1.4)*(0.8+Math.random()*.5);
+      p.grav = opt.grav===undefined?1:opt.grav;
+      n++;
+    }
+  }
+  function updateFx(dt){
+    for(let i=0;i<BIT_N;i++){
+      const p = bitPool[i]; if(p.life<=0) continue;
+      p.life -= dt;
+      if(p.life<=0){ p.m.visible=false; continue; }
+      p.vy -= p.grav*dt;
+      p.m.position.x += p.vx*dt; p.m.position.y += p.vy*dt; p.m.position.z += p.vz*dt;
+      p.m.rotation.x += p.rs*dt; p.m.rotation.y += p.rs*.7*dt;
+    }
+    for(let i=0;i<EMO_N;i++){
+      const p = emoPool[i]; if(p.life<=0) continue;
+      p.life -= dt;
+      if(p.life<=0){ p.m.visible=false; continue; }
+      p.vy -= p.grav*dt;
+      p.m.position.x += p.vx*dt; p.m.position.y += p.vy*dt; p.m.position.z += p.vz*dt;
+    }
+  }
+
+  /* ---------- 角色（低模旅人剧团，按"角色类型"差异化年龄/体型/配饰） ---------- */
+  const SKIN = 0xf2c9a0, HAIR = 0x3a2a1e, LEG_C = 0x3b4a6b, PACK = 0x6b4a2f;
+  const BODY_COLORS = [0xe85d3c, 0x2f80c7, 0x35a06b, 0xd08a2d];
+  /* 角色配置：爸爸/妈妈/小孩/老人（拖家带口）+ 通用旅人（其余组合，保持原样） */
+  const ROLE_DEFS = {
+    traveler:{
+      bodyY:.74, body:[.44,.6,.3], bodyC:null,
+      headY:1.22, head:[.34,.33,.32], skin:SKIN,
+      hairY:1.40, hair:[.36,.12,.34], hairC:HAIR, style:"short",
+      eyeX:.085, eyeY:1.25, eyeZ:.165, eye:[.055,.07,.02],
+      shoulderY:1.0, shoulderX:.29, arm:[.12,.42,.14],
+      hipY:.46, hipX:.12, leg:[.14,.42,.16], legC:LEG_C,
+      pack:"back", packY:.78, pack:[.26,.34,.12], packC:PACK, baseTilt:0
+    },
+    dad:{
+      bodyY:.74, body:[.47,.62,.32], bodyC:0x3560a8,
+      headY:1.22, head:[.34,.33,.32], skin:SKIN,
+      hairY:1.40, hair:[.37,.12,.35], hairC:0x241a12, style:"short",
+      eyeX:.085, eyeY:1.25, eyeZ:.165, eye:[.055,.07,.02],
+      shoulderY:1.02, shoulderX:.31, arm:[.12,.44,.14],
+      hipY:.46, hipX:.13, leg:[.15,.42,.17], legC:0x2f3d5c,
+      pack:"back", packY:.78, pack:[.27,.35,.13], packC:0x5a3e28,
+      extras:"dad", baseTilt:0
+    },
+    mom:{
+      bodyY:.72, body:[.4,.57,.3], bodyC:0xc0467a,
+      headY:1.20, head:[.33,.32,.31], skin:SKIN,
+      hairY:1.38, hair:[.35,.11,.33], hairC:0x2a1c14, style:"long",
+      eyeX:.08, eyeY:1.23, eyeZ:.16, eye:[.055,.07,.02],
+      shoulderY:.99, shoulderX:.27, arm:[.11,.40,.13],
+      hipY:.44, hipX:.11, leg:[.13,.40,.15], legC:0x4a3a55,
+      pack:"handbag", baseTilt:0
+    },
+    kid:{
+      bodyY:.55, body:[.33,.40,.25], bodyC:0xe8a020,
+      headY:.98, head:[.35,.34,.33], skin:SKIN,
+      hairY:1.16, hair:[.27,.07,.26], hairC:0x33231a, style:"tuft",
+      eyeX:.09, eyeY:1.01, eyeZ:.17, eye:[.06,.08,.03],
+      shoulderY:.77, shoulderX:.20, arm:[.09,.29,.11],
+      hipY:.34, hipX:.09, leg:[.11,.31,.12], legC:0x3a5a8a,
+      pack:"none", extras:"kid", baseTilt:0
+    },
+    elder:{
+      bodyY:.69, body:[.40,.54,.3], bodyC:0x7d6d58,
+      headY:1.14, head:[.32,.31,.30], skin:0xeec89e,
+      hairY:1.31, hair:[.26,.07,.25], hairC:0xdadada, style:"bald",
+      eyeX:.08, eyeY:1.17, eyeZ:.165, eye:[.05,.06,.02],
+      shoulderY:.94, shoulderX:.28, arm:[.11,.40,.13],
+      hipY:.43, hipX:.12, leg:[.14,.40,.15], legC:0x4a4640,
+      pack:"none", extras:"elder", cane:true, baseTilt:.13
+    }
+  };
+  function buildActor(kind, idx){
+    const r = ROLE_DEFS[kind]||ROLE_DEFS.traveler;
+    const g = new T.Group();
+    const pv = new T.Group(); g.add(pv);
+    const shirt = r.bodyC!==null?r.bodyC:BODY_COLORS[idx%4];
+    pv.add(B(shirt, 0,r.bodyY,0, r.body[0],r.body[1],r.body[2]));
+    pv.add(B(r.skin, 0,r.headY,0, r.head[0],r.head[1],r.head[2]));
+    /* 发型 */
+    if(r.style==="long"){
+      pv.add(B(r.hairC, 0,r.hairY,-.01, r.hair[0],r.hair[1],r.hair[2]));         // 顶发
+      pv.add(B(r.hairC, 0,1.02,-.06, .30,.42,.12));                              // 背后长发
+      pv.add(B(r.hairC,-.145,1.06,-.04, .07,.40,.10));
+      pv.add(B(r.hairC, .145,1.06,-.04, .07,.40,.10));
+      pv.add(B(r.hairC, 0,1.43,-.02, .13,.12,.13));                              // 发髻
+    }else if(r.style==="bald"){
+      pv.add(B(r.hairC, 0,r.hairY,-.02, r.hair[0],r.hair[1],r.hair[2]));         // 灰白鬓发
+      pv.add(B(r.hairC,-.15,1.15,-.01, .05,.13,.08));
+      pv.add(B(r.hairC, .15,1.15,-.01, .05,.13,.08));
+    }else if(r.style==="tuft"){
+      pv.add(B(r.hairC, 0,r.hairY,0, r.hair[0],r.hair[1],r.hair[2]));            // 小童短发
+      pv.add(CN(r.hairC, 0,1.24,0, .07,.12));                                    // 头顶呆毛
+    }else{
+      pv.add(B(r.hairC, 0,r.hairY,-.01, r.hair[0],r.hair[1],r.hair[2]));
+    }
+    /* 双眼（大眼小孩 / 普通成人） */
+    pv.add(B(0x2b2420, -r.eyeX,r.eyeY,r.eyeZ, r.eye[0],r.eye[1],r.eye[2]));
+    pv.add(B(0x2b2420,  r.eyeX,r.eyeY,r.eyeZ, r.eye[0],r.eye[1],r.eye[2]));
+    /* 背包 / 手提包 */
+    if(r.pack==="back"){
+      pv.add(B(r.packC, 0,r.packY,-.2, r.pack[0],r.pack[1],r.pack[2]));
+    }else if(r.pack==="handbag"){
+      pv.add(B(0x8a5a2f,-.27,.92,-.06, .03,.28,.02));                            // 包带
+      pv.add(B(0x9a6a35,-.26,.62,-.05, .12,.17,.09));                            // 小手提包
+    }
+    /* 手臂（枢轴在肩） */
+    const armL = new T.Group(); armL.position.set(-r.shoulderX,r.shoulderY,0); pv.add(armL);
+    const armR = new T.Group(); armR.position.set( r.shoulderX,r.shoulderY,0); pv.add(armR);
+    armL.add(B(shirt,0,-r.arm[1]/2-.02,0, r.arm[0],r.arm[1],r.arm[2]));
+    armR.add(B(shirt,0,-r.arm[1]/2-.02,0, r.arm[0],r.arm[1],r.arm[2]));
+    /* 腿（枢轴在胯） */
+    const legL = new T.Group(); legL.position.set(-r.hipX,r.hipY,0); pv.add(legL);
+    const legR = new T.Group(); legR.position.set( r.hipX,r.hipY,0); pv.add(legR);
+    legL.add(B(r.legC,0,-r.leg[1]/2-.01,0, r.leg[0],r.leg[1],r.leg[2]));
+    legR.add(B(r.legC,0,-r.leg[1]/2-.01,0, r.leg[0],r.leg[1],r.leg[2]));
+    /* 年龄专属装饰 */
+    if(r.extras==="dad"){
+      pv.add(B(0x2b2420,0,1.15,.17,.12,.04,.02));                                // 胡子
+    }else if(r.extras==="kid"){
+      pv.add(B(0xf0a090,-.12,.97,.16,.04,.03,.02));                              // 腮红
+      pv.add(B(0xf0a090, .12,.97,.16,.04,.03,.02));
+    }else if(r.extras==="elder"){
+      pv.add(B(0x3a4a6a,-r.eyeX,r.eyeY,.18,.09,.06,.02));                         // 老花镜
+      pv.add(B(0x3a4a6a, r.eyeX,r.eyeY,.18,.09,.06,.02));
+      pv.add(B(0x3a4a6a,0,r.eyeY,.18,.06,.02,.02));
+    }
+    if(r.cane){
+      // 细木杖：scale=(x半径, 高度, z半径)，两个半径都要细
+      const cane=C(0x8a5a2f,.30,.49,.05,.025,.92,.025); cane.rotation.z=-.1; g.add(cane);
+      // T 形手柄：顶端小横木
+      g.add(B(0x7a4e28,.20,.93,.05,.19,.035,.05));
+    }
+    return {g,pv,head:null,armL,armR,legL,legR,kind:kind,baseTilt:r.baseTilt};
+  }
+  function resetActor(a){
+    a.g.position.set(0,0,0); a.g.rotation.set(0,0,0); a.g.visible=true;
+    a.pv.rotation.set(a.baseTilt||0,0,0); a.pv.position.set(0,0,0);
+    a.armL.rotation.set(0,0,0); a.armR.rotation.set(0,0,0);
+    a.legL.rotation.set(0,0,0); a.legR.rotation.set(0,0,0);
+  }
+  function setActors(n, kinds){
+    while(actorsGroup.children.length) actorsGroup.remove(actorsGroup.children[0]);
+    actors = [];
+    for(let i=0;i<n;i++){
+      const kind = kinds&&kinds[i] ? kinds[i] : "traveler";
+      const a = buildActor(kind,i); actorsGroup.add(a.g); actors.push(a);
+    }
+    lineActors(1.15, .62);
+  }
+  function lineActors(z, gap){
+    const n = actors.length;
+    for(let i=0;i<n;i++){ actors[i].g.position.set((i-(n-1)/2)*gap, 0, z); }
+  }
+  /* 年龄修饰器：在基础姿势之上叠加老人/小孩的动作特征 */
+  const Age = {
+    idle(a,t){
+      if(a.kind==="elder"){
+        // 老人：动作慢半拍、幅度小、保持微驼
+        a.pv.rotation.x=(a.baseTilt||.13)+Math.sin(t*1.1)*.015;
+        a.armL.rotation.x=Math.sin(t*1.1)*.05; a.armR.rotation.x=-Math.sin(t*1.1)*.05;
+        a.pv.position.y=Math.sin(t*1.1)*.02;
+      }else if(a.kind==="kid"){
+        // 小孩：高频大幅晃悠、左右踮脚
+        const p=t*3.5;
+        a.pv.position.y=.02+Math.abs(Math.sin(p))*.05;
+        a.pv.rotation.z=Math.sin(p*.5)*.06;
+        a.armL.rotation.x=Math.sin(p)*.2; a.armR.rotation.x=-Math.sin(p)*.2;
+      }
+    },
+    walk(a,t,speed){
+      if(a.kind==="elder"){
+        // 老人：小碎步、身体前倾、拄杖节奏
+        a.legL.rotation.x*=.5; a.legR.rotation.x*=.5;
+        a.pv.rotation.x=(a.baseTilt||.13)+.05;
+        a.pv.position.y=Math.abs(Math.sin(t*speed*2))*.03;
+      }else if(a.kind==="kid"){
+        // 小孩：蹦蹦跳跳、步幅小频率快
+        const p=t*speed*3;
+        a.legL.rotation.x=Math.sin(p)*.55; a.legR.rotation.x=-Math.sin(p)*.55;
+        a.pv.position.y=Math.abs(Math.sin(p))*.1;
+        a.pv.rotation.z=Math.sin(p*.5)*.05;
+      }
+    },
+    wave(a,t){
+      if(a.kind==="elder"){
+        // 老人：挥手慢而轻
+        a.armR.rotation.x=-2.2+Math.sin(t*2.5)*.2;
+        a.pv.rotation.x=a.baseTilt||.13;
+      }else if(a.kind==="kid"){
+        // 小孩：高举双手拼命挥
+        a.armL.rotation.x=-2.7+Math.sin(t*7)*.25; a.armL.rotation.z=.3;
+        a.armR.rotation.x=-2.7+Math.sin(t*7+.5)*.25; a.armR.rotation.z=-.3;
+        a.pv.position.y=Math.abs(Math.sin(t*6))*.1;
+      }
+    },
+    cheer(a,t){
+      if(a.kind==="elder"){
+        a.armL.rotation.x=-2.1+Math.sin(t*3)*.2; a.armR.rotation.x=-2.1+Math.sin(t*3+.4)*.2;
+        a.pv.rotation.x=a.baseTilt||.1;
+      }else if(a.kind==="kid"){
+        a.armL.rotation.x=-2.9+Math.sin(t*9)*.2; a.armR.rotation.x=-2.9+Math.sin(t*9+.4)*.2;
+        a.pv.position.y=Math.abs(Math.sin(t*8))*.16;
+      }
+    }
+  };
+  /* 姿势库（按帧调用） */
+  const Pose = {
+    idle(a,t){ a.pv.position.y = Math.sin(t*2+a.g.position.x*3)*.03; a.armL.rotation.x=Math.sin(t*2)*.08; a.armR.rotation.x=-Math.sin(t*2)*.08; a.legL.rotation.x=0;a.legR.rotation.x=0; a.pv.rotation.x=0; Age.idle(a,t); },
+    walk(a,t,speed){ const p=t*speed*2; a.legL.rotation.x=Math.sin(p)*.7; a.legR.rotation.x=-Math.sin(p)*.7; a.armL.rotation.x=-Math.sin(p)*.5; a.armR.rotation.x=Math.sin(p)*.5; a.pv.position.y=Math.abs(Math.sin(p))*.06; a.pv.rotation.x=.04; Age.walk(a,t,speed); },
+    cheer(a,t){ const p=t*6; a.armL.rotation.x = -2.6+Math.sin(p)*.25; a.armR.rotation.x = -2.6+Math.sin(p+.4)*.25; a.armL.rotation.z=.25; a.armR.rotation.z=-.25; a.pv.position.y=Math.abs(Math.sin(t*5))*.12; a.pv.rotation.x=-.08; Age.cheer(a,t); },
+    eat(a,t){ const p=t*4; a.armR.rotation.x = (Math.sin(p)>.2?-1.9:-.4); a.armL.rotation.x = -.3; a.pv.position.y=Math.sin(p)*.02; a.pv.rotation.x=.12; if(a.kind==="kid"){a.pv.position.y=.02;a.armR.rotation.x=(Math.sin(p*1.4)>-0.2?-1.9:-.5);} },
+    photo(a,t){ a.armR.rotation.x = -2.2; a.armL.rotation.x = -2.2; a.armL.rotation.z = .3; a.pv.rotation.x = -.15; a.pv.position.y=Math.sin(t*3)*.02; },
+    dance(a,t){ const p=t*7; a.pv.rotation.z=Math.sin(p)*.12; a.armL.rotation.x=-.6+Math.sin(p)*1.4; a.armR.rotation.x=-.6+Math.sin(p+Math.PI)*1.4; a.legL.rotation.z=.12; a.pv.position.y=Math.abs(Math.sin(p*.5))*.1; if(a.kind==="kid"){a.pv.position.y=Math.abs(Math.sin(p*.8))*.14;a.pv.rotation.z=Math.sin(p)*.2;} if(a.kind==="elder"){a.armL.rotation.x=-.3+Math.sin(p)*.5;a.armR.rotation.x=-.3+Math.sin(p+Math.PI)*.5;a.pv.rotation.z*=.4;} },
+    slump(a){ a.pv.rotation.x=.42; a.pv.position.y=-.05; a.armL.rotation.x=.3; a.armR.rotation.x=.3; a.armL.rotation.z=.15; a.armR.rotation.z=-.15; },
+    sleep(a,t){ a.pv.rotation.x=.55; a.armL.rotation.x=.2; a.armR.rotation.x=.2; a.legL.rotation.x=-1.3; a.legR.rotation.x=-1.3; if(a.kind==="elder")a.pv.rotation.x=.65; },
+    look(a,t){ a.pv.rotation.x=-.32; a.armL.rotation.x=-2.4; a.armR.rotation.x=-2.4; a.pv.position.y=Math.sin(t*2)*.02; },
+    sit(a,t){ a.legL.rotation.x=-1.4; a.legR.rotation.x=-1.4; a.pv.position.y=-.32+Math.sin(t*2)*.02; a.armL.rotation.x=-.2; a.armR.rotation.x=-.2; },
+    wave(a,t){ a.armR.rotation.x=-2.5+Math.sin(t*5)*.3; a.armR.rotation.z=-.25; a.armL.rotation.x=Math.sin(t*2)*.1; a.legL.rotation.x=0; a.legR.rotation.x=0; a.pv.rotation.x=0; a.pv.position.y=Math.sin(t*2)*.03; Age.wave(a,t); }
+  };
+
+  /* ---------- 城市地标 ---------- */
+  function buildLandmark(key){
+    const g = new T.Group(), acc = CITIES[key].accent;
+    if(key==="beijing"){
+      g.add(C(0xd8d2c4,0,.12,0,1.25,.24,1));
+      g.add(C(0xc0392b,0,.42,0,.95,.42,1));
+      g.add(CN(0x2b6cb0,0,.86,0,1.15,.6,0));
+      g.add(C(0xc0392b,0,1.12,0,.55,.26,1));
+      g.add(CN(0x2b6cb0,0,1.4,0,.72,.42,0));
+      g.add(CN(0xf2b63c,0,1.72,0,.14,.3,0));
+    }else if(key==="shanghai"){
+      g.add(C(0x9fb4c8,0,1.3,0,.07,2.6,1));
+      g.add(S(0xe85d6e,0,.7,0,.42)); g.add(S(0xe85d6e,0,1.5,0,.55)); g.add(S(0xe85d6e,0,2.05,0,.3));
+      g.add(C(0x8aa0b4,0,2.5,0,.04,.7,1));
+      g.add(B(0x5b7a99,-.9,.55,.1,.5,1.1,.45)); g.add(B(0x5b7a99,.95,.7,.05,.6,1.4,.4));
+      for(let i=0;i<4;i++){ g.add(BB(0xffe08a,-.9, .3+i*.24,.34,.14,.08,.02)); g.add(BB(0xffe08a,.95,.4+i*.28,.26,.14,.08,.02)); }
+    }else if(key==="chengdu"){
+      g.add(B(0x5aa05a,0,.08,0,2.6,.16,1.6));
+      g.add(S(0xf4f4f0,0,.62,0,.62)); g.add(S(0xf4f4f0,0,1.12,.12,.44));
+      g.add(S(0x2b2b2b,-.18,1.2,.42,.12)); g.add(S(0x2b2b2b,.18,1.2,.42,.12));
+      g.add(S(0x2b2b2b,-.3,1.42,.02,.14)); g.add(S(0x2b2b2b,.3,1.42,.02,.14));
+      g.add(S(0x2b2b2b,-.14,1.06,.5,.07)); g.add(S(0x2b2b2b,.14,1.06,.5,.07));
+      g.add(C(0x3f8f5b,-1.1,.5,-.6,.06,1,1)); g.add(CN(0x4caf6e,-1.1,1.15,-.6,.22,.5,.2));
+      g.add(C(0x3f8f5b,1.1,.55,-.55,.06,1.1,1)); g.add(CN(0x4caf6e,1.1,1.25,-.55,.22,.5,-.2));
+    }else if(key==="chongqing"){
+      const cols=[0xd9622b,0xb8468a,0xe0a83a,0x8a5a2f];
+      for(let i=0;i<4;i++){
+        const x=-.9+i*.58, h=.9+(i%2)*.5;
+        g.add(C(0xa83a2a,x-.22,h/2,.25,.05,1.2));
+        g.add(B(cols[i%4],x,h/2-.05,0,.5,h,.5));
+        for(let f=0;f<Math.floor(h/.28);f++) g.add(BB(0xffe9a8,x,.25+f*.28,.26,.1,.12,.02));
+      }
+      g.add(B(0x2b6a8f,0,.02,1.35,3.4,.06,1.1));
+    }else{ // xian
+      g.add(B(0x9c8a78,0,.35,0,3.2,.7,.5));
+      for(let i=-3;i<=3;i++) g.add(B(0x877565,i*.46,.78,0,.2,.16,.5));
+      g.add(B(0x9c3a2e,-1.4,.15,.25,.5,.3,.1)); g.add(B(0x9c3a2e,1.4,.15,.25,.5,.3,.1));
+      g.add(B(0xd8c8a8,0,1.0,-.5,.7,.18,.7)); g.add(CN(0x3a6b4a,0,1.2,-.5,.6,.35,0));
+      g.add(B(0xd8c8a8,0,1.42,-.5,.52,.16,.52)); g.add(CN(0x3a6b4a,0,1.6,-.5,.46,.3,0));
+      g.add(B(0xd8c8a8,0,1.8,-.5,.36,.14,.36)); g.add(CN(0xc9962e,0,1.97,-.5,.32,.26,0));
+    }
+    return g;
+  }
+  function buildCity(key){
+    const c = CITIES[key];
+    if(cityGroup){ gameScene.remove(cityGroup); }
+    cityGroup = new T.Group();
+    // 背景楼群（固定布局，低模盒子）
+    const cols = [c.accent, 0x6b7c93, 0x8a97a8];
+    for(let i=0;i<9;i++){
+      const x = -5.2 + i*1.3 + (i%3)*.15, h = .8 + ((i*7)%5)*.42;
+      cityGroup.add(B(cols[i%3], x, h/2-0.02, -4.4-(i%2)*.5, .9, h, .9));
+    }
+    for(let i=0;i<4;i++){
+      const x=-4.4+i*2.9;
+      cityGroup.add(C(0x7a5a3a,x,.28,-3.4,.05,.56,1));
+      cityGroup.add(CN(0x3f8f5b,x,.72,-3.4,.32,.5,0));
+    }
+    const lm = buildLandmark(key); lm.position.set(0,0,-2.55); lm.scale.setScalar(1.25); cityGroup.add(lm);
+    // 云
+    gameScene.add(cityGroup);
+  }
+  function buildClouds(target){
+    const arr = target===gameScene ? clouds : null;
+    for(let i=0;i<4;i++){
+      const g = new T.Group();
+      for(let j=0;j<3;j++) g.add(S(0xffffff,(j-1)*.5,Math.random()*.2,0,.42+Math.random()*.15));
+      g.position.set(-6+i*4, 3.6+Math.random()*.8, -4-Math.random()*2);
+      target.add(g);
+      if(arr) arr.push(g);
+    }
+  }
+  /* ---------- 火车 / 飞机 ---------- */
+  function buildTrain(){
+    const g = new T.Group();
+    const addCar = (x,len,hex)=>{
+      g.add(B(hex,x,.55,0,len,.62,.62));
+      g.add(B(0xf2f2f2,x,.72,0,len*.92,.2,.64));
+      for(let i=-1;i<=1;i++) g.add(BB(0xbfe4ff,x+i*len*.26,.6,.32,.16,.12,.02));
+      g.add(C(0x333333,x-len*.32,.18,.36,.12,.12,.12)); g.add(C(0x333333,x+len*.32,.18,.36,.12,.12,.12));
+    };
+    addCar(.7,1.05,0x2f80c7); addCar(-.45,1.05,0xeeeeee); addCar(-1.6,1.05,0xeeeeee);
+    g.add(B(0xf2f2f2,1.75,.5,0,.35,.5,.62));
+    g.add(CN(0x2f80c7,1.95,.5,0,.28,.5,-Math.PI/2));
+    g.visible=false; return g;
+  }
+  function buildPlane(){
+    const g = new T.Group();
+    g.add(mk(GEO.cyl,mL(0xf2f2f2),0,0,0,.16,.16,1.5,0,0,Math.PI/2));
+    g.add(B(0x8aa0b4,0,-.02,.05,1.5,.06,.22));
+    g.add(B(0xc74a4a,-.62,.12,0,.4,.26,.06));
+    g.visible=false; return g;
+  }
+
+  /* ---------- 游戏场景 ---------- */
+  function buildGame(){
+    if(gameScene) return;
+    gameScene = new T.Scene();
+    gameScene.background = new T.Color(DAY_SKY);
+    gameScene.fog = new T.Fog(DAY_SKY, 11, 24);
+    cam = new T.PerspectiveCamera(42, 1, .1, 60);
+    gameScene.add(new T.AmbientLight(0xffffff,.78));
+    const dl = new T.DirectionalLight(0xfff1da,.6); dl.position.set(5,9,5); gameScene.add(dl);
+    groundMat = new T.MeshLambertMaterial({color:0x9aa3ab});
+    const ground = mk(GEO.ground, groundMat, 0,0,0); ground.rotation.x = -Math.PI/2; gameScene.add(ground);
+    cityGroup = new T.Group(); gameScene.add(cityGroup);
+    actorsGroup = new T.Group(); gameScene.add(actorsGroup);
+    propsGroup = new T.Group(); gameScene.add(propsGroup);
+    for(const p of bitPool) gameScene.add(p.m);
+    for(const p of emoPool) gameScene.add(p.m);
+    train = buildTrain(); gameScene.add(train);
+    plane = buildPlane(); gameScene.add(plane);
+    buildClouds(gameScene);
+    setActors(1);
+  }
+  function setSky(hex){
+    tCol.setHex(hex);
+    gameScene.background.copy(tCol);
+    if(gameScene.fog) gameScene.fog.color.copy(tCol);
+  }
+
+  /* ---------- 首页场景 ---------- */
+  function buildHome(){
+    if(homeScene) return;
+    homeScene = new T.Scene();
+    homeScene.background = new T.Color(0x24335c);
+    homeScene.fog = new T.Fog(0x24335c, 10, 22);
+    homeCam = new T.PerspectiveCamera(40, 1, .1, 60); homeCam.position.set(0,3.3,7.2); homeCam.lookAt(0,.8,0);
+    homeScene.add(new T.AmbientLight(0xcfe0ff,.85));
+    const dl = new T.DirectionalLight(0xffe6c0,.7); dl.position.set(4,8,3); homeScene.add(dl);
+    homeScene.add(mk(GEO.cyl,mL(0x3a6b4a),0,-.22,0,4.2,4.2,.4));
+    homePlatform = new T.Group(); homeScene.add(homePlatform);
+    for(let i=0;i<5;i++){
+      const a = i/5*Math.PI*2;
+      const lm = buildLandmark(CITY_KEYS[i]);
+      lm.scale.setScalar(.3); lm.position.set(Math.sin(a)*2.5, 0, Math.cos(a)*2.5);
+      lm.rotation.y = a;
+      homePlatform.add(lm);
+    }
+    homeTrain = buildTrain(); homeTrain.visible = true; homeTrain.scale.setScalar(.55); homeScene.add(homeTrain);
+    // 星点
+    for(let i=0;i<26;i++){
+      const st = S(0xffe9a8,-7+Math.random()*14, 2.6+Math.random()*3, -6-Math.random()*6, .05+Math.random()*.05);
+      homeScene.add(st);
+    }
+    buildClouds(homeScene);
+  }
+
+  /* ---------- 场景挂载 ---------- */
+  let resizeRO=null;
+  function watchResize(el){
+    if(resizeRO){ resizeRO.disconnect(); resizeRO=null; }
+    if(typeof ResizeObserver==="undefined") return;
+    // 容器尺寸变化（转屏、浏览器地址栏收缩、初始布局延迟）时自动重设缓冲，避免舞台底部留空
+    resizeRO=new ResizeObserver(function(){ resizeTo(el); });
+    resizeRO.observe(el);
+  }
+  function attachHome(el){
+    ensureRenderer(); buildHome();
+    el.appendChild(renderer.domElement);
+    surface = "home"; resizeTo(el); watchResize(el);
+  }
+  function attachGame(el){
+    ensureRenderer(); buildGame();
+    el.appendChild(renderer.domElement);
+    surface = "game"; resizeTo(el); watchResize(el);
+  }
+  function setCity(key){
+    groundMat.color.setHex(CITIES[key].ground);
+    buildCity(key);
+    setSky(DAY_SKY);
+  }
+
+  /* ---------- 过场导演 ---------- */
+  let cut = null;
+  const ctx = {
+    k:0,e:0,dt:0,t:0,state:null,
+    actors:null, train:null, plane:null,
+    T:T, B,C,CN,S,BB,mk,GEO,mL,mB,emoji:emojiMesh,
+    V:new T.Vector3(),
+    burst:spawnBit, eburst:spawnEmoji,
+    flash(){ flashStage(); },
+    sky:setSky, DAY_SKY,DUSK_SKY,NIGHT_SKY,SUNSET_SKY,
+    lineUp:lineActors,
+    cam(x,y,z,lx,ly,lz,j){ camPos.set(x,y,z); camLook.set(lx,ly,lz); handJ=j||0; },
+    props:null, city:null,
+    pose:Pose
+  };
+  let handJ = 0;
+  const cineWrap = document.getElementById("stageWrap");
+  const cineSub = document.getElementById("cineSub");
+  const cineBar = document.getElementById("cineBar");
+  let fast = false;
+  function beginCine(def){
+    cineWrap.classList.add("cine");
+    cineSub.querySelector(".cs-emoji").textContent = def.emoji||"🎬";
+    cineSub.querySelector(".cs-text").textContent = def.title||"";
+    cineSub.querySelector(".cs-city").textContent = def.tag ? ("· "+def.tag) : "";
+    cineBar.style.transition = "none"; cineBar.style.width = "0%";
+    void cineBar.offsetWidth;
+    cineBar.style.transition = "";
+  }
+  function endCine(){ cineWrap.classList.remove("cine"); }
+  function flashStage(){
+    const f = document.getElementById("stageFlash");
+    f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+  }
+  function clearProps(){
+    while(propsGroup.children.length){ const ch=propsGroup.children[0]; propsGroup.remove(ch); }
+    train.visible=false; plane.visible=false;
+  }
+  function play(def){
+    return new Promise(function(resolve){
+      if(cut && cut.resolve){ try{cut.def.exit && cut.def.exit(ctx);}catch(e){} cut.resolve(); }
+      actors.forEach(resetActor);
+      lineActors(1.15,.62);
+      setSky(DAY_SKY);
+      clearProps();
+      ctx.props = propsGroup; ctx.city = cityGroup; ctx.actors = actors; ctx.train = train; ctx.plane = plane;
+      ctx.state = {}; ctx.t = 0; ctx.k = 0; ctx.e = 0;
+      cut = {def:def, p:0, dur:(def.dur||3.4)/(fast?3.4:1), resolve:resolve};
+      beginCine(def);
+      try{ def.enter && def.enter(ctx); }catch(e){ console.warn("cut enter",e); }
+    });
+  }
+  function skip(){
+    if(!cut) return;
+    const c = cut; cut = null;
+    ctx.k = 1; ctx.e = 1;
+    try{ c.def.update && c.def.update(ctx, 1/60); }catch(e){}
+    try{ c.def.exit && c.def.exit(ctx); }catch(e){}
+    clearProps(); actors.forEach(resetActor); lineActors(1.15,.62); setSky(DAY_SKY);
+    cineBar.style.width="100%";
+    setTimeout(function(){ endCine(); c.resolve(); }, 60);
+  }
+  function setFast(v){
+    fast = v;
+    if(cut) cut.dur = (cut.def.dur||3.4)/(fast?3.4:1);
+  }
+  function isPlaying(){ return !!cut; }
+
+  /* ---------- 主循环 ---------- */
+  function loop(now){
+    rafId = requestAnimationFrame(loop);
+    let dt = (now - last)/1000; last = now;
+    if(dt<=0) dt = .016; if(dt>.05) dt = .05;
+    time += dt;
+    updateFx(dt);
+    if(surface==="home" && homeScene){
+      homePlatform.rotation.y += dt*.12;
+      const a = time*.45;
+      homeTrain.position.set(Math.sin(a)*3.35, .05, Math.cos(a)*3.35);
+      homeTrain.rotation.y = -a + Math.PI/2;
+      homeTrain.position.y = .05 + Math.sin(time*3)*.03;
+      for(const cl of homeScene.children){ if(cl.children && cl.children.length===3 && cl.children[0].geometry===GEO.sph){ cl.position.x += dt*.35; if(cl.position.x>7)cl.position.x=-7; } }
+      renderer.render(homeScene, homeCam);
+    }else if(surface==="game" && gameScene){
+      // 云漂移
+      for(const cl of clouds){ cl.position.x += dt*.25; if(cl.position.x>6.5) cl.position.x=-6.5; }
+      if(cut){
+        const c = cut;
+        c.p += dt / c.dur;
+        if(c.p>=1){ c.p=1; }
+        ctx.k = c.p;
+        ctx.e = c.p<.5 ? 2*c.p*c.p : 1-Math.pow(-2*c.p+2,2)/2; // easeInOutQuad
+        ctx.dt = dt; ctx.t = time;
+        try{ c.def.update && c.def.update(ctx, dt); }catch(e){ console.warn("cut update",e); }
+        cineBar.style.width = (c.p*100).toFixed(1)+"%";
+        if(c.p>=1){
+          cut = null;
+          try{ c.def.exit && c.def.exit(ctx); }catch(e){}
+          clearProps(); actors.forEach(resetActor); lineActors(1.15,.62); setSky(DAY_SKY);
+          endCine(); c.resolve();
+        }
+      }else{
+        for(let i=0;i<actors.length;i++) Pose.idle(actors[i], time + i*.7);
+        const ang = .12 + Math.sin(time*.13)*.1;
+        camPos.set(Math.sin(ang)*.9, 2.05+Math.sin(time*.3)*.06, 6.4);
+        camLook.set(0,1.05,0);
+      }
+      // 手持微抖 + 应用相机
+      cam.position.copy(camPos);
+      if(handJ>0){ cam.position.x += (Math.random()-.5)*handJ; cam.position.y += (Math.random()-.5)*handJ; }
+      cam.lookAt(camLook);
+      renderer.render(gameScene, cam);
+    }
+  }
+
+  window.addEventListener("resize", function(){
+    if(surface==="home") resizeTo(document.getElementById("home3d"));
+    if(surface==="game") resizeTo(document.getElementById("stage3d"));
+  });
+
+  return {
+    available:true, attachHome, attachGame, setCity, setActors,
+    play, skip, setFast, isPlaying, flash:flashStage,
+    resetView(){ camPos.set(0,2.1,6.4); camLook.set(0,1.1,0); handJ=0; }
+  };
+})();
+
+/* DOM/emoji 降级导演（WebGL 不可用时使用，接口与 TD 一致） */
+const FB = (function(){
+  if(window.THREE) return null;
+  const seMain=$("seMain"), seProp=$("seProp"), seActors=$("seActors"), seCity=$("seCity"),
+        wrap=$("stageWrap"), sub=$("cineSub"), bar=$("cineBar");
+  let actorsN=1, fast=false, timer=null, curResolve=null;
+  function restartAnim(el){ el.style.animation="none"; void el.offsetWidth; el.style.animation=""; }
+  function attachHome(el){ /* 纯 CSS 背景即可 */ }
+  function attachGame(el){ $("stageEmoji").classList.add("on"); }
+  function setCity(key){ seCity.textContent = CITIES[key].emoji; }
+  function setActors(n){
+    actorsN=n; const emos=["🧍‍♀️","🧍","🧍‍♂️","🧒"];
+    seActors.innerHTML="";
+    for(let i=0;i<n;i++){ const s=document.createElement("span"); s.textContent=emos[i%4]; seActors.appendChild(s); }
+  }
+  function play(def){
+    return new Promise(function(resolve){
+      if(timer){ clearTimeout(timer); if(curResolve){ const r=curResolve; curResolve=null; r(); } }
+      curResolve = resolve;
+      const fb = def.fb || {main:def.emoji||"🎬",prop:"✨"};
+      seMain.textContent = fb.main;
+      seProp.textContent = fb.prop||"✨";
+      seProp.style.left = (fb.x||"22%"); seProp.style.bottom=(fb.y||"30%");
+      restartAnim(seMain); restartAnim(seProp);
+      wrap.classList.add("cine");
+      sub.querySelector(".cs-emoji").textContent=def.emoji||"🎬";
+      sub.querySelector(".cs-text").textContent=def.title||"";
+      sub.querySelector(".cs-city").textContent=def.tag?("· "+def.tag):"";
+      bar.style.transition="none";bar.style.width="0%";void bar.offsetWidth;
+      const dur=(def.dur||3.4)/(fast?3.4:1);
+      bar.style.transition=`width ${dur}s linear`; bar.style.width="100%";
+      timer=setTimeout(function(){ wrap.classList.remove("cine"); timer=null; curResolve=null; resolve(); }, dur*1000);
+    });
+  }
+  function skip(){ if(timer){ clearTimeout(timer); timer=null; wrap.classList.remove("cine"); if(curResolve){ const r=curResolve; curResolve=null; r(); } } }
+  function setFast(v){ fast=v; }
+  function isPlaying(){ return !!timer; }
+  function flash(){ const f=$("stageFlash"); f.classList.remove("go");void f.offsetWidth;f.classList.add("go"); }
+  function resetView(){}
+  return {available:false,attachHome,attachGame,setCity,setActors,play,skip,setFast,isPlaying,flash,resetView};
+})();
+const Stage = window.THREE ? TD : FB;
+/* ============================================================
+ * 4. 过场场景库：每个动作 / 交通 / 事件结果都有一段 3D 小电影
+ * ============================================================ */
+const seg = (k,a,b)=> k<=a?0 : k>=b?1 : (k-a)/(b-a);
+const easeOut = t => 1-Math.pow(1-t,3);
+const easeIn = t => t*t*t;
+const STEAM_OPT = {up:.5,spread:.28,life:.9,grav:-.5,size:.45};
+
+function tableProp(ctx, color, w, z){
+  const p = ctx.props;
+  p.add(ctx.B(color, 0,.5,z, w,.09,.85));
+  p.add(ctx.B(0x6b4a2f, -w*.42,.24,z-.32,.07,.5,.07));
+  p.add(ctx.B(0x6b4a2f,  w*.42,.24,z-.32,.07,.5,.07));
+  p.add(ctx.B(0x6b4a2f, -w*.42,.24,z+.32,.07,.5,.07));
+  p.add(ctx.B(0x6b4a2f,  w*.42,.24,z+.32,.07,.5,.07));
+}
+/* ===== 舞台走位原语（观众席视角：正面朝观众 + 左右侧台横向行进） =====
+   关键：观众机位始终在舞台前方；横向行进时演员转成侧影、沿舞台前沿横走，
+   全队等距排成一条平行于屏幕的线，任何人数都不会互相遮挡或近大远小。 */
+const STAGE_GAP = .5;
+/* 横向列队：队形中心在 (cx,z)，沿 X 等距排开 */
+function sideLine(c, z, cx, gap){
+  const n=c.actors.length, g=gap||STAGE_GAP;
+  for(let i=0;i<n;i++){
+    const a=c.actors[i];
+    a.g.position.set(cx+(i-(n-1)/2)*g, 0, z);
+  }
+}
+/* 横向行进：队形整体走到 (cx,z)，全员朝行进方向侧身，走姿 */
+function walkX(c, cx, z, dir, speed, gap){
+  const n=c.actors.length, g=gap||STAGE_GAP;
+  for(let i=0;i<n;i++){
+    const a=c.actors[i];
+    a.g.position.x = cx+(i-(n-1)/2)*g;
+    a.g.position.z = z; a.g.position.y = 0;
+    // 3/4 侧身而非纯 90°：保留横向行进感，同时观众始终看得到脸
+    a.g.rotation.y = dir>0 ? 1.1 : -1.1;
+    c.pose.walk(a, c.t+i*.5, speed||3);
+  }
+}
+/* 正面定位：队形居中、面向观众 */
+function frontAt(c, z, gap){
+  const n=c.actors.length, g=gap||STAGE_GAP;
+  for(let i=0;i<n;i++){
+    const a=c.actors[i];
+    a.g.position.set((i-(n-1)/2)*g, 0, z);
+    a.g.rotation.y = 0;
+  }
+}
+
+/* ---------- 美食 ---------- */
+function foodScene(emo, hot, special){
+  return {
+    dur: hot?4.0:3.4, emoji: hot?"🍲":"🍜", title:"干饭时间到！",
+    fb:{main:emo, prop:"💨", y:"26%"},
+    enter(c){
+      tableProp(c, hot?0xa83232:(special==="fine"?0xe8e2d4:0x9c6b3f), hot?1.9:1.5, .25);
+      const food = c.emoji(emo, hot?1.15:1.0); food.position.set(0,.72,.25); c.props.add(food); c.state.food=food;
+      if(hot){
+        c.props.add(c.C(0xc0392b,0,.6,.25,.42,.22,1));
+      }
+      if(special==="fine"){
+        const k=c.emoji("🕯️",.3); k.position.set(.6,.78,.25); c.props.add(k);
+        const k2=c.emoji("🕯️",.3); k2.position.set(-.6,.78,.25); c.props.add(k2);
+      }
+      sideLine(c,-.5,-3);
+      c.state.sT=0;
+    },
+    update(c,dt){
+      const k=c.k;
+      if(k<.2){
+        walkX(c, lerp(-3,0,easeOut(seg(k,0,.2))), -.5, 1, 3.2);
+      }else if(k<.85){
+        frontAt(c,-.5);
+        for(let i=0;i<c.actors.length;i++){
+          const ac=c.actors[i];
+          if(special==="fine"){ ac.pv.rotation.x = .08; c.pose.eat(ac,c.t*0.7+i); }
+          else c.pose.eat(ac,c.t+i*.6);
+        }
+        c.state.sT += dt;
+        if(c.state.sT>.16){ c.state.sT=0;
+          c.burst((Math.random()-.5)*1.1,.82,.25, hot?0xffd0a0:0xffffff,2,STEAM_OPT);
+        }
+        if(c.state.food) c.state.food.position.y = .72 + Math.sin(c.t*5)*.03;
+      }else{
+        for(let i=0;i<c.actors.length;i++) c.pose.cheer(c.actors[i],c.t+i*.4);
+        if(!c.state.celeb){ c.state.celeb=1;
+          c.burst(0,1.5,-.3,0xfbbf24,18,{up:4,spread:3,life:1.1});
+          c.eburst(0,1.4,-.2,"😋",c.actors.length,{up:2.2,life:1.3,grav:1.5,size:.5});
+        }
+      }
+      const t = seg(k,.2,.85);
+      if(special==="fine"){
+        c.cam(Math.sin(k*1.4)*.55,1.75,4.7, 0,1.0,-.3);
+      }else{
+        c.cam(0, lerp(2.0,1.72,t), lerp(5.6,4.5,t), 0,1.0,-.25);
+      }
+    }
+  };
+}
+
+/* ---------- 景点 ---------- */
+function spotGeneric(emo){
+  return {
+    dur:3.6, emoji:"⭐", title:"打卡名场面",
+    fb:{main:emo,prop:"📸"},
+    enter(c){
+      // 从舞台左侧候场
+      sideLine(c,.6,-3.2);
+    },
+    update(c){
+      const k=c.k;
+      if(k<.5){
+        // 横向侧台：演员以侧影从左走到舞台中央，观众机位只做轻微平移
+        const t=easeOut(seg(k,.05,.5));
+        walkX(c, lerp(-3.2,.1,t), .6, 1, 3.4);
+        c.cam(lerp(-.8,.8,t),1.8,4.5, 0,1.15,-.3);
+      }else if(k<.62){
+        // 小步走向地标，同时侧身回望（只转 3/4，不给背影）
+        const t=easeOut(seg(k,.5,.62));
+        for(let i=0;i<c.actors.length;i++){
+          const ac=c.actors[i];
+          ac.g.position.x = .1+(i-(c.actors.length-1)/2)*STAGE_GAP;
+          ac.g.position.z = lerp(.6,-.1,t);
+          ac.g.rotation.y = lerp(1.1,1.15,t);
+          if(t<1) c.pose.walk(ac,c.t+i*.5,2);
+        }
+        c.cam(.8,1.7,4.2, 0,1.5,-1.2);
+      }else if(k<.88){
+        // 侧身仰望地标 + 闪光定格，观众仍看得到脸
+        for(let i=0;i<c.actors.length;i++){
+          const ac=c.actors[i];
+          ac.g.position.x = .1+(i-(c.actors.length-1)/2)*STAGE_GAP;
+          ac.g.position.z = -.1; ac.g.rotation.y = 1.15;
+          c.pose.look(ac,c.t+i);
+        }
+        if(!c.state.fl){ c.state.fl=1; c.flash(); c.burst(0,1.7,-.6,0xffe08a,14,{up:3.4,spread:2.4,life:1}); }
+        c.cam(.8,1.7,4.2, 0,1.5,-1.2);
+      }else{
+        // 转身面向观众，正面欢呼收尾
+        frontAt(c,.7);
+        for(let i=0;i<c.actors.length;i++) c.pose.cheer(c.actors[i],c.t+i*.4);
+        if(!c.state.fl2){ c.state.fl2=1; c.flash(); c.burst(0,1.7,.5,0xffe08a,12,{up:3.2,spread:2.4,life:1}); }
+        c.cam(0,1.7,4.7, 0,1.2,.4);
+      }
+    }
+  };
+}
+function parkScene(){
+  return {dur:3.4,emoji:"🌳",title:"慢下来，发个呆",fb:{main:"🌳",prop:"🍂"},
+    enter(c){
+      c.props.add(c.B(0x8a5a33,0,.32,.4,1.7,.1,.5));
+      c.props.add(c.B(0x7a4f2c,-.75,.55,.4,.08,.55,.08)); c.props.add(c.B(0x7a4f2c,.75,.55,.4,.08,.55,.08));
+      sideLine(c,.55,-3);
+    },
+    update(c,dt){
+      const k=c.k;
+      if(k<.25) walkX(c, lerp(-3,0,easeOut(seg(k,0,.25))), .55, 1, 2.4);
+      else{
+        frontAt(c,.55);
+        for(let i=0;i<c.actors.length;i++){ const ac=c.actors[i]; c.pose.sit(ac,c.t+i*.5); }
+        if(Math.random()<dt*2.2) c.burst((Math.random()-.5)*3,2.6+Math.random()*1,-.5, rnd([0xe0a83a,0xd96a3a,0xc9a24a]),1,{up:-.2,spread:1.2,life:2.2,grav:.6,size:.5});
+      }
+      c.cam(0,1.7,5.0,0,1.0,.3);
+    }
+  };
+}
+function museumScene(){
+  return {dur:3.6,emoji:"🏛️",title:"省博陶冶情操",fb:{main:"🏛️",prop:"🖼️"},
+    enter(c){
+      c.props.add(c.B(0xefe7d8,-1.1,1.25,-1.6,1.0,1.3,.12));
+      c.props.add(c.B(0xefe7d8, 1.1,1.25,-1.6,1.0,1.3,.12));
+      const p1=c.emoji("🏺",.7); p1.position.set(-1.1,1.25,-1.5); c.props.add(p1);
+      const p2=c.emoji("🐎",.7); p2.position.set(1.1,1.25,-1.5); c.props.add(p2);
+      sideLine(c,.3,-3);
+    },
+    update(c){
+      const k=c.k;
+      if(k<.45){
+        const t=easeOut(seg(k,.05,.45));
+        walkX(c, lerp(-3,0,t), .3, 1, 2.2);
+      }else if(k<.8){
+        // 斜后方就是展品：横排站定、只转 3/4 侧身欣赏，观众仍看得到脸
+        const side=k<.62?-1:1;
+        for(let i=0;i<c.actors.length;i++){
+          const ac=c.actors[i];
+          ac.g.position.x=(i-(c.actors.length-1)/2)*.44;
+          ac.g.position.z=-.1; ac.g.position.y=0;
+          ac.g.rotation.y=side*.85;
+          c.pose.look(ac,c.t+i);
+        }
+      }else{
+        frontAt(c,.2,.44);
+        for(let i=0;i<c.actors.length;i++) c.pose.cheer(c.actors[i],c.t+i);
+        if(!c.state.b){c.state.b=1;c.burst(0,1.6,.2,0xffd08a,10,{up:2.6,spread:2,life:1});}
+      }
+      c.cam(0,1.75,4.7,0,1.1,-.8);
+    }
+  };
+}
+function nightScene(){
+  return {dur:3.8,emoji:"🌃",title:"灯火阑珊处",fb:{main:"🌃",prop:"✨"},
+    enter(c){ sideLine(c,.2,-3); },
+    update(c,dt){
+      const k=c.k;
+      c.sky(k<.5?cLerp(0xa9d8f0,0x2a3a66,k*2):0x141b33);
+      if(k<.5){
+        const t=easeOut(seg(k,0,.5));
+        walkX(c, lerp(-3,.1,t), .2, 1, 2.6);
+      }else{
+        // 正面朝观众、仰头看身后万家灯火
+        frontAt(c,.2,.44);
+        for(let i=0;i<c.actors.length;i++) c.pose.look(c.actors[i],c.t+i);
+        if(Math.random()<dt*3) c.burst((Math.random()-.5)*5,2.6+Math.random()*2,-4,0xffe9a8,1,{up:0,spread:.4,life:1.6,grav:0,size:.35});
+      }
+      c.cam(0,1.65,4.6,0,1.4,-1);
+    }
+  };
+}
+function wallScene(){
+  return {dur:3.8,emoji:"🧱",title:"不到长城非好汉",fb:{main:"🧱",prop:"🚲"},
+    enter(c){
+      // 侧台：逐级抬高的长城台阶，从左下延伸到右上
+      for(let i=0;i<6;i++){
+        const h=.08+i*.16, x=-2.1+i*.72;
+        c.props.add(c.B(0xb08a5a,x,h/2,-1.3,.74,h,.9));
+        c.props.add(c.B(0x8a6a42,x,h+.09,-1.3,.74,.18,.9));
+      }
+      c.props.add(c.B(0x9c3a2e,2.05,.7,-1.3,.5,1.4,.9));
+      c.props.add(c.B(0x9c3a2e,2.05,1.5,-1.3,.7,.22,1.0));
+      c.props.add(c.B(0x5a4a3a,2.05,1.92,-1.3,.05,.7,.05));
+      c.props.add(c.B(0xe0463c,2.24,2.12,-1.3,.42,.26,.03));
+      sideLine(c,.7,-3);
+    },
+    update(c){
+      const k=c.k;
+      if(k<.72){
+        // 纯侧面：自左向右拾级而上，脚步轻快带起伏
+        const t=seg(k,0,.72);
+        walkX(c, lerp(-3,1.3,t), .7, 1, 4.4);
+        for(let i=0;i<c.actors.length;i++){ c.actors[i].g.position.y = Math.sin(t*Math.PI)*.3; }
+      }else{
+        // 登顶后转身正面朝观众，累到扶膝
+        frontAt(c,.9);
+        for(let i=0;i<c.actors.length;i++) c.pose.slump(c.actors[i]);
+        if(!c.state.x){c.state.x=1;c.eburst(0,1.5,.6,"💦",c.actors.length,{up:1.6,life:1.2,size:.45});}
+      }
+      c.cam(1.2,1.7,4.4,.1,1.2,-.8);
+    }
+  };
+}
+function riversideScene(emo){
+  return {dur:3.5,emoji:"🌉",title:"江风与城市",fb:{main:emo,prop:"🌊"},
+    enter(c){
+      c.props.add(c.B(0x2b6a8f,0,.02,1.9,8,.04,1.5));
+      sideLine(c,.7,-2.8);
+    },
+    update(c,dt){
+      const k=c.k;
+      if(k<.75){
+        // 沿江横向散步：侧身朝右走
+        const t=easeOut(seg(k,0,.75));
+        walkX(c, lerp(-2.8,1,t), .7, 1, 3);
+        if(Math.random()<dt*4) c.burst((Math.random()-.5)*5,.08,1.9,0x9ad8ff,1,{up:.6,spread:1,life:.8,grav:2,size:.35});
+      }else{
+        frontAt(c,.7);
+        for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+      }
+      c.cam(-2.2,1.7,4.2,0,1.2,-.4);
+    }
+  };
+}
+
+/* ---------- 休息 ---------- */
+function sleepScene(){
+  return {dur:3.6,emoji:"😴",title:"充电中，请勿打扰",fb:{main:"😴",prop:"💤"},
+    enter(c){
+      c.props.add(c.B(0xd8c8b8,0,.35,.35,1.9,.35,1.1));
+      c.props.add(c.B(0x9c6b5a,0,.75,-.18,1.9,.75,.12));
+      const m=c.S(0xf2f2f2,2.4,2.6,-3.2,.5); c.props.add(m);
+      sideLine(c,.45,-3);
+      c.state.zT=0;
+    },
+    update(c,dt){
+      const k=c.k;
+      c.sky(cLerp(0xa9d8f0,0x141b33,seg(k,0,.35)));
+      if(k<.3) walkX(c, lerp(-3,0,easeOut(seg(k,0,.3))), .45, 1, 2);
+      else{
+        frontAt(c,.45,.44);
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.position.y=.5;c.pose.sleep(ac,c.t+i);}
+        c.state.zT+=dt;
+        if(c.state.zT>.5){c.state.zT=0;c.eburst((Math.random()-.5)*1.5,1.3,.4,"💤",1,{up:1,spread:.5,life:1.4,grav:-.4,size:.45});}
+      }
+      c.cam(0,1.7,4.8,0,.9,.3);
+    }
+  };
+}
+function spaScene(emoji, massage){
+  return {dur:3.4,emoji:massage?"💆":"♨️",title:massage?"灵魂归位":"泡去一身疲惫",fb:{main:emoji,prop:"💨"},
+    enter(c){
+      if(massage){
+        c.props.add(c.B(0x8a5a33,0,.45,.3,1.8,.25,.8));
+      }else{
+        c.props.add(c.C(0x6aa8c8,0,.35,.3,.85,.4,1));
+        c.props.add(c.C(0x4a82a8,0,.42,.3,.7,.12,1));
+      }
+      const e=c.emoji(emoji,.9); e.position.set(0,.9,.3); c.props.add(e);
+      sideLine(c,-.4,-3); c.state.sT=0;
+    },
+    update(c,dt){
+      const k=c.k;
+      if(k<.22) walkX(c, lerp(-3,0,easeOut(seg(k,0,.22))), -.4, 1, 2.2);
+      else{
+        frontAt(c,-.4,.42);
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];c.pose.sit(ac,c.t+i*.6);}
+        c.state.sT+=dt;
+        if(c.state.sT>.18){c.state.sT=0;c.burst((Math.random()-.5)*.9,.75,.3,0xffffff,2,STEAM_OPT);}
+        if(k>.8&&!c.state.a){c.state.a=1;c.burst(0,1.4,-.3,0x7fe0d0,12,{up:2.6,spread:2,life:1.1});}
+      }
+      c.cam(0,1.8,4.7,0,1,-.2);
+    }
+  };
+}
+function cafeScene(){
+  return {dur:3.2,emoji:"☕",title:"续命水安排",fb:{main:"☕",prop:"💨"},
+    enter(c){
+      tableProp(c,0x8a5a33,1.2,.25);
+      const cup=c.emoji("☕",.7);cup.position.set(0,.72,.25);c.props.add(cup);
+      sideLine(c,-.45,-3); c.state.sT=0;
+    },
+    update(c,dt){
+      const k=c.k;
+      if(k<.2) walkX(c, lerp(-3,0,easeOut(seg(k,0,.2))), -.45, 1, 2.6);
+      else{
+        frontAt(c,-.45,.42);
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];c.pose.sit(ac,c.t+i*.6);}
+        c.state.sT+=dt; if(c.state.sT>.3){c.state.sT=0;c.burst(0,.85,.25,0xffffff,1,STEAM_OPT);}
+      }
+      c.cam(.1,1.75,4.6,0,1,-.2);
+    }
+  };
+}
+
+/* ---------- 购物 ---------- */
+function shopGeneric(emo, variant){
+  return {dur:3.5,emoji:"🛍️",title:"剁手进行时",fb:{main:emo,prop:"💰"},
+    enter(c){
+      for(const ac of c.actors) ac.g.position.z=.35;
+      c.lineUp(.35,.6);
+      c.bags=[];
+      for(let i=0;i<c.actors.length;i++){
+        const b=c.emoji(variant==="box"?"📦":(variant==="luxury"?"👜":"🛍️"),.5);
+        b.position.set(c.actors[i].g.position.x,.35,.75); b.visible=false; c.props.add(b); c.bags.push(b);
+      }
+      if(variant==="night"){
+        for(let i=-2;i<=2;i++){ const s=c.S(0xd94a3a,i*.7,2.3,-1.4,.16); c.props.add(s); }
+      }
+    },
+    update(c){
+      const k=c.k;
+      for(let i=0;i<c.actors.length;i++){
+        const ac=c.actors[i];
+        c.pose.idle(ac,c.t+i);
+        const show = k>.25+i*.12;
+        c.bags[i].visible = show;
+        c.bags[i].position.y = show ? .35+Math.sin(c.t*3+i)*.04 : .35;
+        c.bags[i].scale.setScalar(show?Math.min(1,seg(k,.25+i*.12,.4+i*.12)*1.2)*.5:.5);
+      }
+      if(k>.75) for(let i=0;i<c.actors.length;i++) c.pose.cheer(c.actors[i],c.t+i);
+      if(!c.state.g&&k>.82){c.state.g=1;
+        c.burst(0,1.5,.2, variant==="luxury"?0xffd700:0xfbbf24, variant==="luxury"?26:14,{up:4,spread:3,life:1.2});
+        c.eburst(0,1.3,.2,"🎉",c.actors.length,{up:2.4,life:1.3,grav:1.2,size:.5});
+      }
+      c.cam(0,1.9,lerp(5.6,4.7,seg(k,.2,.8)),0,1.05,.2);
+    }
+  };
+}
+
+/* ---------- 娱乐 ---------- */
+function wheelScene(){
+  return {dur:3.6,emoji:"🎡",title:"升到顶端许个愿",fb:{main:"🎡",prop:"✨"},
+    enter(c){
+      const pivot=new c.T.Group(); pivot.position.set(0,1.55,-1.4);
+      pivot.add(c.mk(c.GEO.torus,c.mL(0xe85d6e),0,0,0,1.05,1.05,1.05));
+      for(let i=0;i<8;i++){ const a=i/8*Math.PI*2;
+        const cab=c.B(0xfbbf24,Math.cos(a)*1.05,Math.sin(a)*1.05,0,.22,.22,.22);
+        cab.rotation.z=-a; pivot.add(cab);
+      }
+      c.props.add(pivot);
+      c.props.add(c.B(0x8a97a8,-.5,.75,-1.4,.08,1.5,.08));
+      c.props.add(c.B(0x8a97a8,.5,.75,-1.4,.08,1.5,.08));
+      c.state.pivot=pivot;
+      for(const ac of c.actors) ac.g.position.z=1.2;
+      c.lineUp(1.2,.6);
+    },
+    update(c){
+      const k=c.k;
+      c.state.pivot.rotation.z = k*1.4;
+      for(let i=0;i<c.actors.length;i++){
+        const ac=c.actors[i];
+        if(k<.8){ if(i%2)c.pose.look(ac,c.t+i); else {ac.armL.rotation.x=-1.8;ac.armR.rotation.x=-1.8;ac.pv.rotation.x=-.1;} }
+        else c.pose.cheer(ac,c.t+i);
+      }
+      if(!c.state.s&&k>.85){c.state.s=1;c.burst(0,2.8,-1.4,0xffe08a,12,{up:2,spread:2,life:1.2});}
+      c.cam(0,1.9,5.2,0,1.5,-.9);
+    }
+  };
+}
+function ktvScene(){
+  const cols=[0xe85d6e,0xfbbf24,0x35a06b,0x2f80c7,0xb8468a];
+  return {dur:3.6,emoji:"🎤",title:"今晚我是麦霸",fb:{main:"🎤",prop:"🎵"},
+    enter(c){
+      const mic=c.emoji("🎤",.8);mic.position.set(0,1.0,.5);c.props.add(mic);
+      c.lights=[];
+      for(let i=0;i<5;i++){ const b=c.BB(cols[i],-1.6+i*.8,2.4,-1.6,.3,.3,.3); c.props.add(b); c.lights.push(b); }
+      for(const ac of c.actors) ac.g.position.z=.6;
+      c.lineUp(.6,.62);
+      c.state.nT=0; c.state.beat=0;
+    },
+    update(c,dt){
+      const k=c.k;
+      for(let i=0;i<c.actors.length;i++) c.pose.dance(c.actors[i],c.t+i*.7);
+      c.state.beat+=dt;
+      if(c.state.beat>.22){c.state.beat=0; const col=cols[Math.floor(Math.random()*cols.length)];
+        for(const b of c.lights) b.material=c.mB(col);
+      }
+      c.state.nT+=dt;
+      if(c.state.nT>.3){c.state.nT=0;c.eburst((Math.random()-.5)*1.6,2.0+Math.random()*.6,0,rnd(["🎵","🎶"]),1,{up:1.2,spread:1,life:1.3,grav:-.2,size:.45});}
+      if(k>.85&&!c.state.g){c.state.g=1;c.burst(0,1.6,.4,0xfbbf24,16,{up:3.4,spread:2.6,life:1.1});}
+      c.cam(Math.sin(k*2)*.25,1.9,4.8,0,1.1,.3);
+    }
+  };
+}
+function barScene(){
+  return {dur:3.4,emoji:"🍸",title:"微醺的夜晚",fb:{main:"🍸",prop:"💨"},
+    enter(c){
+      tableProp(c,0x5a3f55,1.4,.35);
+      for(let i=0;i<Math.max(2,c.actors.length);i++){ const d=c.emoji("🍸",.4); d.position.set(-.5+i*.5,.75,.35); c.props.add(d); }
+      sideLine(c,-.5,-3);
+    },
+    update(c,dt){
+      const k=c.k;
+      c.sky(cLerp(0xa9d8f0,0x2a3a66,seg(k,0,.4)));
+      if(k<.2) walkX(c, lerp(-3,0,easeOut(seg(k,0,.2))), -.5, 1, 2);
+      else{
+        frontAt(c,-.5,.42);
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];c.pose.sit(ac,c.t+i*.8);ac.pv.rotation.z=Math.sin(c.t*1.5+i)*.05;}
+        if(Math.random()<dt*3)c.burst((Math.random()-.5)*.8,.9,.3,0xbfe4ff,1,{up:.8,spread:.3,life:.9,grav:-.6,size:.3});
+      }
+      c.cam(.1,1.7,4.6,0,1,-.2);
+    }
+  };
+}
+function showScene(){
+  return {dur:3.6,emoji:"🎭",title:"大戏开场",fb:{main:"🎭",prop:"👏"},
+    enter(c){
+      c.props.add(c.B(0x9c1f1f,-1.5,1.5,-2,1.2,3,.2));
+      c.props.add(c.B(0x9c1f1f, 1.5,1.5,-2,1.2,3,.2));
+      c.props.add(c.mk(c.GEO.cone,c.mB(0xffe08a,.3),0,1.7,-2.2,1.6,1.6,1.6));
+      sideLine(c,.7,-3);
+    },
+    update(c){
+      const k=c.k;
+      if(k<.2) walkX(c, lerp(-3,0,easeOut(seg(k,0,.2))), .7, 1, 2.2);
+      else if(k<.8){
+        // 坐着看戏：身体大半朝向观众，微微侧身望向身后舞台
+        frontAt(c,.7,.42);
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];c.pose.sit(ac,c.t+i);ac.pv.rotation.x=-.18;ac.g.rotation.y=(i%2?.5:-.5);}
+      }else{
+        frontAt(c,.7,.42);
+        for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+        if(!c.state.g){c.state.g=1;c.burst(0,2,-1.2,0xffe08a,16,{up:3,spread:2.4,life:1.3});c.eburst(0,1.6,.5,"👏",c.actors.length,{up:2,life:1.2,size:.5});}
+      }
+      c.cam(0,1.8,5.5,0,1.4,-1.4);
+    }
+  };
+}
+function escapeScene(){
+  return {dur:3.5,emoji:"🔦",title:"屏住呼吸……",fb:{main:"🔦",prop:"😱"},
+    enter(c){
+      c.props.add(c.mk(c.GEO.cone,c.mB(0xfff3a0,.28),0,1.1,.6,.7,.7,.7));
+      for(const ac of c.actors) ac.g.position.z=.8;
+      c.lineUp(.8,.6);
+    },
+    update(c){
+      const k=c.k;
+      c.sky(cLerp(0xa9d8f0,0x2a3a66,seg(k,0,.35)));
+      if(k<.78){
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];c.pose.idle(ac,c.t*3+i);ac.pv.rotation.x=-.08;}
+        c.cam(Math.sin(k*9)*.08,1.85,4.6,0,1.2,.2,.025);
+      }else{
+        for(let i=0;i<c.actors.length;i++){c.pose.cheer(c.actors[i],c.t+i);c.actors[i].g.position.y=Math.abs(Math.sin(c.t*8))*.15;}
+        if(!c.state.g){c.state.g=1;c.eburst(0,1.8,.5,"❗",c.actors.length,{up:2,life:1.1,size:.5});c.burst(0,1.4,.3,0xc0c0c0,10,{up:2.4,spread:2,life:1});}
+      }
+    }
+  };
+}
+function tableSitScene(emo,title,em){
+  return {dur:3.4,emoji:em,title:title,fb:{main:em,prop:"🀄"},
+    enter(c){
+      tableProp(c,0x7a5a33,1.6,.3);
+      const e=c.emoji(em,.85);e.position.set(0,.75,.3);c.props.add(e);
+      sideLine(c,-.5,-3);
+    },
+    update(c,dt){
+      const k=c.k;
+      if(k<.2) walkX(c, lerp(-3,0,easeOut(seg(k,0,.2))), -.5, 1, 2.4);
+      else{
+        frontAt(c,-.5);
+        for(let i=0;i<c.actors.length;i++) c.pose.sit(c.actors[i],c.t+i*.5);
+        if(k>.8&&!c.state.g){c.state.g=1;c.burst(0,1.5,.3,0xfbbf24,12,{up:2.8,spread:2.2,life:1.1});}
+      }
+      c.cam(0,1.85,4.5,0,1,-.2);
+    }
+  };
+}
+
+/* ---------- 拍照 ---------- */
+function photoScene(pro){
+  return {dur: pro?3.6:3.2, emoji:"📸", title: pro?"大片开拍":"茄子——！",
+    fb:{main:pro?"📸":"🤳",prop:"✨"},
+    enter(c){
+      for(const ac of c.actors) ac.g.position.z=.5;
+      c.lineUp(.5,.6);
+      if(pro){
+        c.props.add(c.B(0x333333,0,.55,1.7,.05,1.1,.05));
+        const cam=c.emoji("📷",.7);cam.position.set(0,1.25,1.6);c.props.add(cam);
+      }
+    },
+    update(c){
+      const k=c.k;
+      const t1=pro ? .42 : .5;
+      if(k<t1){
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];c.pose.photo(ac,c.t+i);}
+        c.cam(0,1.8,5.0,0,1.2,.3);
+      }else if(k<t1+.06){
+        if(!c.state.f1){c.state.f1=1;c.flash();c.burst(0,1.6,.3,0xffffff,16,{up:3,spread:2.6,life:.9,grav:3});}
+        for(const ac of c.actors) c.pose.cheer(ac,c.t);
+      }else if(k<.85){
+        for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+        if(pro&&!c.state.f2&&k>.68){c.state.f2=1;c.flash();}
+      }else{
+        for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+        if(!c.state.p){c.state.p=1;
+          const pic=c.emoji(pro?"🖼️":"📷",.8);pic.position.set(0,1.3,.5);c.props.add(pic);c.state.pic=pic;
+          c.burst(0,1.5,.3,0xffd700,10,{up:2.6,spread:2,life:1});
+        }
+        if(c.state.pic){c.state.pic.position.y=1.3+seg(k,.85,1)*.5;c.state.pic.rotation.z=Math.sin(c.t*2)*.08;}
+      }
+      c.cam(0,1.8,4.8,0,1.2,.3);
+    }
+  };
+}
+
+/* ---------- 交通 ---------- */
+function travelScene(tt, toKey, returning){
+  const tag = returning ? "返程回家" : CITIES[toKey].name+" 我来了";
+  const base = {
+    train:{dur:4.2,emoji:"🚄",title:returning?"踏上归途":"高铁出发！",fb:{main:"🚄",prop:"🧳"}},
+    plane:{dur:4.0,emoji:"✈️",title:returning?"航班回家":"冲上云霄",fb:{main:"✈️",prop:"☁️"}},
+    car:{dur:3.8,emoji:"🚗",title:returning?"自驾回家":"出发，下一站",fb:{main:"🚗",prop:"🛣️"}},
+    bus:{dur:3.8,emoji:"🚌",title:returning?"大巴回家":"晃晃悠悠出发",fb:{main:"🚌",prop:"🎒"}}
+  }[tt];
+  const def = Object.assign({}, base, {tag:tag});
+  if(tt==="train"){
+    def.enter=function(c){
+      c.train.visible=true; c.train.position.set(8,.02,-.9);
+      // 站在台前等车（收窄横排，避免竖屏出界），侧身朝右等车
+      sideLine(c,.5,-.15,.36);
+      for(const ac of c.actors) ac.g.rotation.y=1.1;
+      c.state.swapped=false;
+    };
+    def.update=function(c){
+      const k=c.k;
+      if(!returning){
+        if(k<.22){
+          // 列车从右侧进站，全员侧身目送
+          const t=easeOut(seg(k,0,.22)); c.train.position.x=lerp(8,-.5,t);
+          for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.rotation.y=1.1;c.pose.idle(ac,c.t+i);}
+        }else if(k<.42){
+          // 横向登车：侧影朝右走到车门口依次消失
+          const t=easeOut(seg(k,.22,.42));
+          walkX(c, lerp(-.15,.45,t), .5, 1, 3, .36);
+          for(let i=0;i<c.actors.length;i++){ if(k>.3+i*.025) c.actors[i].g.visible=false; }
+        }else if(k<.5){
+          c.train.position.x=-.5;
+        }else if(k<.8){
+          // 列车向左驶离，中途换城
+          if(!c.state.swapped){c.state.swapped=1;Stage.setCity(toKey);}
+          const t=easeIn(seg(k,.5,.8)); c.train.position.x=lerp(-.5,-8,t);
+        }else if(k<.93){
+          // 到站：从车旁侧影走回舞台中央
+          c.train.visible=false;
+          const t=easeOut(seg(k,.8,.93));
+          walkX(c, lerp(.45,-.05,t), .9, -1, 2.6, .34);
+          for(let i=0;i<c.actors.length;i++){ c.actors[i].g.visible = (k>.8+i*.02); }
+        }else{
+          // 转身面向观众欢呼
+          frontAt(c,1.35,.4);
+          for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.visible=true;c.pose.cheer(ac,c.t+i);}
+          if(!c.state.w){c.state.w=1;c.burst(0,1.7,.8,0xffe08a,14,{up:3,spread:2.4,life:1.1});}
+        }
+        c.cam(.3,1.75,5.8,0,1,-.4,.012);
+      }else{
+        // 返程：列车靠站 → 侧身目送 → 横向登车 → 驶离 + 晚霞
+        c.sky(cLerp(0xa9d8f0,0xe87a4e,seg(k,.3,.95)));
+        if(k<.2){ const t=easeOut(seg(k,0,.2)); c.train.position.x=lerp(8,-.5,t);
+          for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.rotation.y=1.1;c.pose.idle(ac,c.t+i);}
+        }else if(k<.42){ const t=easeOut(seg(k,.2,.42));
+          walkX(c, lerp(-.15,.45,t), .5, 1, 3, .36);
+          for(let i=0;i<c.actors.length;i++){if(k>.3+i*.02)c.actors[i].g.visible=false;}
+        }else if(k<.8){ c.train.position.x=lerp(-.5,-8,easeIn(seg(k,.42,.8)));
+        }else{
+          // 到家：列车消失，全员正面朝观众挥手
+          c.train.visible=false;
+          frontAt(c,1.35,.4);
+          for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.visible=true;c.pose.wave(ac,c.t+i);}
+        }
+        if(!c.state.f&&k>.85){c.state.f=1;c.eburst(1,2.6,-1,"🎆",3,{up:2.4,life:1.6,grav:.4,size:.6});c.burst(1,2.4,-1,0xffd700,14,{up:3.4,spread:1.6,life:1.4});}
+        c.cam(.3,1.75,5.8,0,1,-.4,.01);
+      }
+    };
+  }else if(tt==="plane"){
+    def.enter=function(c){
+      c.plane.visible=true; c.plane.scale.setScalar(1.1);
+      for(const ac of c.actors)ac.g.position.z=1.2;
+      c.lineUp(1.2,.6);
+      c.state.swapped=false;
+    };
+    def.update=function(c){
+      const k=c.k;
+      if(!returning){
+        if(k<.82){
+          const t=seg(k,.08,.82);
+          c.plane.position.set(lerp(-6,6,t),1.5+Math.sin(t*Math.PI)*2.6,-1.2);
+          c.plane.rotation.z=Math.cos(t*Math.PI)*.25;
+          c.plane.scale.setScalar(lerp(1.1,.65,t));
+          if(t>.5&&!c.state.swapped){c.state.swapped=1;Stage.setCity(toKey);}
+          // 正面朝观众，只随飞机位置微微 3/4 侧身仰望，脸始终看得到
+          for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.rotation.y=Math.max(-.4,Math.min(.4,c.plane.position.x/6*.4));c.pose.look(ac,c.t+i);}
+          if(Math.random()<c.dt*3)c.burst(c.plane.position.x,2.6,-1.2,0xffffff,1,{up:0,spread:.4,life:1,grav:0,size:.4});
+        }else{
+          c.plane.visible=false;
+          frontAt(c,1.2,.6);
+          for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+          if(!c.state.w){c.state.w=1;c.burst(0,1.6,.8,0x9ad8ff,14,{up:3,spread:2.4,life:1.1});}
+        }
+        c.cam(-1,2.1,5,0,1.6,-.6);
+      }else{
+        const t=seg(k,.1,.9);
+        c.plane.position.set(lerp(6,-6,t),1.4+Math.sin(t*Math.PI)*2.4,-1.2);
+        c.plane.scale.setScalar(lerp(.7,1.1,t));
+        c.sky(cLerp(0xa9d8f0,0xe87a4e,seg(k,.3,1)));
+        // 返程：正面朝观众挥手目送
+        for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.rotation.y=0;c.pose.wave(ac,c.t+i);}
+        c.cam(1,2.1,5,0,1.6,-.6);
+      }
+    };
+  }else{
+    const carColor = tt==="bus"?0xf2c03a:0xd94a3a;
+    def.enter=function(c){
+      const v=new c.T.Group();
+      if(tt==="bus"){
+        v.add(c.B(carColor,0,.55,0,2.1,1,.85)); v.add(c.B(0xbfe4ff,0,.85,.05,1.8,.35,.9));
+      }else{
+        v.add(c.B(carColor,0,.4,0,1.5,.5,.7)); v.add(c.B(0x9ad8ff,-.15,.72,0,.9,.4,.72));
+      }
+      v.add(c.C(0x222222,-.55,.15,.4,.16,.12,.16)); v.add(c.C(0x222222,.55,.15,.4,.16,.12,.16));
+      v.add(c.C(0x222222,-.55,.15,-.4,.16,.12,.16)); v.add(c.C(0x222222,.55,.15,-.4,.16,.12,.16));
+      v.position.set(returning?6:-6,0,0); c.props.add(v); c.state.veh=v;
+      c.props.add(c.B(0x4a4a52,0,.01,0,12,.03,1.4));
+      c.state.dashes=[];
+      for(let i=0;i<4;i++){ const d=c.BB(0xffe08a,-4+i*2.2,.04,0,.8,.04,.08); c.props.add(d); c.state.dashes.push(d); }
+      // 台前偏左列队，侧身朝右等车
+      sideLine(c,.6,-1.2);
+      for(const ac of c.actors) ac.g.rotation.y=1.1;
+      c.state.swapped=false;
+    };
+    def.update=function(c,dt){
+      const k=c.k, v=c.state.veh;
+      if(!returning){
+        if(k<.2){
+          // 车从左侧驶入，全员侧身目送
+          const t=easeOut(seg(k,0,.2)); v.position.x=lerp(-6,.85,t);
+          for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.rotation.y=1.1;c.pose.idle(ac,c.t+i);}
+        }else if(k<.38){
+          // 横向登车：侧影朝右走到车门依次消失
+          const t=easeOut(seg(k,.2,.38));
+          walkX(c, lerp(-1.2,.65,t), .6, 1, 3);
+          for(let i=0;i<c.actors.length;i++){if(k>.27+i*.02)c.actors[i].g.visible=false;}
+        }else if(k<.8){
+          // 沿横向公路向右驶离，路面虚线反向流动
+          const t=seg(k,.38,.8); v.position.x=lerp(.85,6,t);
+          v.position.y=Math.sin(c.t*10)*.02;
+          for(const d of c.state.dashes){ d.position.x -= dt*6; if(d.position.x<-5)d.position.x=4.8; }
+          if(!c.state.swapped&&t>.45){c.state.swapped=1;Stage.setCity(toKey);}
+        }else{
+          v.visible=false;
+          frontAt(c,1.1);
+          for(let i=0;i<c.actors.length;i++){const ac=c.actors[i];ac.g.visible=true;c.pose.cheer(ac,c.t+i);}
+          if(!c.state.w){c.state.w=1;c.burst(0,1.5,.8,0xffe08a,12,{up:3,spread:2.2,life:1});}
+        }
+        c.cam(0,1.8,5.2,0,1.1,-.2, tt==="bus"?.03:.02);
+      }else{
+        // 返程：车从右侧来、向左驶离；演员正面朝观众挥手告别
+        const t=seg(k,.1,.8); v.position.x=lerp(6,-6,easeInOut(t));
+        v.position.y=Math.sin(c.t*9)*.02;
+        for(const d of c.state.dashes){ d.position.x += dt*6; if(d.position.x>5)d.position.x=-4.8; }
+        c.sky(cLerp(0xa9d8f0,0xe87a4e,seg(k,.3,1)));
+        frontAt(c,1.1);
+        for(const ac of c.actors) c.pose.wave(ac,c.t);
+        c.cam(0,1.8,5.2,0,1.1,-.2,.02);
+      }
+    };
+  }
+  function easeInOut(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+  return def;
+}
+
+/* ---------- 事件结果即时反应（约 1 秒） ---------- */
+function reactionScene(kind, win){
+  if(kind==="money"){
+    return {dur:1.1,emoji:"💰",title:"意外之财！",fb:{main:"💰",prop:"💰"},
+      enter(c){for(const ac of c.actors)ac.g.position.z=.6;c.lineUp(.6,.6);c.state.t=0;},
+      update(c,dt){c.state.t+=dt;
+        if(c.state.t>.18){c.state.t=0;c.eburst((Math.random()-.5)*2,2.4,.4,"💰",2,{up:1.6,spread:1.4,life:1.1,grav:3.2,size:.45});}
+        for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+        c.cam(0,1.9,4.8,0,1.2,.3);}
+    };
+  }
+  if(kind==="gamble"){
+    return {dur:win?1.3:1.1,emoji:"🎲",title:win?"欧皇附体！":"就差一点点……",fb:{main:"🎲",prop:win?"🎉":"💨"},
+      enter(c){
+        for(const ac of c.actors)ac.g.position.z=.8;c.lineUp(.8,.6);
+        const d1=c.B(0xf2f2f2,-.2,2.6,.5,.3,.3,.3), d2=c.B(0xf2f2f2,.25,2.9,.5,.3,.3,.3);
+        c.props.add(d1);c.props.add(d2);c.state.d1=d1;c.state.d2=d2;
+      },
+      update(c){
+        const k=c.k, fall=easeOut(seg(k,.05,.5));
+        c.state.d1.position.y=2.6-fall*1.4; c.state.d1.rotation.set(k*9,k*7,k*5);
+        c.state.d2.position.y=2.9-fall*1.7; c.state.d2.rotation.set(k*7,k*11,k*8);
+        if(k<.6){for(const ac of c.actors)c.pose.look(ac,c.t);}
+        else if(win){for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+          if(!c.state.g){c.state.g=1;c.burst(0,1.6,.3,0xffd700,18,{up:3.4,spread:2.6,life:1.2});c.eburst(0,1.5,.3,"🎉",3,{up:2,life:1.2,size:.5});}
+        }else{for(const ac of c.actors)c.pose.slump(ac);
+          if(!c.state.g){c.state.g=1;c.burst(0,1.3,.3,0x9aa3ab,8,{up:1.6,spread:1.6,life:.9});}
+        }
+        c.cam(0,1.8,4.6,0,1.1,.2);
+      }
+    };
+  }
+  if(kind==="bad"){
+    return {dur:1.0,emoji:"💢",title:"有点倒霉……",fb:{main:"😩",prop:"💨"},
+      enter(c){for(const ac of c.actors)ac.g.position.z=.6;c.lineUp(.6,.6);},
+      update(c){
+        for(const ac of c.actors)c.pose.slump(ac);
+        if(!c.state.g){c.state.g=1;c.burst(0,1.5,.3,0x9aa3ab,10,{up:1.8,spread:2,life:1});c.eburst(0,1.7,.3,"💢",c.actors.length,{up:1.4,life:1,size:.45});}
+        c.cam(0,1.7,5,0,.9,.2);
+      }
+    };
+  }
+  // good
+  return {dur:1.0,emoji:"🎉",title:"太棒了！",fb:{main:"🥳",prop:"✨"},
+    enter(c){for(const ac of c.actors)ac.g.position.z=.6;c.lineUp(.6,.6);},
+    update(c){
+      for(let i=0;i<c.actors.length;i++)c.pose.cheer(c.actors[i],c.t+i);
+      if(!c.state.g){c.state.g=1;c.burst(0,1.6,.3,0x35d07f,10,{up:3,spread:2.4,life:1});c.burst(0,1.6,.3,0xfbbf24,8,{up:3.2,spread:2.2,life:1.1});}
+      c.cam(0,1.9,4.8,0,1.2,.3);
+    }
+  };
+}
+
+/* ---------- 动作 → 场景映射 ---------- */
+function actionScene(a){
+  switch(a.id){
+    case "f_hotpot": case "f_chuan": return foodScene(a.emoji,true);
+    case "f_fine": return foodScene("🍽️",false,"fine");
+    case "f_milk": return foodScene("🧋",false);
+    case "f_duck": return foodScene("🦆",false);
+    case "s_park": return parkScene();
+    case "s_museum": return museumScene();
+    case "s_night": return nightScene();
+    case "s_great": return wallScene();
+    case "s_bund": case "s_hyd": return riversideScene(a.emoji);
+    case "s_panda": { const s=spotGeneric("🐼"); s.title="熊猫营业中！"; return s; }
+    case "r_hotel": return sleepScene();
+    case "r_spa": return spaScene("♨️",false);
+    case "r_massage": return spaScene("💆",true);
+    case "r_cafe": case "r_siesta": return a.id==="r_cafe"?cafeScene():spaScene("🪑",true);
+    case "p_luxury": return shopGeneric("👜","luxury");
+    case "p_local": return shopGeneric("📦","box");
+    case "p_night": return shopGeneric("🏮","night");
+    case "u_wheel": return wheelScene();
+    case "u_ktv": return ktvScene();
+    case "u_bar": return barScene();
+    case "u_show": return showScene();
+    case "u_escape": return escapeScene();
+    case "u_mahjong": return tableSitScene("🀄","麻将搓起来","🀄");
+    case "u_arcade": return tableSitScene("👾","再来最后一局","🎮");
+    case "q_pro": return photoScene(true);
+    case "q_selfie": case "q_pola": return photoScene(false);
+    default:
+      if(a.type==="food") return foodScene(a.emoji,false);
+      if(a.type==="shop") return shopGeneric(a.emoji);
+      if(a.type==="rest") return spaScene(a.emoji,true);
+      if(a.type==="photo") return photoScene(false);
+      return spotGeneric(a.emoji);
+  }
+}
+/* ============================================================
+ * 5. 游戏逻辑层：状态 / 数值 / 事件 / 转城 / 手牌 / 结算
+ * ============================================================ */
+let G=null, busy=false;
+let playAborted=false;   // 玩家从游戏菜单暂退/重开：进行中的异步链（过场→落数值）全部作废
+let bankruptLock=false;  // 破产强制弹窗去重
+let pendingSeed=0, pendingMode=0, pendingComp=null, citySel=null;
+let toastTimer=null;
+
+/* ---------- 可存档 RNG（mulberry32，状态可序列化） ---------- */
+function makeRng(seed){
+  let a=seed>>>0;
+  return {
+    next(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; },
+    state(){ return a>>>0; },
+    set(v){ a=v>>>0; }
+  };
+}
+
+/* ---------- 轻量音效（WebAudio 合成，零资源） ---------- */
+const SFX=(function(){
+  let acx=null; let on=(store.get(LS_SET,{}).sound!==false);
+  function tone(f0,f1,d,vol,type){
+    if(!on) return;
+    try{
+      acx=acx||new (window.AudioContext||window.webkitAudioContext)();
+      if(acx.state==="suspended") acx.resume();
+      const o=acx.createOscillator(), g=acx.createGain(), t=acx.currentTime;
+      o.type=type||"sine"; o.frequency.setValueAtTime(f0,t);
+      if(f1) o.frequency.exponentialRampToValueAtTime(f1,t+d);
+      g.gain.setValueAtTime(vol||.05,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g); g.connect(acx.destination); o.start(t); o.stop(t+d);
+    }catch(e){}
+  }
+  return {
+    tap(){ tone(440,540,.07,.035,"triangle"); },
+    good(){ tone(523,784,.13,.06,"triangle"); },
+    coin(){ tone(880,1320,.15,.055,"square"); },
+    bad(){ tone(300,150,.18,.05,"sawtooth"); },
+    get on(){ return on; },
+    setOn(v){ on=v; }
+  };
+})();
+
+/* ---------- 旅行背景音乐（WebAudio 合成：柔和垫乐 + 五声音阶风铃，循环播放，零资源） ---------- */
+const BGM=(function(){
+  let ctx=null, master=null, bus=null, timer=null, fadeTimer=null;
+  let enabled=true, active=false, playing=false;
+  let nextTime=0, chordIdx=0, beat=0;
+  const voices=[];
+  function track(oscs,stopAt){
+    voices.push({oscs:oscs,stopAt:stopAt});
+    if(voices.length>80) voices.splice(0,voices.length-80);
+  }
+  function prune(){
+    const now=ctx?ctx.currentTime:0;
+    for(let i=voices.length-1;i>=0;i--){ if(voices[i].stopAt<=now) voices.splice(i,1); }
+  }
+  function killVoices(){
+    if(!ctx) return;
+    const t=ctx.currentTime+.05;
+    for(const v of voices){ v.oscs.forEach(function(o){ try{ o.stop(t); }catch(e){} }); }
+    voices.length=0;
+  }
+  const BPM=64, BEAT=60/BPM, CHORD_BEATS=8, LOOK=0.35;
+  // C - Am - F - G（经典温暖走向），MIDI 音高
+  const CHORDS=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]];
+  const BASS =[48,45,41,43];
+  const PENTA=[60,62,64,67,69,72,74,76]; // C 大调五声音阶
+  function mtof(m){ return 440*Math.pow(2,(m-69)/12); }
+  function bell(midi,t,dur,vol){
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type="sine"; o.frequency.value=mtof(midi);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+.03);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g); g.connect(bus);
+    o.start(t); o.stop(t+dur+.05);
+    track([o],t+dur+.1);
+  }
+  function bass(midi,t,dur){
+    const o=ctx.createOscillator(), f=ctx.createBiquadFilter(), g=ctx.createGain();
+    o.type="sine"; o.frequency.value=mtof(midi);
+    f.type="lowpass"; f.frequency.value=500;
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(.03,t+.4);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(f); f.connect(g); g.connect(bus);
+    o.start(t); o.stop(t+dur+.05);
+    track([o],t+dur+.1);
+  }
+  function pad(chord,t,dur){
+    const oscs=[];
+    chord.forEach(function(m){
+      const g=ctx.createGain(), f=ctx.createBiquadFilter();
+      f.type="lowpass"; f.frequency.value=1400; f.Q.value=.4;
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.exponentialRampToValueAtTime(.011,t+1.8);
+      g.gain.setValueAtTime(.011,Math.max(t+.01,t+dur-1.8));
+      g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+      [-6,6].forEach(function(det,i){
+        const o=ctx.createOscillator();
+        o.type=i?"triangle":"sine";
+        o.frequency.value=mtof(m); o.detune.value=det;
+        o.connect(f); o.start(t); o.stop(t+dur+.1);
+        oscs.push(o);
+      });
+      f.connect(g); g.connect(bus);
+    });
+    track(oscs,t+dur+.15);
+  }
+  function scheduleBeat(){
+    const t=nextTime, dur=CHORD_BEATS*BEAT;
+    if(beat===0){
+      pad(CHORDS[chordIdx],t,dur);
+      bass(BASS[chordIdx],t,dur*.92);
+    }
+    // 稀疏的五声音阶风铃：约一半的拍发声，弱拍偶尔休止，每小节末尾偶尔加高音点缀
+    const r=Math.random();
+    if(r<.55) bell(PENTA[Math.floor(Math.random()*PENTA.length)],t,1.6+Math.random()*1.2,.028+Math.random()*.012);
+    else if(r<.63) bell(PENTA[PENTA.length-1-Math.floor(Math.random()*3)],t+BEAT*.5,1.4,.018);
+    nextTime+=BEAT;
+    beat++;
+    if(beat>=CHORD_BEATS){ beat=0; chordIdx=(chordIdx+1)%CHORDS.length; }
+  }
+  function scheduler(){
+    if(!ctx) return;
+    prune();
+    let guard=0;
+    while(nextTime<ctx.currentTime+LOOK && guard++<64) scheduleBeat();
+  }
+  function start(){
+    if(playing) return;
+    try{
+      if(!ctx){
+        ctx=new (window.AudioContext||window.webkitAudioContext)();
+        master=ctx.createGain(); master.gain.value=.6; master.connect(ctx.destination);
+      }
+      if(ctx.state==="suspended") ctx.resume();
+      if(!bus){ bus=ctx.createGain(); bus.gain.value=.0001; bus.connect(master); }
+      else { bus.gain.cancelScheduledValues(ctx.currentTime); }
+      if(fadeTimer){ clearTimeout(fadeTimer); fadeTimer=null; }
+      const t=ctx.currentTime;
+      bus.gain.setValueAtTime(Math.max(.0001,bus.gain.value),t);
+      bus.gain.exponentialRampToValueAtTime(1,t+2.4); // 淡入，避免突兀
+      beat=0; chordIdx=0; nextTime=t+.08;
+      playing=true;
+      timer=setInterval(scheduler,40);
+      scheduler();
+    }catch(e){}
+  }
+  function stop(){
+    if(!playing||!ctx) return;
+    playing=false;
+    clearInterval(timer); timer=null;
+    const t=ctx.currentTime;
+    bus.gain.cancelScheduledValues(t);
+    bus.gain.setValueAtTime(Math.max(.0001,bus.gain.value),t);
+    bus.gain.exponentialRampToValueAtTime(.0001,t+.9); // 淡出
+    if(fadeTimer) clearTimeout(fadeTimer);
+    fadeTimer=setTimeout(function(){ fadeTimer=null; killVoices(); },950);
+  }
+  function refresh(){
+    if(enabled&&active) start(); else stop();
+  }
+  return {
+    /* 进入旅行（开局/读档继续）：开始持续播放 */
+    enter(){ active=true; refresh(); },
+    /* 离开旅行（暂退首页/到达结算）：淡出停止 */
+    leave(){ active=false; refresh(); },
+    /* 跟随全局声音开关 */
+    setEnabled(v){ enabled=(v!==false); refresh(); },
+    /* 标签页重新可见时重同步（隐藏期间定时器被节流） */
+    _resync(){ if(playing&&ctx&&nextTime<ctx.currentTime-.5){ nextTime=ctx.currentTime+.06; } },
+    get playing(){ return playing; }
+  };
+})();
+
+// 切走标签页/锁屏后定时器被节流，回来时重同步节奏，避免静音空档
+document.addEventListener("visibilitychange",function(){
+  if(!document.hidden && typeof BGM!=="undefined" && BGM.playing && BGM._resync) BGM._resync();
+});
+
+/* 全局声音开关（音效 + 旅行背景音乐），首页按钮与游戏内菜单共用 */
+function applySoundSetting(next){
+  SFX.setOn(next);
+  BGM.setEnabled(next);
+  setSettings({sound:next});
+  const b=$("soundBtn"); if(b) b.textContent=next?"🔊":"🔇";
+  const m=$("gmSoundLabel"); if(m) m.textContent=(next?"🔊":"🔇")+" 背景音乐与音效："+(next?"开":"关");
+  if(next) SFX.tap();
+}
+
+/* ---------- 通用 UI ---------- */
+function toast(msg){
+  const el=$("toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove("show"),1900);
+}
+function openModal(html){ $("modalBox").innerHTML=html; $("modalMask").classList.add("show"); }
+function closeModal(){ $("modalMask").classList.remove("show"); }
+
+/* ---------- 游戏内菜单：暂退首页 / 重新开始 ---------- */
+function openGameMenu(){
+  openModal('<div class="mb-emoji">☰</div><div class="mb-title">游戏菜单</div>'+
+    '<div class="mb-desc">进度会自动保存，随时可以回来</div><div class="mb-opts">'+
+    '<button class="mb-opt" id="gmResume"><div class="mo-label">▶️ 继续游玩</div></button>'+
+    '<button class="mb-opt" id="gmSound"><div class="mo-label" id="gmSoundLabel"></div></button>'+
+    '<button class="mb-opt" id="gmHome"><div class="mo-label">🏠 暂退回首页</div>'+
+      '<div class="mo-hint">保留存档，回首页点"继续上次"即可接上</div></button>'+
+    '<button class="mb-opt" id="gmRestart"><div class="mo-label">🔁 重新开始旅行</div>'+
+      '<div class="mo-hint">清除当前这局的存档，回首页开新局</div></button>'+
+    '</div>');
+  $("gmResume").onclick=closeModal;
+  $("gmSoundLabel").textContent=(SFX.on?"🔊":"🔇")+" 背景音乐与音效："+(SFX.on?"开":"关");
+  $("gmSound").onclick=function(){ applySoundSetting(!SFX.on); };
+  $("gmHome").onclick=exitToHome;
+  $("gmRestart").onclick=confirmRestart;
+}
+function exitToHome(){
+  playAborted=true; bankruptLock=false;
+  BGM.leave();
+  if(Stage.isPlaying && Stage.isPlaying()) Stage.skip();
+  closeModal();
+  showScreen("home"); Stage.attachHome($("home3d")); renderHomeModes();
+  $("continueBtn").disabled=!hasSave();
+}
+function confirmRestart(){
+  openModal('<div class="mb-emoji">⚠️</div><div class="mb-title">确定重新开始？</div>'+
+    '<div class="mb-desc">当前这局（第 '+G.day+' 天）的进度将被清除，此操作不可恢复。图鉴和成就会保留。</div>'+
+    '<div class="mb-opts">'+
+    '<button class="mb-opt" id="rcOk"><div class="mo-label">🔁 确认重开</div></button>'+
+    '<button class="mb-opt" id="rcCancel"><div class="mo-label">再想想</div></button>'+
+    '</div>');
+  $("rcCancel").onclick=openGameMenu;
+  $("rcOk").onclick=function(){
+    store.del(LS_SAVE);
+    toast("当前旅行已结束，开一局新的吧");
+    exitToHome();
+  };
+}
+
+/* ---------- 开局状态 ---------- */
+function newGame(modeIdx, compKey, seed){
+  const mode=MODES[modeIdx], comp=COMPANIONS[compKey];
+  seed = seed===undefined ? Math.floor(Math.random()*4294967296) : (seed>>>0);
+  G={
+    mode:mode.id, modeIdx, compKey, companion:compKey, seed, rng:makeRng(seed),
+    day:1, totalDays:SHORT_DAYS, leaveAsked:false, bossApproved:false, hoursLeft:DAY_HOURS,
+    money:mode.money+(comp.base-3000), startMoney:0,
+    hp:comp.start.hp, energy:comp.start.en, stress:comp.start.st, memory:comp.start.me,
+    city:null, visited:[],
+    cards:[], uidSeq:1, flags:{}, globals:[],
+    stats:{food:0,spot:0,rest:0,shop:0,fun:0,photo:0,moves:0,gambles:0,gambleWins:0,
+      cardsGotten:0,transportSpent:0,actionsToday:0,maxStress:comp.start.st},
+    eventIds:[], achs:[], finished:false, moveAsked:0, weather:"晴", tip7:false
+  };
+  G.startMoney=G.money;
+}
+
+/* ---------- 费用 / 数值 ---------- */
+function costMul(){ return MODES[G.modeIdx].moneyMul * COMPANIONS[G.compKey].costMul; }
+function actionCost(a){ return Math.round(a.cost*costMul()); }
+function transportCost(t){ return Math.round(t.cost*costMul()); }
+/* 最便宜的正规回家路费（绿皮站票兜底之外的安全线） */
+function homeFare(){
+  let m=Infinity;
+  for(const t of TRANSPORTS){ const c=transportCost(t); if(c<m)m=c; }
+  return m;
+}
+/* 路上耗时折算成"明天少玩的小时数"：飞机 0 / 高铁 1 / 大巴 2.5 / 自驾 3.5 */
+function lateHours(t){ return Math.max(0, Math.round((t.time-1.5)*2)/2); }
+
+/* 全局数值调参（按"每日多动作、单局 20-35 动作"重新校准） */
+const TUNE = { me:0.28, hpNeg:0.6, stNeg:0.5, stPos:1.5 };
+function applyEffects(eff){
+  const comp=COMPANIONS[G.compKey], out={money:0,hp:0,en:0,st:0,me:0};
+  const keys=["money","hp","en","st","me"];
+  for(let i=0;i<keys.length;i++){
+    const k=keys[i]; let v=eff[k]||0;
+    if(k==="me" && v){
+      v=Math.round(v*comp.meMul*(v>0?TUNE.me:1));                // 回忆增益按多动作压缩，衰减不变
+    }
+    if(k==="st" && v>0 && G.globals.includes("charm")) v=Math.max(0,v-5); // 平安符
+    out[k]=v;
+  }
+  G.money+=out.money;
+  G.hp=clamp(G.hp+out.hp,0,100);
+  G.energy=clamp(G.energy+out.en,0,100);
+  G.stress=clamp(G.stress+out.st,0,100);
+  G.memory=clamp(G.memory+out.me,0,100);
+  if(G.stress>G.stats.maxStress) G.stats.maxStress=G.stress;
+  /* 余额预警：一旦买不起最便宜的回家车票，提醒一次（可忽略继续消费） */
+  if(!G.finished){
+    if(G.money<homeFare()){
+      if(!G.flags.fareWarned){ G.flags.fareWarned=1; toast("⚠️ 余额已不够最便宜的回家路费（¥"+homeFare()+"），再花光就得提前打道回府"); }
+    }else if(G.flags.fareWarned){ G.flags.fareWarned=0; }
+  }
+  return out;
+}
+
+/* ---------- 手牌 ---------- */
+function findCard(flag){
+  for(let i=0;i<G.cards.length;i++){ const d=CARD_MAP[G.cards[i].id]; if(d && d.flag===flag) return G.cards[i]; }
+  return null;
+}
+function consumeCard(card){
+  const i=G.cards.indexOf(card);
+  if(i>=0){
+    const d=CARD_MAP[card.id];
+    G.cards.splice(i,1);
+    if(d && d.flag){
+      let still=false;
+      for(const c of G.cards){ const dd=CARD_MAP[c.id]; if(dd && dd.flag===d.flag){ still=true; break; } }
+      if(!still) delete G.flags[d.flag];
+    }
+  }
+}
+function consumeFlag(flag){ const c=findCard(flag); if(c) consumeCard(c); else delete G.flags[flag]; }
+
+async function useCard(i){
+  if(busy || !G || G.finished) return;
+  const card=G.cards[i]; if(!card) return;
+  const c=CARD_MAP[card.id];
+  if(c.mode!=="active"){ toast("被动卡：满足条件时自动生效"); return; }
+  busy=true;
+  if(c.eff){ const out=applyEffects(c.eff); floatOut(out); }
+  if(c.flag){
+    if(c.flag==="earlyNext") G.flags.earlyNext=G.day+1;
+    else G.flags[c.flag]=true;
+  }
+  G.cards.splice(i,1);
+  renderHand(); renderHUD(); saveGame();
+  toast("已使用："+c.name); SFX.good();
+  await Stage.play(reactionScene("good"));
+  busy=false; renderActions();
+}
+
+/* ---------- HUD 浮字 ---------- */
+const FLOAT_COLOR={hp:"#dc2626",en:"#2563eb",st:"#7c3aed",me:"#b45309"};
+const FLOAT_EMO={money:"💰",hp:"❤️",en:"⚡",st:"💨",me:"✨"};
+function floatOut(out){
+  const layer=$("floatLayer"); let n=0;
+  const keys=["money","hp","en","st","me"];
+  for(let i=0;i<keys.length;i++){
+    const k=keys[i], v=out[k]; if(!v) continue;
+    const d=document.createElement("div"); d.className="float-num";
+    d.textContent=FLOAT_EMO[k]+(v>0?"+":"")+v;
+    d.style.color = k==="money" ? (v>0?"#16a34a":"#dc2626") : FLOAT_COLOR[k];
+    d.style.left=(34+Math.random()*28)+"%";
+    d.style.top=(18+n*15)+"%";
+    layer.appendChild(d);
+    setTimeout(()=>d.remove(),1600); n++;
+  }
+}
+
+/* ---------- HUD / 手牌 / 动作渲染 ---------- */
+const STAT_DEF=[
+  {k:"money", emo:"💰", name:"预算"},
+  {k:"hp", emo:"❤️", name:"健康", color:"#dc2626"},
+  {k:"energy", emo:"⚡", name:"体力", color:"#2563eb"},
+  {k:"stress", emo:"💨", name:"压力", color:"#7c3aed"},
+  {k:"memory", emo:"✨", name:"回忆", color:"#d97706"}
+];
+function renderHUD(){
+  $("hudDay").textContent=G.day;
+  $("hudTotal").textContent=G.totalDays;
+  $("hudDate").textContent=daysOf(G.totalDays).label[G.day-1];
+  const city=CITIES[G.city]||{name:"路上",emoji:"🧳"};
+  $("hudCityEmoji").textContent=city.emoji; $("hudCityName").textContent=city.name;
+  $("hudWeather").textContent=(G.weather||"晴")+" · 拥挤 "+crowdOf(G.city||"beijing",G.day)+"/10";
+  $("hudTime").textContent=G.hoursLeft;
+  let html="";
+  for(let i=0;i<STAT_DEF.length;i++){
+    const d=STAT_DEF[i], v=G[d.k];
+    if(d.k==="money"){
+      html+='<div class="stat st-money'+(v<0?" neg":"")+'"><div class="st-label"><span>'+d.emo+d.name+'</span><b class="st-val">¥'+Math.round(v)+'</b></div><div class="st-track"><i></i></div></div>';
+    }else{
+      html+='<div class="stat"><div class="st-label"><span>'+d.emo+d.name+'</span><span class="st-val">'+Math.round(v)+'</span></div>'+
+        '<div class="st-track"><i style="width:'+clamp(v,0,100)+'%;background:'+d.color+'"></i></div></div>';
+    }
+  }
+  $("statGrid").innerHTML=html;
+}
+function renderHand(){
+  const box=$("handScroll"); box.innerHTML="";
+  for(let i=0;i<G.cards.length;i++){
+    const card=G.cards[i], c=CARD_MAP[card.id];
+    const b=document.createElement("button");
+    b.className="card-item"+(c.mode==="passive"?" passive":"");
+    b.innerHTML='<div class="ci-emoji">'+c.emoji+'</div><div class="ci-name">'+c.name+'</div>'+
+      '<div class="ci-desc">'+c.desc+'</div><div class="ci-mode">'+(c.mode==="active"?"点击使用":"自动生效")+'</div>';
+    b.onclick=(function(idx){ return function(){ useCard(idx); }; })(i);
+    box.appendChild(b);
+  }
+  $("handHint").textContent=G.cards.length?"点击使用":"（还没获得手牌）";
+}
+const TYPE_ORDER={food:0,spot:1,fun:2,shop:3,rest:4,photo:5};
+function availActions(){
+  const list=ACTIONS.filter(a=>!a.city || a.city.indexOf(G.city)>=0);
+  list.sort((a,b)=> (TYPE_ORDER[a.type]-TYPE_ORDER[b.type]) || (a.cost-b.cost));
+  return list;
+}
+/* 进入游戏屏前重置面板：清掉上一局残留的"返程回家"卡/手牌，避免开新局时先闪现旧卡 */
+function resetGamePanel(){
+  $("actionGrid").innerHTML="";
+  $("handScroll").innerHTML="";
+  $("handHint").textContent="点击使用";
+  $("endDayBtn").classList.remove("hidden");
+  $("endDayBtn").disabled=false;
+  $("actSecTitle").textContent="准备出发…";
+}
+function renderActions(){
+  $("endDayBtn").disabled=busy;
+  if(G.day>=G.totalDays){
+    // 最后一天：已有返程卡则保持（仅同步可用态），不重绘动作区
+    const ex=$("actionGrid").querySelector("button[data-return]");
+    if(ex) ex.disabled=busy;
+    return;
+  }
+  const grid=$("actionGrid"); grid.innerHTML="";
+  const list=availActions();
+  for(let i=0;i<list.length;i++){
+    const a=list[i], cost=actionCost(a);
+    const noTime=a.time>G.hoursLeft, noMoney=cost>G.money, dis=busy||noTime;
+    const b=document.createElement("button");
+    b.className="act-card"; b.disabled=dis;
+    let chips='<span class="chip money">¥'+cost+'</span><span class="chip time">'+a.time+'h</span>';
+    if(!busy && noTime) chips+='<span class="chip bad">时间不足</span>';
+    else if(!busy && noMoney) chips+='<span class="chip bad">余额不足</span>';
+    b.innerHTML='<div class="act-head"><span class="act-emoji">'+a.emoji+'</span><span class="act-name">'+a.name+'</span></div>'+
+      '<div class="act-desc">'+a.desc+'</div><div class="act-chips">'+chips+'</div>';
+    b.onclick=(function(card,c,nt,nm){ return async function(){
+      if(busy) return;
+      if(nt){
+        b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake");
+        SFX.bad(); toast("今天时间不够啦，明天再来");
+        return;
+      }
+      if(nm){
+        SFX.bad();
+        const pick=await askNoMoney();
+        if(pick==="home"){ busy=true; renderActions(); await goHomeByGreen(); return; }
+        renderActions();   // 选择留下：刷新可选项
+        return;
+      }
+      doAction(card);
+    }; })(a,cost,noTime,noMoney);
+    grid.appendChild(b);
+  }
+}
+
+/* ---------- 动作执行：先播 3D 过场，再落数值 ---------- */
+async function doAction(a){
+  if(busy||G.finished) return;
+  busy=true; renderActions();
+  const cost=actionCost(a);
+  const rawSt=a.st||0;
+  const eff={money:-cost,
+    hp:(a.hp||0)<0?Math.round(a.hp*TUNE.hpNeg):(a.hp||0),
+    en:a.en||0,
+    st:rawSt<0?Math.round(rawSt*TUNE.stNeg):Math.round(rawSt*TUNE.stPos),
+    me:a.me||0};
+  /* 全局被动 */
+  if(a.type==="food" && G.globals.indexOf("foodie")>=0) eff.hp+=5;
+  if(a.type==="photo" && G.globals.indexOf("film")>=0) eff.me+=8;
+  if(a.type==="rest" && G.globals.indexOf("thermos")>=0) eff.en+=8;
+  if(eff.en<0 && G.flags.earlyNext===G.day) eff.en=Math.round(eff.en/2);
+  /* 单次被动 */
+  if(a.type==="food"){
+    const f=findCard("nextFoodFree");
+    if(f){ eff.money=0; consumeCard(f); toast("团购达人券：这顿免单！"); }
+  }
+  if(a.type==="shop"){
+    const gd=findCard("groupDeal");
+    if(gd){ eff.money=-Math.round(cost*0.7); consumeCard(gd); toast("多人成团价：7 折！"); }
+    const radar=findCard("nextShop");
+    if(radar){ eff.me+=10; consumeCard(radar); toast("探店雷达：回忆+10"); }
+  }
+  if(a.type==="spot"){
+    const vip=findCard("vipNext");
+    if(vip){ eff.st-=20; eff.me+=10; consumeCard(vip); toast("绿色通道 VIP：丝滑入场"); }
+  }
+  if(a.type==="photo"){
+    const flt=findCard("filterNext");
+    if(flt){ eff.me+=15; consumeCard(flt); toast("神仙滤镜：回忆+15"); }
+  }
+  await Stage.play(actionScene(a));
+  if(playAborted){ busy=false; return; }   // 过场中暂退：本次消费不落数值
+  const out=applyEffects(eff);
+  floatOut(out); SFX.good();
+  G.stats[a.type]++;
+  G.stats.actionsToday++;
+  G.hoursLeft=Math.round((G.hoursLeft-a.time)*2)/2;
+  if(G.stats.actionsToday>=5 && G.achs.indexOf("ironman")<0) G.achs.push("ironman");
+  renderHUD(); saveGame();
+  if(await checkBankrupt()){ await earlyReturn(); return; }
+  await postAction();
+  if(G.finished||playAborted) return;
+  busy=false; renderActions();
+}
+
+/* ---------- 事件 ---------- */
+function eventChance(){ return 0.30 + crowdOf(G.city,G.day)*0.02; }
+/* 事件 when 按"假期段内第几天"判定：长假中秋段 1-3、请假段 4-6、国庆段换算回 1-7 */
+function equivDay(day){
+  if(G.totalDays===LONG_DAYS && day>6) return day-6;
+  return day;
+}
+function rollEvent(){
+  const pool=[];
+  for(let i=0;i<EVENTS.length;i++){
+    const e=EVENTS[i];
+    if(G.eventIds.indexOf(e.id)>=0) continue;
+    if(e.when && e.when.indexOf(equivDay(G.day))<0) continue;
+    if(e.comp && e.comp.indexOf(G.companion)<0) continue;
+    if(e.city && e.city.indexOf(G.city)<0) continue;
+    pool.push(e);
+  }
+  if(!pool.length) return null;
+  let total=0;
+  for(let i=0;i<pool.length;i++) total+=pool[i].weight;
+  let r=G.rng.next()*total;
+  for(let i=0;i<pool.length;i++){ r-=pool[i].weight; if(r<=0) return pool[i]; }
+  return pool[pool.length-1];
+}
+function isBadEff(e){ return e.money<0||e.hp<0||e.en<0||(e.st||0)>0; }
+function neutralize(e){
+  if(e.money<0)e.money=0; if(e.hp<0)e.hp=0; if(e.en<0)e.en=0; if(e.st>0)e.st=0;
+}
+function scoreOut(o){ return o.me + (o.money>0?6:0) + o.hp*.3 + o.en*.3 - o.st*.5; }
+function chipsHtml(out){
+  let h='<div class="mb-stat-row">';
+  const names={money:"元",hp:"健康",en:"体力",st:"压力",me:"回忆"};
+  const keys=["money","hp","en","st","me"];
+  for(let i=0;i<keys.length;i++){
+    const k=keys[i], v=out[k]; if(!v) continue;
+    const good = k==="st" ? v<0 : v>0;
+    h+='<span class="chip '+(good?"good":"bad")+'">'+FLOAT_EMO[k]+(v>0?"+":"")+v+" "+names[k]+"</span>";
+  }
+  return h+"</div>";
+}
+async function postAction(){
+  const half=Math.round(G.totalDays/2);
+  if(G.day===half && !G.tip7){ G.tip7=true; toast("假期过半，回血再战！"); }
+  if(G.day>=G.totalDays){ finishGame(); return; }
+  if(G.rng.next()<eventChance()){
+    const ev=rollEvent();
+    if(ev) await runEvent(ev);
+  }
+  if(playAborted) return;
+  /* 事件把钱包掏空时，同样强制破产选择 */
+  if(await checkBankrupt()){ await earlyReturn(); return; }
+  /* 时间耗尽才自动过夜；否则交还玩家继续安排 */
+  const canDoMore=availActions().some(function(a){ return a.time<=G.hoursLeft && actionCost(a)<=G.money; });
+  if(!canDoMore){
+    toast("今天的时间和盘缠都安排满啦，回酒店休息吧");
+    await maybeMoveOrNext();
+  }
+}
+function runEvent(ev){
+  G.eventIds.push(ev.id);
+  return new Promise(function(done){
+    let opts="";
+    for(let i=0;i<ev.options.length;i++){
+      const op=ev.options[i];
+      opts+='<button class="mb-opt" data-i="'+i+'"><div class="mo-label">'+op.label+'</div>'+
+        (op.hint?'<div class="mo-hint">'+op.hint+'</div>':"")+
+        (op.gamble?'<div class="mo-hint">🎲 赌一把运气</div>':"")+'</button>';
+    }
+    openModal('<div class="mb-emoji">'+ev.emoji+'</div><div class="mb-title">'+ev.title+'</div>'+
+      '<div class="mb-desc">'+ev.desc+'</div><div class="mb-opts">'+opts+'</div>');
+    const btns=$("modalBox").querySelectorAll(".mb-opt");
+    for(let i=0;i<btns.length;i++){
+      btns[i].onclick=function(){ resolveEventOption(ev, ev.options[i], done); };
+    }
+  });
+}
+async function resolveEventOption(ev, op, done){
+  closeModal();
+  let out, label, gambled=false, win=false, insuredNote="";
+  if(op.gamble){
+    G.stats.gambles++; gambled=true;
+    let r=G.rng.next(), acc=0, pick=op.gamble[op.gamble.length-1];
+    for(let i=0;i<op.gamble.length;i++){ acc+=op.gamble[i].chance; if(r<=acc){ pick=op.gamble[i]; break; } }
+    const lucky=findCard("luckyNext");
+    if(lucky){
+      if(!pick.win){ const w=op.gamble.find(x=>x.win); if(w) pick=w; }
+      consumeCard(lucky);
+      toast("锦鲤附体，必中！");
+    }
+    win=!!pick.win; if(win) G.stats.gambleWins++;
+    label=pick.label; out=applyEffects(pick.effects);
+  }else{
+    const eff={money:op.effects.money||0,hp:op.effects.hp||0,en:op.effects.en||0,st:op.effects.st||0,me:op.effects.me||0};
+    const ins=findCard("insurance");
+    if(ins && isBadEff(eff)){ neutralize(eff); consumeCard(ins); insuredNote="🛡️ 旅行意外险发动，本次损失已抵消！"; }
+    label=op.label; out=applyEffects(eff);
+  }
+  renderHUD(); floatOut(out); renderHand(); saveGame();
+  const kind = gambled ? "gamble" : (out.money>0 ? "money" : (scoreOut(out)>0 ? "good" : "bad"));
+  if(kind==="bad") SFX.bad(); else if(kind==="money") SFX.coin(); else SFX.good();
+  await Stage.play(reactionScene(kind, win));
+  openModal('<div class="mb-emoji">'+ev.emoji+'</div><div class="mb-title">'+ev.title+'</div>'+
+    '<div class="mb-result">'+label+'</div>'+(insuredNote?'<div class="mb-desc" style="color:#0f766e">'+insuredNote+'</div>':"")+
+    chipsHtml(out)+'<div class="mb-btns"><button class="btn btn-primary" id="mbConfirm">继续</button></div>');
+  $("mbConfirm").onclick=function(){ closeModal(); done(); };
+}
+
+/* ---------- 请假三连：问请假 → 等老板审批 → 30%批准 / 70%打回，决定假期天数 ---------- */
+function askLeave(){
+  return new Promise(function(res){
+    openModal('<div class="mb-emoji">🗓️</div><div class="mb-title">中秋国庆，打算怎么休？</div>'+
+      '<div class="mb-desc">中秋放 3 天，国庆放 7 天，中间隔着 9.28-9.30 三个工作日。<b>请这 3 天假</b>，两个假期就能<b>连成 13 天超长假期</b>；不请假就只有国庆 7 天。</div>'+
+      '<div class="mb-opts">'+
+      '<button class="mb-opt" id="lvAsk"><div class="mo-label">🙏 找老板请 3 天假，冲 13 天长假</div>'+
+        '<div class="mo-hint">能不能批全看老板心情——大概率没那么容易</div></button>'+
+      '<button class="mb-opt" id="lvNo"><div class="mo-label">😌 不折腾了，国庆 7 天也挺好</div>'+
+        '<div class="mo-hint">假期 10月1日开始，安稳出发</div></button>'+
+      '</div>');
+    $("lvAsk").onclick=async function(){
+      closeModal();
+      const approved=await bossReview();          // 随机抽签（走本局 rng，挑战码可复现）
+      G.leaveAsked=true; G.bossApproved=approved;
+      G.totalDays=approved?LONG_DAYS:SHORT_DAYS;
+      await showLeaveResult(approved);
+      res();
+    };
+    $("lvNo").onclick=function(){
+      closeModal();
+      G.leaveAsked=false; G.bossApproved=false; G.totalDays=SHORT_DAYS;
+      toast("假期 7 天，10月1日出发");
+      res();
+    };
+  });
+}
+/* 老板审批：动画等待后抽签，30% 批准 / 70% 拒绝 */
+function bossReview(){
+  return new Promise(function(res){
+    openModal('<div class="boss-emoji">🧐</div><div class="mb-title">老板正在审批你的请假条…</div>'+
+      '<div class="boss-dots"><span>·</span><span>·</span><span>·</span></div>'+
+      '<div class="mb-desc">他看了一眼项目排期，又看了一眼你的工牌……</div>');
+    setTimeout(function(){ res(G.rng.next()<0.3); },2100);
+  });
+}
+/* 审批结果弹窗：确认后才放行进入游戏 */
+function showLeaveResult(approved){
+  return new Promise(function(res){
+    if(approved){
+      openModal('<div class="mb-emoji">🎉</div><div class="mb-title">老板居然批了！</div>'+
+        '<div class="mb-desc">“去吧，玩开心点，回来记得把方案补上。”<br><b>中秋 3 天 + 请假 3 天 + 国庆 7 天，连休 13 天！</b></div>'+
+        '<div class="mb-btns"><button class="btn btn-primary" id="apGo">🎒 13 天长假，出发！</button></div>');
+      $("apGo").onclick=function(){ closeModal(); SFX.good(); res(); };
+    }else{
+      const reasons=[
+        "“最近项目紧，国庆好好休息，回来一起冲刺。”",
+        "“别人都没请假，就你机灵？国庆 7 天还不够玩？”",
+        "“假我先收着——想放假？先把 KPI 放下来。”"];
+      const why=reasons[Math.floor(G.rng.next()*reasons.length)];
+      openModal('<div class="mb-emoji">📉</div><div class="mb-title">老板把假条打回来了</div>'+
+        '<div class="mb-desc">'+why+'<br><b>请假没批准，只能国庆 7 天假了。</b>留得青山在——7 天也要玩出 13 天的密度！</div>'+
+        '<div class="mb-btns"><button class="btn btn-primary" id="rjGo">🔥 7 天也能玩痛快，出发！</button></div>');
+      $("rjGo").onclick=function(){ closeModal(); SFX.bad(); res(); };
+    }
+  });
+}
+
+/* ---------- 转城 / 交通 ---------- */
+function moveDaysFor(){
+  if(G.mode==="commando") return commandoMoveDays(G.totalDays);
+  return daysOf(G.totalDays).moves;
+}
+async function maybeMoveOrNext(){
+  const days=moveDaysFor();
+  if(days.indexOf(G.day)>=0 && G.moveAsked!==G.day){
+    G.moveAsked=G.day;
+    const r=await askMove();
+    if(r==="HOME_GREEN"||G.finished) return;
+  }
+  if(playAborted) return;
+  await endDay();
+}
+function askMove(){
+  return new Promise(function(res){
+    const keys=CITY_KEYS.filter(k=>k!==G.city);
+    keys.sort((a,b)=>{
+      const ua=G.visited.indexOf(a)<0?0:1, ub=G.visited.indexOf(b)<0?0:1;
+      return ua-ub;
+    });
+    let cards="";
+    for(let i=0;i<keys.length;i++){
+      const k=keys[i], c=CITIES[k], seen=G.visited.indexOf(k)>=0;
+      cards+='<button class="city-card" data-k="'+k+'" style="min-height:96px">'+
+        '<div class="cc-emoji">'+c.emoji+'</div><div class="cc-name">'+c.name+'</div>'+
+        '<div class="cc-tags"><span class="chip '+(seen?"":"good")+'">'+(seen?"故地重游":"新城市")+'</span></div></button>';
+    }
+    const stay = G.mode==="commando" ? "" : '<button class="btn btn-ghost" id="moveStay" style="margin-top:12px">😌 不折腾了，留在'+CITIES[G.city].name+'</button>';
+    openModal('<div class="mb-emoji">🧳</div><div class="mb-title">要不要换座城市？</div>'+
+      '<div class="mb-desc">'+(G.mode==="commando"?"特种兵绝不回头，下一站必须冲！":"换城要花交通费和时间，但风景不重样")+'</div>'+
+      '<div class="city-grid" style="margin-top:14px">'+cards+'</div>'+stay);
+    const btns=$("modalBox").querySelectorAll(".city-card");
+    for(let i=0;i<btns.length;i++){
+      btns[i].onclick=async function(){
+        const k=this.dataset.k; closeModal();
+        const r=await travelTo(k,false);
+        res(r);
+      };
+    }
+    if(stay) $("moveStay").onclick=function(){ closeModal(); toast("继续在这座城市慢享"); res(); };
+  });
+}
+function chooseTransport(returning){
+  return new Promise(function(res){
+    let rows="";
+    const fallback = returning && TRANSPORTS.every(t=>transportCost(t)>G.money);
+    const brokeStay = !returning && TRANSPORTS.every(t=>transportCost(t)>G.money);
+    for(let i=0;i<TRANSPORTS.length;i++){
+      const t=TRANSPORTS[i], cost=transportCost(t), no=cost>G.money;
+      const speedTag = t.time<=1.5?'<span class="chip good">⚡ 最快</span>'
+        : t.time<=2.5?'<span class="chip good">🚄 很快</span>'
+        : t.time<=4?'<span class="chip">🐢 较慢</span>'
+        : '<span class="chip">🐌 最慢</span>';
+      const late=lateHours(t);
+      const lateHint = returning ? "" : (late>0
+        ? ' · 到达偏晚，明天少玩 '+late+'h'
+        : ' · 当天抵达，明天满血开玩');
+      rows+='<button class="mb-opt" data-i="'+i+'" '+(no?"disabled style='opacity:.45'":"")+'>'+
+        '<div class="mo-label">'+t.emoji+" "+t.name+'<span class="chip money" style="margin-left:auto">¥'+cost+'</span></div>'+
+        '<div class="mo-hint">'+t.desc+' · 耗时 '+t.time+'h '+speedTag+lateHint+(no?" · 余额不足":"")+'</div></button>';
+    }
+    if(fallback){
+      rows+='<button class="mb-opt" data-i="99"><div class="mo-label">🎫 绿皮站票<span class="chip money" style="margin-left:auto">¥0</span></div>'+
+        '<div class="mo-hint">挤也要挤回家，体力-20 压力+10</div></button>';
+    }
+    if(brokeStay){
+      rows+='<button class="mb-opt" data-i="-1"><div class="mo-label">😅 盘缠不够，先留在'+CITIES[G.city].name+'</div>'+
+        '<div class="mo-hint">这趟不换城了，省下路费继续玩</div></button>';
+      rows+='<button class="mb-opt" data-i="-2"><div class="mo-label">🎫 坐绿皮火车，马上打道回府<span class="chip money" style="margin-left:auto">¥0</span></div>'+
+        '<div class="mo-hint">余额不足提前结束旅行，体力 -20 压力 +10，直接生成人格卡片</div></button>';
+    }
+    openModal('<div class="mb-emoji">🎫</div><div class="mb-title">'+(returning?"选个方式回家":"选择出发方式")+'</div><div class="mb-opts">'+rows+'</div>');
+    const btns=$("modalBox").querySelectorAll(".mb-opt");
+    for(let i=0;i<btns.length;i++){
+      btns[i].onclick=function(){
+        if(this.disabled) return;
+        const idx=+this.dataset.i;
+        closeModal();
+        if(idx===99) res({id:"bus",emoji:"🎫",name:"站票",cost:0,time:4,en:-20,st:10});
+        else if(idx===-1) res(null);
+        else if(idx===-2) res("GO_HOME_GREEN");
+        else res(TRANSPORTS[idx]);
+      };
+    }
+  });
+}
+async function travelTo(toKey, returning){
+  let t=null, cost=0;
+  const free=findCard("freeMove");
+  if(free && !returning){ consumeCard(free); t=TRANSPORTS[0]; toast("本地熟人接应，免票出发！"); }
+  else t=await chooseTransport(!!returning);
+  if(t==="GO_HOME_GREEN"){ await goHomeByGreen(); return "HOME_GREEN"; }
+  if(!t) return false;
+  cost=transportCost(t);
+  const half=findCard("nextTransport");
+  if(half && cost>0){ cost=Math.round(cost/2); consumeCard(half); toast("高铁联名卡：交通费半价！"); }
+  const en=t.en||0, st=t.st||0;
+  const eff={money:-cost, en:en, st:st};
+  if(G.globals.indexOf("walkman")>=0) eff.st-=10;
+  const lp=findCard("lightPack");
+  if(lp){ eff.en+=10; eff.st-=15; consumeCard(lp); toast("轻装上阵：换城也轻松"); }
+  if(!returning && !G.city) Stage.setCity(toKey);
+  await Stage.play(travelScene(t.id, toKey, returning));
+  if(playAborted) return false;   // 过场中暂退首页：本次交通不落数值
+  const out=applyEffects(eff);
+  floatOut(out);
+  G.stats.transportSpent+=cost;
+  if(!returning){
+    G.stats.moves++;
+    if(G.visited.indexOf(toKey)<0) G.visited.push(toKey);
+    G.city=toKey;
+    G.weather=weatherOf(toKey,G.day,G.rng.next);
+    /* 慢交通晚到：占用第二天的游玩时间（飞机 0 / 高铁 1h / 大巴 2.5h / 自驾 3.5h） */
+    const late=lateHours(t);
+    if(late>0) G.nextDayLate=Math.max(G.nextDayLate||0, late);
+  }else{
+    G.retName=t.name;   // 记录回家方式，写进鉴定报告
+  }
+  renderHUD(); renderHand(); saveGame();
+  return true;
+}
+
+/* ---------- 一天结束 / 发牌 ---------- */
+async function endDay(){
+  await Stage.play(sleepScene());
+  if(playAborted) return;   // 睡眠过场中暂退：不推进天数
+  const eff={en:14, st:1, hp:0, me:-2};
+  if(G.energy<20){ eff.hp-=7; eff.st+=7; toast("累到虚脱，健康受损……"); }
+  if(G.stress>75) eff.hp-=5;
+  const nf=findCard("nightFree");
+  if(nf){ eff.en+=15; consumeCard(nf); toast("酒店免费升房，睡得超香！"); }
+  const out=applyEffects(eff);
+  floatOut(out);
+  G.day++;
+  if(G.day===2 && G.achs.indexOf("go")<0) G.achs.push("go");
+  G.hoursLeft=DAY_HOURS; G.stats.actionsToday=0;
+  if(G.flags.earlyNext && G.flags.earlyNext<G.day) consumeFlag("earlyNext");
+  renderHUD(); saveGame();
+  if(G.day>G.totalDays){ finishGame(); return; }
+  if(G.day===G.totalDays){ renderReturn(); return; }
+  if(daysOf(G.totalDays).cards.indexOf(G.day)>=0){
+    await grantCardDeal();
+    if(G.finished||playAborted) return;
+  }
+  beginDay();
+}
+async function onEndDayClick(){
+  if(busy||G.finished) return;
+  busy=true;
+  const days=moveDaysFor();
+  if(days.indexOf(G.day)>=0 && G.moveAsked!==G.day){
+    G.moveAsked=G.day;
+    const r=await askMove();
+    if(r==="HOME_GREEN"||G.finished){ busy=false; return; }
+  }
+  await endDay();
+  busy=false; renderActions();
+}
+function beginDay(){
+  G.weather=weatherOf(G.city,G.day,G.rng.next);
+  $("endDayBtn").classList.remove("hidden");
+  /* 慢交通晚到：次日少玩若干小时（保底 4h） */
+  const late=G.nextDayLate||0; G.nextDayLate=0;
+  if(late>0){ G.hoursLeft=Math.max(4, G.hoursLeft-late); toast("🛬 路上耗时 "+(late+1.5)+"h，今天少玩 "+late+" 小时"); }
+  $("actSecTitle").textContent="第 "+G.day+" 天 · 在"+CITIES[G.city].name+"安排点什么？";
+  renderHUD(); renderHand(); renderActions(); saveGame();
+}
+function renderReturn(){
+  G.weather=weatherOf(G.city,G.day,G.rng.next);
+  renderHUD(); renderHand();
+  $("actionGrid").innerHTML="";
+  $("endDayBtn").classList.add("hidden");
+  $("actSecTitle").textContent="假期最后一天，该回家啦";
+  const b=document.createElement("button");
+  b.className="act-card"; b.dataset.return="1"; b.disabled=busy;
+  b.innerHTML='<div class="act-head"><span class="act-emoji">🏠</span><span class="act-name">返程回家</span></div>'+
+    '<div class="act-desc">选个交通方式结束假期，查看你的国庆鉴定报告</div><div class="act-chips"><span class="chip good">终点：温暖的家</span></div>';
+  b.onclick=goReturn;
+  $("actionGrid").appendChild(b);
+}
+async function goReturn(){
+  if(busy) return;
+  busy=true;
+  const ok=await travelTo(null,true);
+  if(ok==="HOME_GREEN") return;   // 余额不足选了绿皮：已自行结算
+  if(ok) finishGame();
+  else { busy=false; renderActions(); }   // 流程中断（如过场中暂退），恢复返程卡可点
+}
+
+/* ---------- 余额不足选项：留下继续玩 / 绿皮站票提前回家 ---------- */
+function askNoMoney(){
+  return new Promise(function(res){
+    const city=CITIES[G.city].name;
+    openModal('<div class="mb-emoji">🪙</div><div class="mb-title">盘缠不够啦</div>'+
+      '<div class="mb-desc">余额已经付不起这项安排。是先留在'+city+'用免费项目凑合，还是买张绿皮站票提前结束旅行回家？</div>'+
+      '<div class="mb-opts">'+
+      '<button class="mb-opt" id="nmStay"><div class="mo-label">😅 盘缠不够，先留在'+city+'</div>'+
+        '<div class="mo-hint">不花路费，挑不花钱的安排继续玩</div></button>'+
+      '<button class="mb-opt" id="nmHome"><div class="mo-label">🎫 坐绿皮火车，马上打道回府<span class="chip money" style="margin-left:auto">¥0</span></div>'+
+        '<div class="mo-hint">余额不足提前结束旅行，体力 -20 压力 +10，直接生成人格卡片</div></button>'+
+      '</div>');
+    $("nmStay").onclick=function(){ closeModal(); res("stay"); };
+    $("nmHome").onclick=function(){ closeModal(); res("home"); };
+  });
+}
+/* 余额不足 → 绿皮站票提前回家：落体力/压力数值，过场后结算 */
+async function goHomeByGreen(){
+  if(G.finished) return;
+  G.earlyEnd=true;
+  toast("钱包见底，挤上绿皮火车提前回家……");
+  const out=applyEffects({en:GREEN_TICKET.en, st:GREEN_TICKET.st});
+  floatOut(out);
+  G.retName=GREEN_TICKET.name;
+  await Stage.play(travelScene(GREEN_TICKET.id,null,true));
+  if(playAborted) return;
+  finishGame();
+}
+
+/* ---------- 破产：余额归零强制选择 ---------- */
+function checkBankrupt(){
+  if(G.finished || G.money>0 || bankruptLock) return Promise.resolve(false);
+  bankruptLock=true;
+  return new Promise(function(res){
+    const used=G.bailouts||0, left=3-used;
+    openModal('<div class="mb-emoji">🪦</div><div class="mb-title">钱包见底了！</div>'+
+      '<div class="mb-desc">余额已经归零，连最便宜的回家车票都买不起。是叫救兵，还是提前打道回府？</div>'+
+      '<div class="mb-opts">'+
+      '<button class="mb-opt" id="bkAid"'+(left<=0?' disabled style="opacity:.45"':'')+'>'+
+        '<div class="mo-label">💸 扩充预算 · 亲友紧急转账 ¥1000</div>'+
+        '<div class="mo-hint">'+(left>0?'旅行继续，压力 +12（本趟还能救急 '+left+' 次）':'本趟救急次数已用完，只能回家了')+'</div></button>'+
+      '<button class="mb-opt" id="bkEnd"><div class="mo-label">🏠 提前结束旅行，买票回家</div>'+
+        '<div class="mo-hint">选择返程交通工具，旅费计入统计，直接生成旅行人格卡片</div></button>'+
+      '</div>');
+    $("bkEnd").onclick=function(){ closeModal(); bankruptLock=false; res(true); };
+    $("bkAid").onclick=function(){
+      if(this.disabled) return;
+      G.bailouts=used+1;
+      const out=applyEffects({money:1000, st:12});
+      floatOut(out); renderHUD(); renderHand(); saveGame(); SFX.coin();
+      closeModal(); bankruptLock=false;
+      toast("💸 到账 ¥1000！压力 +12，且玩且珍惜");
+      res(false);
+    };
+  });
+}
+async function earlyReturn(){
+  if(G.finished) return;
+  G.earlyEnd=true;
+  toast("钱包空空，提前踏上归途……");
+  const ok=await travelTo(null,true);
+  if(ok) finishGame();
+  else busy=false;
+}
+function grantCardDeal(){
+  return new Promise(function(res){
+    const arr=CARDS.slice();
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(G.rng.next()*(i+1));
+      const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp;
+    }
+    const picks=[];
+    for(let i=0;i<arr.length && picks.length<3;i++){
+      const c=arr[i];
+      if(c.global && G.globals.indexOf(c.global)>=0) continue;
+      picks.push(c);
+    }
+    let html='<div class="mb-emoji">🎴</div><div class="mb-title">旅途收获</div><div class="mb-desc">三选一，挑一张手牌带走</div><div class="deal-row">';
+    for(let i=0;i<picks.length;i++){
+      const c=picks[i];
+      html+='<button class="deal-card" data-i="'+i+'"><div class="dc-emoji">'+c.emoji+'</div><div class="dc-name">'+c.name+'</div>'+
+        '<div class="dc-desc">'+c.desc+'</div><div class="dc-mode">'+(c.mode==="active"?"主动使用":"被动")+'</div></button>';
+    }
+    openModal(html+'</div>');
+    const btns=$("modalBox").querySelectorAll(".deal-card");
+    for(let i=0;i<btns.length;i++){
+      btns[i].onclick=function(){ resolveCardPick(picks[+this.dataset.i], res); };
+    }
+  });
+}
+async function resolveCardPick(c, done){
+  closeModal();
+  G.stats.cardsGotten++;
+  markCodex("cards",c.id);
+  if(c.global){
+    G.globals.push(c.global);
+    toast("获得被动神技："+c.name);
+  }else if(c.onDraw==="scratch"){
+    const amt=50+Math.floor(G.rng.next()*251);
+    const out=applyEffects({money:amt});
+    toast("三连刮刮乐：+"+amt+" 元！");
+    floatOut(out); renderHUD(); SFX.coin();
+    await Stage.play(reactionScene("money"));
+  }else{
+    G.cards.push({id:c.id, uid:G.uidSeq++});
+    toast("入手手牌："+c.name);
+  }
+  renderHand(); renderHUD(); saveGame();
+  done();
+}
+
+/* ---------- 存档 ---------- */
+function saveGame(){
+  if(!G || G.finished) return;
+  G.rngState=G.rng.state();
+  const d=Object.assign({},G); delete d.rng;
+  store.set(LS_SAVE,d);
+}
+function loadGame(){
+  const d=store.get(LS_SAVE,null);
+  if(!d) return false;
+  G=d;
+  /* 旧版本存档兼容：补齐请假/天数字段 */
+  if(!G.totalDays) G.totalDays=LONG_DAYS;
+  if(G.leaveAsked===undefined) G.leaveAsked=true;
+  if(G.bossApproved===undefined) G.bossApproved=true;
+  G.rng=makeRng(d.rngState!==undefined?d.rngState:d.seed);
+  return true;
+}
+function hasSave(){ return !!store.get(LS_SAVE,null); }
+function setSettings(p){ const s=store.get(LS_SET,{}); Object.assign(s,p); store.set(LS_SET,s); }
+
+/* ---------- 图鉴 ---------- */
+function getCodex(){ return store.get(LS_CODEX,{endings:{},achs:{},cards:{}}); }
+function markCodex(kind,id){
+  const c=getCodex();
+  if(!c[kind]) c[kind]={};
+  c[kind][id]=true;
+  store.set(LS_CODEX,c);
+}
+function openCodex(){
+  const c=getCodex();
+  let eh="";
+  for(const e of ENDINGS){
+    const got=c.endings[e.id];
+    eh+='<div class="codex-item'+(got?"":" locked")+'"><div class="ci2-emoji">'+(got?e.emoji:"❔")+'</div><div class="ci2-name">'+(got?e.name:"未解锁结局")+'</div>'+
+      '<div class="ci2-desc">'+(got?e.desc:"用不同的玩法触发它吧")+'</div></div>';
+  }
+  let ah="";
+  for(const a of ACHIEVEMENTS){
+    const got=c.achs[a.id];
+    ah+='<div class="codex-item'+(got?"":" locked")+'"><div class="ci2-emoji">'+(got?a.emoji:"🔒")+'</div><div class="ci2-name">'+(got?a.name:"???")+'</div>'+
+      '<div class="ci2-desc">'+a.desc+'</div></div>';
+  }
+  let ch="";
+  for(const card of CARDS){
+    const got=c.cards[card.id];
+    ch+='<div class="codex-item'+(got?"":" locked")+'"><div class="ci2-emoji">'+(got?card.emoji:"🎴")+'</div><div class="ci2-name">'+(got?card.name:"未收录")+'</div>'+
+      '<div class="ci2-desc">'+(got?card.desc:"旅途中有机会获得")+'</div></div>';
+  }
+  openModal('<div class="mb-title">🏅 国庆图鉴</div>'+
+    '<div class="sec-title" style="margin-top:14px">结局 '+Object.keys(c.endings).length+' / '+ENDINGS.length+'</div><div class="codex-grid">'+eh+'</div>'+
+    '<div class="sec-title" style="margin-top:14px">成就 '+Object.keys(c.achs).length+' / '+ACHIEVEMENTS.length+'</div><div class="codex-grid">'+ah+'</div>'+
+    '<div class="sec-title" style="margin-top:14px">手牌 '+Object.keys(c.cards).length+' / '+CARDS.length+'</div><div class="codex-grid">'+ch+'</div>'+
+    '<div class="mb-btns"><button class="btn btn-primary" id="codexClose">收下图鉴</button></div>');
+  $("codexClose").onclick=closeModal;
+}
+
+/* ---------- 结算 ---------- */
+function finishGame(){
+  if(G.finished) return;
+  G.finished=true;
+  const endId=matchEnding(G);
+  const end=ENDINGS.find(e=>e.id===endId)||ENDINGS[ENDINGS.length-1];
+  const addA=id=>{ if(G.achs.indexOf(id)<0) G.achs.push(id); };
+  if(G.visited.length>=5) addA("cities5");
+  if(G.stats.food>=10) addA("foodie");
+  if(G.stats.gambleWins>=2) addA("gambler");
+  if(G.stats.gambleWins>=3) addA("lucky");
+  if(G.stats.cardsGotten>=4) addA("cards");
+  if(G.stats.maxStress<=60) addA("calm");
+  if(G.visited.length>=3) addA("commando");
+  if(G.stress<=20) addA("zenend");
+  if(endId==="perfect") addA("perfect");
+  if(!G.earlyEnd) addA("finish");
+  for(const id of G.achs) markCodex("achs",id);
+  markCodex("endings",endId);
+  store.set(LS_LAST,{seed:G.seed,modeIdx:G.modeIdx,compKey:G.compKey});
+  renderFinal(end);
+  store.del(LS_SAVE);
+  showScreen("final");
+  SFX.good();
+}
+function renderFinal(end){
+  BGM.leave();
+  $("finalEmoji").textContent=end.emoji;
+  $("finalTitle").textContent=end.name;
+  const st=G.stats;
+  $("finalDesc").textContent=end.desc+(G.earlyEnd?"（钱包告急，第 "+G.day+" 天乘"+(G.retName||"车")+"提前返程）":"");
+  const items=[["🗺️ 打卡城市",G.visited.length+" 座"],["📅 实际旅程",G.day+" / "+G.totalDays+" 天"],["🚄 交通花费","¥"+Math.round(st.transportSpent)],
+    ["🍜 干饭",st.food+" 顿"],["🎉 娱乐",st.fun+" 次"],["📸 拍照",st.photo+" 次"],
+    ["🃏 手牌",st.cardsGotten+" 张"],["🚄 换城",st.moves+" 次"],["💰 剩余",Math.round(G.money)+" 元"]];
+  $("finalStats").innerHTML=items.map(it=>'<div class="fs-item"><b>'+it[1]+'</b><span>'+it[0]+'</span></div>').join("");
+  $("finalAchs").innerHTML=G.achs.map(id=>{
+    const a=ACHIEVEMENTS.find(x=>x.id===id);
+    return a?'<span class="ach-pill">'+a.emoji+" "+a.name+'</span>':"";
+  }).join("");
+  drawShare(end);
+}
+
+/* ---------- 分享卡（Canvas 2D） ---------- */
+function rrPath(x,a,b,w,h,r){
+  x.beginPath();
+  x.moveTo(a+r,b);
+  x.arcTo(a+w,b,a+w,b+h,r);
+  x.arcTo(a+w,b+h,a,b+h,r);
+  x.arcTo(a,b+h,a,b,r);
+  x.arcTo(a,b,a+w,b,r);
+  x.closePath();
+}
+function wrapLines(x,text,maxW){
+  const out=[]; let cur="";
+  for(const ch of text){
+    if(x.measureText(cur+ch).width>maxW && cur){ out.push(cur); cur=ch; }
+    else cur+=ch;
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+function drawShare(end){
+  const cv=$("shareCanvas"), x=cv.getContext("2d"), W=900;
+  const g=x.createLinearGradient(0,0,0,900);
+  g.addColorStop(0,"#1f2a44"); g.addColorStop(.62,"#312e81"); g.addColorStop(1,"#7c2d12");
+  x.fillStyle=g; x.fillRect(0,0,900,900);
+  // 顶部胶囊
+  rrPath(x,270,60,360,52,26); x.fillStyle="rgba(253,186,117,.18)"; x.fill();
+  x.strokeStyle="rgba(253,186,117,.55)"; x.lineWidth=2; x.stroke();
+  x.fillStyle="#fde68a"; x.font="700 24px 'Noto Sans SC',sans-serif"; x.textAlign="center"; x.textBaseline="middle";
+  x.fillText("🎒 国庆旅行人格卡片",450,87);
+  // 结局 emoji
+  x.font="130px serif"; x.fillText(end.emoji,450,235);
+  // 结局名
+  x.fillStyle="#ffffff"; x.font='900 62px "ZCOOL KuaiLe","Noto Sans SC",sans-serif';
+  x.fillText(end.name,450,350);
+  // 描述
+  x.fillStyle="#e2e8f0"; x.font="400 25px 'Noto Sans SC',sans-serif";
+  const lines=wrapLines(x,end.desc,720);
+  let y=418;
+  for(let i=0;i<Math.min(lines.length,G.earlyEnd?3:4);i++){ x.fillText(lines[i],450,y); y+=40; }
+  // 提前返程标记
+  if(G.earlyEnd){
+    rrPath(x,160,y+6,580,44,22); x.fillStyle="rgba(251,146,60,.92)"; x.fill();
+    x.fillStyle="#ffffff"; x.font="800 22px 'Noto Sans SC',sans-serif";
+    x.fillText("🪦 第 "+G.day+" 天钱包告急 · 乘"+(G.retName||"车")+"提前回家",450,y+29);
+  }
+  // 数据 3×2
+  const st=G.stats;
+  const boxes=[["🗺️ 城市",G.visited.length+"座"],["📅 旅程",G.day+"/"+G.totalDays+"天"],["🍜 干饭",st.food+"顿"],
+    ["📸 拍照",st.photo+"次"],["🚄 交通","¥"+Math.round(st.transportSpent)],["💰 余额",Math.round(G.money)+"元"]];
+  x.font="800 34px 'Noto Sans SC',sans-serif";
+  for(let i=0;i<boxes.length;i++){
+    const bx=90+(i%3)*240, by=610+Math.floor(i/3)*106;
+    rrPath(x,bx,by,220,92,16); x.fillStyle="rgba(255,255,255,.1)"; x.fill();
+    x.fillStyle="#ffffff"; x.fillText(boxes[i][1],bx+110,by+38);
+    x.fillStyle="#cbd5e1"; x.font="700 20px 'Noto Sans SC',sans-serif";
+    x.fillText(boxes[i][0],bx+110,by+70);
+    x.font="800 34px 'Noto Sans SC',sans-serif";
+  }
+  // 挑战码
+  const code=seedToCode(G.seed,G.modeIdx,COMP_KEYS.indexOf(G.compKey));
+  rrPath(x,300,836,300,48,24); x.fillStyle="rgba(251,146,60,.92)"; x.fill();
+  x.fillStyle="#ffffff"; x.font="900 26px 'Noto Sans SC',sans-serif";
+  x.fillText("🔢 同码再战 "+code,450,861);
+}
+
+/* ============================================================
+ * 6. BOOT：屏幕切换 / 首页 / 选择屏 / 全局绑定
+ * ============================================================ */
+function showScreen(id){
+  const ss=document.querySelectorAll(".screen");
+  for(let i=0;i<ss.length;i++) ss[i].classList.remove("active");
+  $(id).classList.add("active");
+}
+function applyFast(){
+  const fast=!!store.get(LS_SET,{}).fast;
+  Stage.setFast(fast);
+  $("fastBtn").classList.toggle("on",fast);
+}
+function renderHomeModes(){
+  $("homeModes").innerHTML=MODES.map((m,i)=>
+    '<button class="mode-card'+(i===modeSel?' sel':'')+'" data-i="'+i+'">'+
+    '<div class="mc-top"><span class="mc-emoji">'+m.emoji+'</span>'+m.name+'</div>'+
+    '<div class="mc-desc">'+m.desc+'</div><div class="mc-money">💰 起始预算 ¥'+m.money+' · 花费×'+m.moneyMul+'</div></button>'
+  ).join("");
+  $("homeModes").querySelectorAll(".mode-card").forEach(b=>{
+    b.onclick=function(){ modeSel=+this.dataset.i; renderHomeModes(); SFX.tap(); };
+  });
+  $("continueBtn").disabled=!hasSave();
+}
+function renderCompanions(){
+  $("companionList").innerHTML=COMP_KEYS.map(k=>{
+    const c=COMPANIONS[k];
+    return '<button class="pick-card" data-k="'+k+'"><div class="pc-emoji">'+c.emoji+'</div>'+
+      '<div class="pc-main"><div class="pc-name">'+c.name+'</div><div class="pc-desc">'+c.desc+'</div>'+
+      '<div class="pc-tags"><span class="chip money">花费×'+c.costMul+'</span><span class="chip good">回忆×'+c.meMul+'</span>'+
+      '<span class="chip">'+c.count+' 人成行</span></div></div><div class="pc-go">→</div></button>';
+  }).join("");
+  $("companionList").querySelectorAll(".pick-card").forEach(b=>{
+    b.onclick=function(){
+      pendingComp=this.dataset.k; SFX.tap();
+      renderCityPick(); showScreen("destination");
+    };
+  });
+}
+function renderCityPick(){
+  citySel=null; $("confirmCityBtn").disabled=true;
+  $("cityGrid").innerHTML=CITY_KEYS.map(k=>{
+    const c=CITIES[k], crowd=crowdOf(k,1);
+    const lvl=crowd>=9?"人从众":crowd>=7?"人挤人":"还行";
+    return '<button class="city-card" data-k="'+k+'"><span class="cc-crowd">'+lvl+" "+crowd+'/10</span>'+
+      '<div class="cc-emoji">'+c.emoji+'</div><div class="cc-name">'+c.name+'</div>'+
+      '<div class="cc-tags">'+c.tags.map(t=>'<span class="chip">'+t+'</span>').join("")+'</div></button>';
+  }).join("");
+  $("cityGrid").querySelectorAll(".city-card").forEach(b=>{
+    b.onclick=function(){
+      citySel=this.dataset.k; SFX.tap();
+      $("cityGrid").querySelectorAll(".city-card").forEach(x=>x.classList.remove("sel"));
+      this.classList.add("sel");
+      $("confirmCityBtn").disabled=false;
+    };
+  });
+}
+async function startRun(cityKey){
+  newGame(pendingMode, pendingComp, pendingSeed);
+  playAborted=false; bankruptLock=false;
+  /* 出发前先定假期：问请假 → 老板审批 → 决定 13 天 / 7 天 */
+  await askLeave();
+  if(playAborted) return;
+  resetGamePanel();
+  showScreen("game");
+  BGM.enter();
+  Stage.attachGame($("stage3d"));
+  Stage.setActors(COMPANIONS[G.compKey].count, COMP_ROLES[G.compKey]);
+  Stage.setCity(cityKey);
+  applyFast();
+  renderHUD();
+  busy=true;
+  await travelTo(cityKey,false);
+  if(playAborted) return;
+  busy=false;
+  beginDay();
+}
+function continueRun(){
+  if(!loadGame()){ toast("没有找到存档"); return; }
+  if(G.finished){ store.del(LS_SAVE); $("continueBtn").disabled=true; toast("上局已结束，开新档吧"); return; }
+  playAborted=false; bankruptLock=false;
+  resetGamePanel();
+  showScreen("game");
+  BGM.enter();
+  Stage.attachGame($("stage3d"));
+  Stage.setActors(COMPANIONS[G.compKey].count, COMP_ROLES[G.compKey]);
+  Stage.setCity(G.city);
+  applyFast();
+  busy=false;
+  if(G.day>=G.totalDays) renderReturn(); else beginDay();
+  renderHand();
+}
+function openChallenge(){
+  openModal('<div class="mb-emoji">🔢</div><div class="mb-title">输入挑战码</div>'+
+    '<div class="mb-desc">同样的码 = 同样的随机事件，试试别人分享的命运</div>'+
+    '<input id="codeInput" maxlength="7" placeholder="例如 A8K2P9X" style="width:100%;margin-top:14px;font-size:22px;font-weight:900;text-align:center;letter-spacing:6px;padding:14px;border:2px solid #fdba74;border-radius:14px;text-transform:uppercase">'+
+    '<div class="mb-btns"><button class="btn btn-ghost" id="codeCancel">取消</button><button class="btn btn-primary" id="codeGo">开启命运</button></div>');
+  const input=$("codeInput");
+  setTimeout(()=>input.focus(),120);
+  $("codeCancel").onclick=closeModal;
+  $("codeGo").onclick=function(){
+    const r=codeToSeed(input.value);
+    if(!r || r.modeIdx>=MODES.length || r.compIdx>=COMP_KEYS.length){ toast("挑战码无效"); SFX.bad(); return; }
+    pendingSeed=r.seed; pendingMode=r.modeIdx; pendingComp=COMP_KEYS[r.compIdx];
+    closeModal(); SFX.good();
+    renderCityPick(); showScreen("destination");
+  };
+}
+
+let modeSel=0;
+function init(){
+  renderHomeModes();
+  Stage.attachHome($("home3d"));
+  applyFast();
+
+  const settings=store.get(LS_SET,{});
+  SFX.setOn(settings.sound!==false);
+  BGM.setEnabled(settings.sound!==false);
+  $("soundBtn").textContent = settings.sound===false ? "🔇" : "🔊";
+
+  $("soundBtn").onclick=function(){ applySoundSetting(!SFX.on); };
+  $("startBtn").onclick=function(){
+    pendingSeed=Math.floor(Math.random()*4294967296);
+    pendingMode=modeSel; pendingComp=null;
+    renderCompanions(); showScreen("companion");
+  };
+  $("continueBtn").onclick=continueRun;
+  $("challengeBtn").onclick=openChallenge;
+  $("codexBtn").onclick=openCodex;
+  $("codexBtn2").onclick=openCodex;
+  $("confirmCityBtn").onclick=function(){ if(citySel) startRun(citySel); };
+
+  $("endDayBtn").onclick=onEndDayClick;
+  $("skipBtn").onclick=function(){ Stage.skip(); };
+  $("menuBtn").onclick=openGameMenu;
+  $("fastBtn").onclick=function(){
+    const next=!store.get(LS_SET,{}).fast;
+    setSettings({fast:next}); Stage.setFast(next);
+    this.classList.toggle("on",next);
+    toast(next?"⏩ 极速模式：过场加速":"恢复正常速度");
+  };
+
+  $("saveShareBtn").onclick=function(){
+    try{
+      const a=document.createElement("a");
+      a.download="国庆旅行人格卡片.png";
+      a.href=$("shareCanvas").toDataURL("image/png");
+      document.body.appendChild(a); a.click(); a.remove();
+      toast("海报已保存到下载；手机上也可长按图片存相册");
+    }catch(e){ toast("长按/右键战果图即可保存到相册"); }
+  };
+  $("backHomeBtn").onclick=function(){
+    showScreen("home"); Stage.attachHome($("home3d")); renderHomeModes();
+  };
+  $("replaySameBtn").onclick=function(){
+    const last=store.get(LS_LAST,null);
+    if(!last){ toast("没有可再战的记录"); return; }
+    pendingSeed=last.seed; pendingMode=last.modeIdx; pendingComp=last.compKey;
+    renderCityPick(); showScreen("destination");
+  };
+
+  document.addEventListener("pointerdown",function(e){
+    if(e.target.closest("button,.act-card,.card-item,.mode-card,.pick-card,.city-card,.deal-card")) SFX.tap();
+  },{passive:true});
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,3337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天工巧卯 · 3D数字展馆</title>
+<script src="https://registry.npmmirror.com/@tailwindcss/browser/latest/files/dist/index.global.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s);"></script>
+<script>
+function twConfig(){ if(window.tailwind&&!window.__twCfg){window.__twCfg=1;
+  tailwind.config = {
+    theme: { extend: {
+      colors: { ink:'#0e0d0b',ink2:'#161310',panel:'rgba(30,25,19,0.82)',
+        gold:'#c9a25f',gold2:'#e3c98f',bronze:'#8a6d3b',jade:'#7fae9c',cinnabar:'#a23f2c',wood:'#5a4632' },
+      fontFamily: {
+        song:['"Noto Serif SC"','"STSong"','"SimSun"','serif'],
+        kai:['"STKaiti"','"KaiTi"','"Noto Serif SC"','serif'] }
+    }}
+  };
+}}
+twConfig();
+var _twTimer=setInterval(function(){if(window.tailwind){twConfig();clearInterval(_twTimer);}},300);
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://registry.npmmirror.com/three/0.160.0/files/build/three.module.js",
+  "three/addons/": "https://registry.npmmirror.com/three/0.160.0/files/examples/jsm/"
+}}
+</script>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0e0d0b;color:#e8ddc8;font-family:"Noto Serif SC","STSong",serif;}
+  #three-root{position:fixed;inset:0;}
+  #three-root canvas{display:block;}
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:5;
+    background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.55) 100%);}
+  .glass{background:rgba(28,24,18,.86);backdrop-filter:blur(10px);border:1px solid rgba(201,162,95,.28);}
+  .gold-line{background:linear-gradient(90deg,transparent,#c9a25f,transparent);height:1px;}
+  .seal{font-family:"STKaiti","KaiTi",serif;background:#a23f2c;color:#f5e9d6;border-radius:4px;
+    box-shadow:inset 0 0 0 2px rgba(245,233,214,.55);}
+  .tab-btn{position:relative;transition:.25s;letter-spacing:.25em;}
+  .tab-btn.active{color:#e3c98f;}
+  .tab-btn.active::after{content:"";position:absolute;left:20%;right:20%;bottom:-8px;height:2px;
+    background:linear-gradient(90deg,transparent,#c9a25f,transparent);}
+  .ex-item{border-left:2px solid transparent;transition:.2s;cursor:pointer;}
+  .ex-item:hover{background:rgba(201,162,95,.08);}
+  .ex-item.active{border-left-color:#c9a25f;background:rgba(201,162,95,.12);color:#e3c98f;}
+  .ex-item .num{color:#8a6d3b;font-size:12px;font-family:ui-monospace,monospace;}
+  .ctrl-btn{border:1px solid rgba(201,162,95,.35);background:rgba(20,17,13,.72);transition:.2s;}
+  .ctrl-btn:hover{border-color:#c9a25f;color:#e3c98f;}
+  .ctrl-btn.on{background:rgba(201,162,95,.22);border-color:#e3c98f;color:#ffe9b8;box-shadow:0 0 14px rgba(201,162,95,.35);}
+  input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;
+    background:linear-gradient(90deg,#8a6d3b,#c9a25f);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:#e3c98f;border:2px solid #5a4632;cursor:pointer;box-shadow:0 0 8px rgba(227,201,143,.7);}
+  .scroll-thin::-webkit-scrollbar{width:5px;}
+  .scroll-thin::-webkit-scrollbar-thumb{background:#5a4632;border-radius:3px;}
+  .scroll-thin::-webkit-scrollbar-track{background:transparent;}
+  .tag{border:1px solid rgba(201,162,95,.4);color:#c9a25f;font-size:12px;letter-spacing:.15em;}
+  .label3d{color:#e3c98f;font-size:12px;letter-spacing:.15em;white-space:nowrap;
+    background:rgba(14,12,9,.7);border:1px solid rgba(201,162,95,.45);padding:2px 8px;border-radius:2px;
+    transform:translateY(-.8em);pointer-events:none;text-shadow:0 0 6px #000;}
+  .label3d::before{content:"";display:inline-block;width:6px;height:6px;background:#c9a25f;border-radius:50%;margin-right:6px;}
+  .toast{animation:toastIn .3s ease;border:1px solid rgba(201,162,95,.4);}
+  .toast.err{border-color:#c0563f;} .toast.ok{border-color:#7fae9c;}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+  .panel-title{position:relative;}
+  .panel-title::before{content:"";position:absolute;left:-10px;top:6px;bottom:6px;width:3px;background:#c9a25f;}
+  #tray-hint{position:absolute;right:2%;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;
+    letter-spacing:.6em;color:#c9a25f;opacity:.75;font-size:14px;pointer-events:none;}
+  .ring-svg .ring{cursor:pointer;transition:.2s;}
+  .ring-svg .ring:hover{filter:brightness(1.35);}
+  .ring-svg .ring.off{opacity:.28;}
+  .fade-in{animation:fadeIn .5s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:none;}}
+  .win-glow{animation:winGlow 1.4s ease-in-out infinite alternate;}
+  @keyframes winGlow{from{box-shadow:0 0 18px rgba(127,174,156,.4);}to{box-shadow:0 0 42px rgba(227,201,143,.85);}}
+  .lattice{background-image:linear-gradient(rgba(201,162,95,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(201,162,95,.06) 1px,transparent 1px);background-size:44px 44px;}
+  /* Tailwind 保底工具类（CDN 不可用时维持布局） */
+  .fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0}
+  .z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}
+  .flex{display:flex}.hidden{display:none!important}.grid{display:grid}
+  .flex-col{flex-direction:column}.items-center{align-items:center}.items-baseline{align-items:baseline}
+  .justify-between{justify-content:space-between}.justify-center{justify-content:center}
+  .flex-1{flex:1 1 0%}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}
+  .w-9{width:2.25rem}.h-9{height:2.25rem}.w-11{width:2.75rem}.h-11{height:2.75rem}
+  .w-14{width:3.5rem}.w-16{height:4rem}.h-14{height:3.5rem}.h-16{height:4rem}
+  .w-32{width:8rem}.w-56{width:14rem}.w-64{width:16rem}.w-80{width:20rem}.w-full{width:100%}
+  .h-5{height:1.25rem}.min-h-\[2\.5rem\]{min-height:2.5rem}.min-h-\[3\.2rem\]{min-height:3.2rem}
+  .p-2{padding:.5rem}.p-4{padding:1rem}.p-7{padding:1.75rem}.p-8{padding:2rem}
+  .px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}
+  .px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}
+  .px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}
+  .py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}
+  .py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}
+  .pt-3{padding-top:.75rem}.pb-1{padding-bottom:.25rem}.pb-2{padding-bottom:.5rem}
+  .pl-3{padding-left:.75rem}.px-9{padding-left:2.25rem;padding-right:2.25rem}
+  .mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}
+  .mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.mx-auto{margin-left:auto;margin-right:auto}
+  .mx-3{margin-left:.75rem;margin-right:.75rem}.my-3{margin-top:.75rem;margin-bottom:.75rem}
+  .ml-auto{margin-left:auto}.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}
+  .text-xs{font-size:.75rem}.text-sm{font-size:.875rem}.text-base{font-size:1rem}
+  .text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}.text-2xl{font-size:1.5rem}.text-4xl{font-size:2.25rem}
+  .text-center{text-align:center}.tracking-widest{letter-spacing:.2em}.leading-tight{line-height:1.25}
+  .leading-5{line-height:1.25rem}.leading-6{line-height:1.5rem}.leading-7{line-height:1.75rem}
+  .rounded{border-radius:.25rem}.rounded-sm{border-radius:.125rem}.rounded-md{border-radius:.375rem}
+  .rounded-lg{border-radius:.5rem}.rounded-full{border-radius:9999px}
+  .border{border:1px solid}.border-l-2{border-left:2px solid}
+  .opacity-50{opacity:.5}.opacity-75{opacity:.75}.pointer-events-none{pointer-events:none}
+  .top-0{top:0}.top-20{top:5rem}.top-24{top:6rem}.bottom-4{bottom:1rem}.left-0{left:0}.right-0{right:0}
+  .left-4{left:1rem}.right-4{right:1rem}.left-1\/2{left:50%}.-translate-x-1\/2{transform:translateX(-50%)}
+  .-translate-y-1\/2{transform:translateY(-50%)}.max-w-md{max-width:28rem}.max-w-2xl{max-width:42rem}
+  .w-\[92%\]{width:92%}.w-0{width:0}.h-\[2px\]{height:2px}.h-full{height:100%}
+  .h-5{height:1.25rem}.h-14{height:3.5rem}
+  .block{display:block}.inline-block{display:inline-block}
+  .text-gold2{color:#e3c98f}.text-gold\/70{color:rgba(201,162,95,.7)}.text-gold\/60{color:rgba(201,162,95,.6)}
+  .text-gold\/50{color:rgba(201,162,95,.5)}.text-gold\/45{color:rgba(201,162,95,.45)}
+  .text-jade{color:#7fae9c}.text-\[\#cdbf9f\]{color:#cdbf9f}.text-\[\#d9cbb0\]{color:#d9cbb0}
+  .text-\[\#d98a6a\]{color:#d98a6a}.bg-ink{background:#0e0d0b}.bg-gold\/5{background:rgba(201,162,95,.05)}
+  .border-gold\/20{border-color:rgba(201,162,95,.2)}.border-gold\/4{border-color:rgba(201,162,95,.4)}
+  .max-h-\[calc\(100%-9\.5rem\)\]{max-height:calc(100% - 9.5rem)}
+  .overflow-y-auto{overflow-y:auto}.opacity-50:disabled{opacity:.5}
+  button:disabled{opacity:.45;cursor:not-allowed}
+</style>
+</head>
+<body class="select-none">
+
+<!-- 3D 场景容器 -->
+<div id="three-root"></div>
+<div class="vignette"></div>
+
+<!-- 顶部栏 -->
+<header class="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-3"
+      style="background:linear-gradient(180deg,rgba(10,9,7,.92),transparent);">
+  <div class="flex items-center gap-3">
+    <div class="seal w-11 h-11 flex items-center justify-center text-xl font-bold leading-tight text-center">天工<br>巧卯</div>
+    <div>
+      <h1 class="font-kai text-2xl text-gold2 tracking-[.35em]">天工巧卯</h1>
+      <p class="text-[12px] text-gold/70 tracking-[0]">3D 数 字 馆 · 不 用 一 钉 一 铁 的 中 国 智 慧</p>
+    </div>
+  </div>
+  <nav id="zone-tabs" class="flex gap-1 text-sm"></nav>
+  <div class="text-[12px] text-gold/50 tracking-widest hidden lg:block">拖拽旋转 · 滚轮缩放 · 点击交互</div>
+</header>
+
+<!-- 左：展品目录 -->
+<aside id="left-panel" class="fixed left-4 top-24 bottom-28 w-64 z-20 glass rounded-md flex flex-col">
+  <div class="px-4 pt-3 pb-2">
+    <div id="zone-name" class="panel-title pl-3 font-kai text-lg text-gold2"></div>
+    <div id="zone-sub" class="pl-3 text-[12px] text-gold/60 tracking-widest mt-1"></div>
+  </div>
+  <div class="gold-line mx-3"></div>
+  <div id="exhibit-list" class="flex-1 overflow-y-auto scroll-thin py-2"></div>
+</aside>
+
+<!-- 右：展品说明与专属控制 -->
+<aside id="right-panel" class="fixed right-4 top-24 w-80 z-20 glass rounded-md flex flex-col max-h-[calc(100%-9.5rem)]">
+  <div class="p-4 overflow-y-auto scroll-thin">
+    <div id="info-cat" class="tag inline-block px-2 py-0.5 rounded-sm"></div>
+    <h2 id="info-title" class="font-kai text-2xl text-gold2 mt-2 tracking-widest"></h2>
+    <div id="info-sub" class="text-xs text-gold/60 tracking-widest mt-1"></div>
+    <div class="gold-line my-3"></div>
+    <p id="info-desc" class="text-[14px] leading-7 text-[#d9cbb0]"></p>
+    <div id="info-mech" class="mt-3 space-y-2"></div>
+    <div class="gold-line my-3"></div>
+    <div id="zone-controls" class="space-y-3"></div>
+  </div>
+</aside>
+
+<!-- 底部控制条 -->
+<div id="control-bar" class="fixed bottom-4 z-30 glass rounded-full px-6 py-2.5 flex items-center justify-center gap-4 whitespace-nowrap"
+     style="left:50%;transform:translateX(-50%);width:max-content;max-width:97vw;overflow:visible;">
+  <button id="btn-explode" class="ctrl-btn rounded-full px-5 py-1.5 text-xs tracking-widest whitespace-nowrap">一键拆解</button>
+  <button id="btn-assemble" class="ctrl-btn rounded-full px-5 py-1.5 text-xs tracking-widest whitespace-nowrap">逆向拼装</button>
+  <div class="flex items-center gap-2 text-xs text-gold/80 whitespace-nowrap">
+    <span class="tracking-widest">拆解度</span>
+    <input id="explode-slider" type="range" min="0" max="100" value="0" class="w-36">
+  </div>
+  <div class="w-px h-5 bg-gold/25"></div>
+  <button id="btn-rotate" class="ctrl-btn on rounded-full w-9 h-9 text-xs whitespace-nowrap" title="自动旋转">转</button>
+  <button id="btn-stress" class="ctrl-btn rounded-full px-6 h-9 text-xs tracking-widest whitespace-nowrap" title="应力分析视图">应力</button>
+  <button id="btn-quake" class="ctrl-btn rounded-full px-6 h-9 text-xs tracking-widest whitespace-nowrap" title="模拟地震剪切波">地震</button>
+  <button id="btn-label" class="ctrl-btn on rounded-full w-9 h-9 text-xs whitespace-nowrap" title="构件标注">注</button>
+  <button id="btn-reset" class="ctrl-btn rounded-full w-9 h-9 text-xs whitespace-nowrap" title="复位视角">位</button>
+  <div class="w-px h-5 bg-gold/25"></div>
+  <button id="btn-mute" class="ctrl-btn on rounded-full w-9 h-9 text-xs whitespace-nowrap" title="声音开关">声</button>
+</div>
+
+<!-- 游戏内提示（托盘） -->
+<div id="tray-hint" class="hidden z-10">工 件 托 盘</div>
+
+<!-- 游戏中央浮层（九连环节等 HTML 玩法） -->
+<div id="game-overlay" class="hidden fixed z-30 inset-0 flex items-center justify-center"
+     style="background:rgba(8,7,5,.55);backdrop-filter:blur(2px);"></div>
+
+<!-- Toast -->
+<div id="toast-box" class="fixed top-20 left-1/2 -translate-x-1/2 z-40 space-y-2 pointer-events-none"></div>
+
+<!-- 加载页 -->
+<div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-ink lattice">
+  <div class="seal w-16 h-16 flex items-center justify-center text-2xl font-bold leading-tight text-center">天工<br>巧卯</div>
+  <div class="mt-5 font-kai text-gold2 text-xl tracking-[.5em]">天 工 巧 卯</div>
+  <div class="mt-2 text-xs text-gold/60 tracking-[.3em]">榫卯之间，承载千年</div>
+  <div class="mt-6 w-56 h-[2px] bg-wood/40 overflow-hidden"><div id="load-bar" class="h-full bg-gold w-0 transition-all duration-300"></div></div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* ============ 全局 ============ */
+const $ = s => document.querySelector(s);
+const root = $('#three-root');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x14110d);
+scene.fog = new THREE.FogExp2(0x14110d, 0.0085);
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, .1, 200);
+camera.position.set(6, 4.2, 7.5);
+
+const renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.28;
+root.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+Object.assign(labelRenderer.domElement.style,{position:'absolute',top:'0',left:'0',pointerEvents:'none'});
+root.appendChild(labelRenderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = .08;
+controls.target.set(0,1.6,0); controls.minDistance=2.5; controls.maxDistance=26;
+controls.maxPolarAngle = Math.PI*.52;
+
+/* 灯光：明亮的博物馆展厅 */
+scene.add(new THREE.AmbientLight(0xfff0dc, .65));
+const hemi = new THREE.HemisphereLight(0xfff4e2, 0x241a10, .95);
+scene.add(hemi);
+const keyLight = new THREE.SpotLight(0xffe9c4, 6.5, 70, .62, .45, 1.1);
+keyLight.position.set(7, 13, 7); keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048,2048);
+keyLight.shadow.bias=-0.0004; scene.add(keyLight);
+const keyTarget=new THREE.Object3D();keyTarget.position.set(0,1.2,0);scene.add(keyTarget);keyLight.target=keyTarget;
+const fillL = new THREE.DirectionalLight(0xffe0b4, 1.15); fillL.position.set(-6,5,3); scene.add(fillL);
+const rimLight = new THREE.DirectionalLight(0xbfd2ff, .9); rimLight.position.set(-6,7,-7); scene.add(rimLight);
+const warmFill = new THREE.PointLight(0xe3c98f, 1.5, 26); warmFill.position.set(-3,4,5); scene.add(warmFill);
+const warmFill2 = new THREE.PointLight(0xd9b37a, 1.1, 24); warmFill2.position.set(4,3.5,-4); scene.add(warmFill2);
+
+/* 地面 */
+const floor = new THREE.Mesh(new THREE.CircleGeometry(30,64),
+  new THREE.MeshStandardMaterial({color:0x241d16,roughness:.9,metalness:0}));
+floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+const ring = new THREE.Mesh(new THREE.RingGeometry(2.7,2.74,80),
+  new THREE.MeshBasicMaterial({color:0x8a6d3b,transparent:true,opacity:.5,side:THREE.DoubleSide}));
+ring.rotation.x=-Math.PI/2; ring.position.y=.01; scene.add(ring);
+const ring2 = ring.clone(); ring2.geometry = new THREE.RingGeometry(4.4,4.42,96); ring2.material=ring.material.clone(); ring2.material.opacity=.25; scene.add(ring2);
+const grid = new THREE.GridHelper(30,30,0x3a2c1c,0x241b12); grid.material.transparent=true; grid.material.opacity=.35; grid.position.y=.005; scene.add(grid);
+
+/* ============ 木纹程序化纹理 ============ */
+function makeWoodTexture(base='#7a5536', dark='#4d3420', light='#a87f52'){
+  const c=document.createElement('canvas'); c.width=c.height=512; const g=c.getContext('2d');
+  g.fillStyle=base; g.fillRect(0,0,512,512);
+  for(let i=0;i<260;i++){
+    const y=Math.random()*512, amp=3+Math.random()*10, f=.008+Math.random()*.02, ph=Math.random()*9;
+    g.strokeStyle=`rgba(${Math.random()<.5?dark:light},${.05+Math.random()*.16})`;
+    g.lineWidth=.5+Math.random()*2; g.beginPath();
+    for(let x=0;x<=512;x+=8){const yy=y+Math.sin(x*f+ph)*amp+Math.sin(x*.05+ph)*1.2; x===0?g.moveTo(x,yy):g.lineTo(x,yy);}
+    g.stroke();
+  }
+  for(let k=0;k<7;k++){ // 木节
+    const x=Math.random()*512,y=Math.random()*512,r=8+Math.random()*22;
+    for(let j=0;j<5;j++){g.strokeStyle=`rgba(77,52,32,${.18-j*.03})`;g.lineWidth=1.4;
+      g.beginPath();g.ellipse(x,y,r*(1+j*.5),r*.45*(1+j*.5),Math.random()*.6,0,7);g.stroke();}
+  }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1.6,1.6);
+  t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+const TEX = {
+  huali: makeWoodTexture('#855b38','#4e331c','#b98d5c'),   // 花梨木
+  nanmu: makeWoodTexture('#9a7d4f','#5e4a28','#c7ad74'),   // 金丝楠
+  zitan: makeWoodTexture('#4a2f22','#2a1910','#6e4a33'),   // 紫檀
+  zhu:   makeWoodTexture('#c2a878','#8a7246','#e0ca96'),   // 竹
+};
+/* 共享材质注册表：进入此集合的材质为跨展品长期复用资源，clearModel/_dispose 时不释放，
+   避免每次切换都触发 GPU program/uniform/纹理重新编译上传（消除切换抖动）。 */
+const SHARED_MATERIALS = new WeakSet();
+function shareMaterial(m){ SHARED_MATERIALS.add(m); return m; }
+/* 木纹材质按 (kind,tint) 池化：全站 woodMat 调用 80+ 处且大量在循环内重复同参创建，
+   池化后零视觉变化（同参数完全等价），大幅减少材质实例与切换时的 GPU 重编译。
+   关键前提：池化材质创建后只被整体替换（应力模式），从无任何字段被就地修改（已全量核对）。 */
+const _woodMatCache = new Map();
+function woodMat(kind='huali', tint=1){
+  const tt=Math.min(1.28,tint*1.12);
+  const key=kind+':'+tt.toFixed(4);
+  let m=_woodMatCache.get(key);
+  if(!m){
+    m=new THREE.MeshStandardMaterial({map:TEX[kind],color:new THREE.Color(tt,tt,tt),
+      roughness:.42,metalness:.05,envMapIntensity:.8});
+    shareMaterial(m); _woodMatCache.set(key,m);
+  }
+  return m;
+}
+const MAT = {
+  bronze: shareMaterial(new THREE.MeshStandardMaterial({color:0xb08d4f,metalness:.9,roughness:.32})),
+  bronzeDark: shareMaterial(new THREE.MeshStandardMaterial({color:0x6e552c,metalness:.85,roughness:.4})),
+  iron: shareMaterial(new THREE.MeshStandardMaterial({color:0x555a60,metalness:.9,roughness:.3})),
+  string: shareMaterial(new THREE.MeshStandardMaterial({color:0xd9c8a2,roughness:.8})),
+};
+
+/* ============ 建模工具 ============ */
+function box(w,h,d,r=.02){return new RoundedBoxGeometry(w,h,d,2,r);}
+/* 由若干子盒合并为一个构件，o: {size:[w,h,d], pos:[x,y,z], rot?:[x,y,z]} */
+function mergedPiece(parts, mat){
+  const geos = parts.map(p=>{
+    const g = box(...p.size, p.r??.018);
+    if(p.rot){const e=new THREE.Euler(...p.rot);g.rotateX(e.x);g.rotateY(e.y);g.rotateZ(e.z);}
+    g.translate(...p.pos); return g;
+  });
+  const m = new THREE.Mesh(BufferGeometryUtils.mergeGeometries(geos, false), mat);
+  m.castShadow=m.receiveShadow=true; return m;
+}
+function simplePiece(w,h,d,mat,pos=[0,0,0],r=.02){
+  const m=new THREE.Mesh(box(w,h,d,r),mat); m.position.set(...pos);
+  m.castShadow=m.receiveShadow=true; return m;
+}
+function cyl(rt,rb,h,seg=20){return new THREE.CylinderGeometry(rt,rb,h,seg);}
+
+/* ============ 构件元数据注册 ============ */
+/* piece.userData { label, stress:0..1 基础应力权重 } */
+function tagPiece(obj, label, stress=.3){ obj.userData.label=label; obj.userData.baseStress=stress; return obj; }
+
+/* ============ 音效系统（Web Audio 程序化合成，无需音频文件） ============ */
+const SFX = (()=>{
+  let ctx=null, master=null, muted=false, unlocked=false;
+  function ac(){
+    if(!unlocked)return null;
+    if(!ctx){
+      try{
+        const AC=window.AudioContext||window.webkitAudioContext; ctx=new AC();
+        master=ctx.createGain(); master.gain.value=.5; master.connect(ctx.destination);
+      }catch(e){ unlocked=false; return null; }
+    }
+    if(ctx.state==='suspended'){ const p=ctx.resume(); if(p&&p.catch)p.catch(()=>{}); }
+    return ctx;
+  }
+  function env(g,t0,a,d,peak=.4){
+    const g2=ctx.createGain();g2.connect(master);
+    g2.gain.setValueAtTime(0,t0);
+    g2.gain.linearRampToValueAtTime(peak,t0+a);
+    g2.gain.exponentialRampToValueAtTime(.0001,t0+a+d);
+    g.connect(g2);return g2;
+  }
+  /* 木鱼/木块敲击 */
+  function wood(freq=320,peak=.45,decay=.18){
+    const c=ac();if(muted||!c)return;const t=c.currentTime;
+    const o=c.createOscillator(),o2=c.createOscillator();
+    o.type='triangle';o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(freq*.6,t+decay);
+    o2.type='square';o2.frequency.setValueAtTime(freq*1.7,t);
+    const g=env(c.createGain(),t,.004,decay,peak),gf=c.createGain();gf.gain.value=.25;
+    o.connect(g);o2.connect(gf);gf.connect(g);
+    o.start(t);o2.start(t);o.stop(t+decay+.05);o2.stop(t+decay+.05);
+  }
+  /* 木质滑动摩擦（白噪+带通） */
+  function slide(dur=.35,peak=.12){
+    const c=ac();if(muted||!c)return;const t=c.currentTime,n=Math.floor(c.sampleRate*dur);
+    const buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+    const src=c.createBufferSource();src.buffer=buf;
+    const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=900;f.Q.value=.8;
+    const g=c.createGain();g.gain.value=peak;src.connect(f);f.connect(g);g.connect(master);src.start(t);
+  }
+  /* 钟声/锣（高频正弦簇） */
+  function bell(){
+    const c=ac();if(muted||!c)return;const t=c.currentTime;
+    [523,784,1046,1568].forEach((f,i)=>{
+      const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+      const g=c.createGain();g.connect(master);
+      g.gain.setValueAtTime(.28/(i+1),t);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);
+      o.connect(g);o.start(t);o.stop(t+1.7);
+    });
+  }
+  function drum(){wood(150,.55,.28);}
+  /* 弓弦击发：高频下滑的筋弦声 */
+  function twang(){
+    const c=ac();if(muted||!c)return;const t=c.currentTime;
+    const o=c.createOscillator();o.type='sawtooth';
+    o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(180,t+.18);
+    const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=2400;
+    const g=c.createGain();g.gain.setValueAtTime(.32,t);g.gain.exponentialRampToValueAtTime(.0001,t+.22);
+    o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.25);
+  }
+  return {
+    unlock(){unlocked=true;ac();},
+    load(){ const c=ac();if(muted||!c)return;const t=c.currentTime;
+      [262,330,392,523].forEach((f,i)=>setTimeout(()=>{if(muted||!unlocked)return;
+        const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+        const g=c.createGain();g.connect(master);g.gain.setValueAtTime(0,t+i*.09);
+        g.gain.linearRampToValueAtTime(.3,t+i*.09+.03);g.gain.exponentialRampToValueAtTime(.0001,t+i*.09+.5);
+        o.connect(g);o.start();o.stop(t+.6);},i*110));
+    },
+    explode(){slide(.3,.1);setTimeout(()=>wood(180,.3,.25),120);},
+    assemble(){wood(420,.4,.15);setTimeout(()=>wood(620,.45,.2),90);},
+    pick(){wood(520,.25,.08);},
+    place(){wood(300,.5,.16);setTimeout(()=>wood(440,.4,.18),70);},
+    reject(){wood(140,.45,.3);},
+    win(){[392,523,659,784,1046].forEach((f,i)=>setTimeout(()=>wood(f,.4,.25),i*120));},
+    step(){wood(280,.18,.07);},
+    drum,bell,slide,twang,
+    toggle(){muted=!muted;return muted;},
+    get muted(){return muted;}
+  };
+})();
+/* 全局首次手势解锁音频：http 来源下浏览器自动播放策略要求用户手势后才能启动 AudioContext，
+   点击按钮/面板（而非仅 canvas）也必须能解锁，故在捕获阶段监听整个文档，触发一次即移除。 */
+(function(){
+  const EVENTS=['pointerdown','keydown','touchstart','click'];
+  const unlock=()=>{ SFX.unlock();
+    EVENTS.forEach(ev=>document.removeEventListener(ev,unlock,true)); };
+  EVENTS.forEach(ev=>
+    document.addEventListener(ev,unlock,{capture:true,passive:true}));
+})();
+const STRESS_COLORS = [
+  [.25,.45,.95],[.3,.8,.85],[.42,.85,.5],[.95,.86,.3],[.95,.5,.22],[.85,.16,.12]
+].map(c=>new THREE.Color(...c));
+function stressColor(v){ // 0..1 冷->暖
+  v=THREE.MathUtils.clamp(v,0,1); const i=v*(STRESS_COLORS.length-1);
+  const a=Math.floor(i), b=Math.min(a+1,STRESS_COLORS.length-1), f=i-a;
+  return STRESS_COLORS[a].clone().lerp(STRESS_COLORS[b],f);
+}
+/* 零分配版本：把插值结果写入已存在的 target Color，供逐帧高频路径复用，避免 GC 抖动 */
+function stressColorTo(target,v){
+  v=THREE.MathUtils.clamp(v,0,1); const i=v*(STRESS_COLORS.length-1);
+  const a=Math.floor(i), b=Math.min(a+1,STRESS_COLORS.length-1);
+  return target.copy(STRESS_COLORS[a]).lerp(STRESS_COLORS[b],i-a);
+}
+
+class Viewer {
+  constructor(){
+    this.model=null; this.pieces=[]; this.labels=[];
+    this.explode=0; this.targetExplode=0; this.autoRotate=true; this.speed=1;
+    this.stress=false; this.quake=false; this.quakeT=0; this.labelsOn=true;
+    this.customUpdate=null; this.customDestroy=null; this.game=null;
+    this.raycaster=new THREE.Raycaster(); this.pointer=new THREE.Vector2();
+    this.tweens=[]; this._lastT=performance.now();
+    this._bindUI();
+    const loop=()=>{requestAnimationFrame(loop);
+      /* 标签页切到后台时暂停更新与双渲染，省电省 GPU；回到前台重置时钟，避免 dt 跳变 */
+      if(document.hidden){ this._lastT=performance.now(); return; }
+      const now=performance.now();
+      const dt=Math.min(.05,Math.max(.001,(now-this._lastT)/1000));
+      this._lastT=now;this.update(dt);
+      renderer.render(scene,camera);
+      /* 标签层：开启时每帧渲染；关闭时不逐帧渲染以省开销，
+         但切换当帧必须再渲染一次，CSS2DRenderer 才会据 visible=false 隐藏 DOM */
+      if(this.labels.length&&(this.labelsOn||this._labelsDirty)){
+        labelRenderer.render(scene,camera); this._labelsDirty=false;
+      }};
+    loop();
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth,innerHeight);labelRenderer.setSize(innerWidth,innerHeight);});
+  }
+  _bindUI(){
+    $('#btn-explode').onclick=()=>{SFX.explode();this.setExplode(1);};
+    $('#btn-assemble').onclick=()=>{SFX.assemble();this.setExplode(0);};
+    $('#btn-mute').onclick=e=>{const m=SFX.toggle();e.target.classList.toggle('on',!m);
+      if(!m)SFX.unlock();};
+    $('#explode-slider').oninput=e=>this.setExplode(e.target.value/100,true);
+    renderer.domElement.addEventListener('pointerdown',()=>SFX.unlock());
+    $('#btn-rotate').onclick=e=>{this.autoRotate=!this.autoRotate;e.target.classList.toggle('on',this.autoRotate);};
+    $('#btn-stress').onclick=e=>{this.stress=!this.stress;e.target.classList.toggle('on',this.stress);this.applyStressMode();};
+    $('#btn-quake').onclick=e=>{this.triggerQuake();};
+    $('#btn-label').onclick=e=>{this.labelsOn=!this.labelsOn;e.target.classList.toggle('on',this.labelsOn);
+      this._labelsDirty=true; this.labels.forEach(l=>l.visible=this.labelsOn);};
+    $('#btn-reset').onclick=()=>this.frameView();
+  }
+  clearModel(){
+    this.tweens.length=0;
+    /* 先退出应力模式：恢复每构件原始材质并释放应力专用材质，避免材质泄漏 */
+    if(this.stress){this.stress=false;this.applyStressMode();}
+    if(this.customDestroy){try{this.customDestroy();}catch(e){} this.customDestroy=null;}
+    if(this.game){this.game=null;}
+    if(this.model){scene.remove(this.model);this._dispose(this.model);this.model=null;}
+    this.pieces=[];this.labels=[];
+    this.setExplode(0,true); $('#explode-slider').value=0;
+    this.quake=false;this.quakeT=0;
+    this._wallObj=null;
+    if(this._wallObjInScene){scene.remove(this._wallObjInScene);this._dispose(this._wallObjInScene);this._wallObjInScene=null;}
+    this.stress=false;$('#btn-stress').classList.remove('on');$('#stress-legend')?.remove();
+  }
+  _dispose(o){o.traverse?.(n=>{if(n.geometry)n.geometry.dispose();
+    if(n.material){(Array.isArray(n.material)?n.material:[n.material]).forEach(m=>{
+      if(m&&m.dispose&&!SHARED_MATERIALS.has(m))m.dispose();});}
+    if(n.isCSS2DObject&&n.element&&n.element.remove)n.element.remove();});}
+  register(group, {frame=true}={}){
+    this.model=group; scene.add(group);
+    group.updateWorldMatrix(true,true);
+    const origin=new THREE.Vector3();group.getWorldPosition(origin);
+    group.traverse(o=>{ if(o.isMesh&&o.userData.label!==undefined){
+      this.pieces.push(o);
+      const c=new THREE.Vector3();o.getWorldPosition(c);
+      const box3=new THREE.Box3().setFromObject(o);
+      o.userData.homePos=o.position.clone();
+      o.userData.explodeDir=(o.userData.dir?new THREE.Vector3(...o.userData.dir):
+        c.clone().sub(origin).setY((box3.max.y-box3.min.y)*.3+.35)).normalize();
+      o.userData.homeMat=o.material;   // 材质已池化/共享，直接引用，无需克隆
+      if(o.userData.label){
+        const div=document.createElement('div');div.className='label3d';div.textContent=o.userData.label;
+        const lb=new CSS2DObject(div);
+        const off=o.userData.labelOff;
+        lb.position.set(off?off[0]:0,(box3.max.y-box3.min.y)/2+(off?off[1]:.12),off?off[2]:0);
+        o.add(lb);this.labels.push(lb);
+        lb.visible=this.labelsOn;
+      }
+    }});
+    this._labelsDirty=true;   // 新模型标签首次需经 CSS2DRenderer 应用一次显隐
+    group.updateWorldMatrix(true,true);
+    if(frame) this.frameView();
+    return group;
+  }
+  frameView(pad=1.0){
+    if(!this.model)return;
+    const {center,radius}=this._modelBounds(1.15*pad);
+    const fov=camera.fov*Math.PI/180;
+    let dist=radius/Math.sin(fov/2)*1.06;
+    dist=Math.max(4.5,dist);
+    this.tweenCam(new THREE.Vector3(center.x+dist*.62,center.y+dist*.42,center.z+dist*.78),
+      new THREE.Vector3(center.x,center.y,center.z));
+  }
+  /* 计算模型（含爆炸余量）的球心与半径，保证拆解全程不出画面 */
+  _modelBounds(explodePad=1){
+    const b0=new THREE.Box3().setFromObject(this.model);
+    const center=b0.getCenter(new THREE.Vector3());
+    let radius=b0.getSize(new THREE.Vector3()).length()/2;
+    const scale=this.model.userData.explodeScale||1;
+    if(explodePad>0&&this.pieces.length){
+      this.pieces.forEach(p=>{
+        if(p.userData.noExplode)return;
+        const c=new THREE.Vector3();p.getWorldPosition(c);
+        const d=(p.userData.explodeDir||new THREE.Vector3(0,1,0)).clone();
+        const far=c.clone().addScaledVector(d,1.5*scale*explodePad);
+        radius=Math.max(radius,far.distanceTo(center)+.6);
+      });
+    }
+    return {center,radius};
+  }
+  /* 进馆自动演示：默认拆解状态 → 停留 → 拼装合拢 */
+  playIntro(){
+    if(!this.model||this.model.userData.noIntro)return;
+    this.setExplode(1,true);
+    this.intro={t:0,phase:0}; // 0:拆解停留 1:拼装
+  }
+  tweenCam(pos,tgt){
+    this.tweens.push({t:0,dur:1,from:camera.position.clone(),to:pos.clone(),
+      ft:controls.target.clone(),tt:tgt.clone(),
+      up(k){camera.position.lerpVectors(this.from,this.to,k);controls.target.lerpVectors(this.ft,this.tt,k);}});
+  }
+  setExplode(v,immediate){
+    if(this.intro&&!immediate)this.intro=null; // 手动操作打断自动演示
+    this.targetExplode=v; if(immediate){this.explode=v;}
+    const s=$('#explode-slider'); if(document.activeElement!==s)s.value=Math.round(v*100);
+  }
+  triggerQuake(){
+    if(!this.model)return;
+    this.quake=true;this.quakeT=0;
+    toast('地震剪切波来袭 · 观察榫卯节点的微位移耗能','ok');
+    if(!this.stress){this.stress=true;$('#btn-stress').classList.add('on');this.applyStressMode();}
+  }
+  applyStressMode(){
+    this.pieces.forEach(p=>{
+      const prev=p.material;
+      p.material=this.stress?new THREE.MeshStandardMaterial({vertexColors:false,
+        roughness:.55,metalness:.05,emissiveIntensity:.5}):p.userData.homeMat;
+      /* 换下的若是一次性应力材质（非共享池材质）则释放，避免每开关一次泄漏 N 个材质 */
+      if(prev&&prev!==p.material&&!SHARED_MATERIALS.has(prev))prev.dispose();
+    });
+    let legend=$('#stress-legend');
+    if(this.stress){
+      if(!legend){
+        legend=document.createElement('div');legend.id='stress-legend';
+        legend.className='fixed z-20 glass rounded-md px-3 py-2 text-[12px] tracking-widest';
+        legend.style.cssText='left:19rem;bottom:6.5rem;';
+        legend.innerHTML=`<div class="text-gold2 mb-1">应力分布（低 → 高）</div>
+          <div style="width:170px;height:10px;border-radius:3px;background:linear-gradient(90deg,
+          rgb(64,115,242),rgb(77,204,217),rgb(107,217,128),rgb(242,219,77),rgb(242,128,56),rgb(217,41,31));"></div>
+          <div class="flex justify-between text-gold/60 mt-1"><span>低应力</span><span>高应力</span></div>`;
+        document.body.appendChild(legend);
+      }
+      legend.classList.remove('hidden');
+    }else if(legend)legend.classList.add('hidden');
+  }
+  setStressLegend(on){$('#stress-legend')?.classList.toggle('hidden',!on);}
+  addCollapseWall(pos=[3.4,0,1.2]){ // 墙倒屋不塌演示：可倒塌山墙
+    const g=new THREE.Group();
+    const mat=new THREE.MeshStandardMaterial({color:0x8d8478,roughness:.9});
+    const w=simplePiece(2.4,2.8,.2,mat,[0,1.4,0],.01); g.add(w);
+    for(let i=0;i<7;i++){
+      const line=new THREE.Mesh(new THREE.BoxGeometry(2.42,.014,.012),
+        new THREE.MeshBasicMaterial({color:0x5d564d}));
+      line.position.set(0,-1.2+i*.4,.107); g.add(line);
+    }
+    for(let i=0;i<4;i++){
+      const line=new THREE.Mesh(new THREE.BoxGeometry(.014,2.82,.012),
+        new THREE.MeshBasicMaterial({color:0x5d564d}));
+      line.position.set(-.9+i*.6,0,.108); g.add(line);
+    }
+    g.position.set(...pos); g.visible=false; scene.add(g);
+    this._wallObj=g; this._wallObjInScene=g;
+  }
+  update(dt=1/60){
+    // 进馆自动演示状态机：拆解停留 → 拼装合拢
+    if(this.intro&&this.model){
+      const it=this.intro;it.t+=dt;
+      const H=1.2,A=1.7;
+      if(it.phase===0){this.setExplode(1,true);
+        if(it.t>=H){it.phase=1;it.t=0;SFX.assemble();}}
+      else{this.setExplode(Math.max(0,1-it.t/A),true);
+        if(it.t>=A){this.setExplode(0,true);this.intro=null;}}
+    }
+    // 拆解动画
+    this.explode += (this.targetExplode-this.explode)*Math.min(1,dt*6);
+    if(Math.abs(this.explode-this.targetExplode)<.001)this.explode=this.targetExplode;
+    const k=this.easeInOut(this.explode);
+    const distScale=this.model?.userData.explodeScale||1;
+    /* 静止合拢、无地震、无游戏位移（机关盒）时跳过逐构件位置拷贝：
+       大件（如木塔 ~250 构件）静态浏览时每帧省去整段遍历；有位移需求时逻辑与原来完全一致。 */
+    const collapsed=(k===0);
+    const gameOffsetActive=!!(this.model&&this.model.userData.gameOffsetActive);
+    if(!collapsed||this.quake||gameOffsetActive){
+      const n=this.pieces.length;
+      this.pieces.forEach((p,i)=>{
+        if(p.userData.noExplode)return;
+        const d=p.userData.explodeDir; const delay=(i%n)/n*.15;
+        const kk=THREE.MathUtils.clamp((k-delay)/(1-delay),0,1);
+        p.position.copy(p.userData.homePos);
+        if(p.userData.gameOffset)p.position.add(p.userData.gameOffset);
+        p.position.addScaledVector(d,kk*1.5*distScale);
+      });
+    }
+    // 相机补间
+    this.tweens=this.tweens.filter(tw=>{tw.t+=dt/tw.dur;const k2=THREE.MathUtils.clamp(tw.t,0,1);
+      const e=k2<.5?2*k2*k2:1-Math.pow(-2*k2+2,2)/2;tw.up(e);return k2<1;});
+    // 地震
+    if(this.quake&&this.model){
+      this.quakeT+=dt; const t=this.quakeT;
+      const env=Math.exp(-t*1.15)*Math.min(1,t*4);
+      const amp=.22*env;
+      this.model.position.set(Math.sin(t*23)*amp, Math.abs(Math.sin(t*31))*amp*.35, Math.cos(t*19)*amp);
+      this.model.rotation.z=Math.sin(t*17)*.02*env;
+      this.pieces.forEach((p,i)=>{ // 节点微位移
+        const micro=Math.sin(t*27+i*1.7)*env*(.02+p.userData.baseStress*.05);
+        p.position.addScaledVector(p.userData.explodeDir, micro*0.05);
+      });
+      if(this._wallObj){this._wallObj.visible=true;
+        const wk=THREE.MathUtils.clamp((t-1.2)/1.6,0,1);
+        this._wallObj.rotation.x=-wk*1.45; this._wallObj.position.y=wk*1.1;
+      }
+      if(this.stress)this.updateStress(env);
+      if(t>6){this.quake=false;this.model.position.set(0,0,0);this.model.rotation.z=0;
+        if(this._wallObj)this._wallObj.visible=false;}
+    }else if(this.stress){ this.updateStress(.12+Math.sin(performance.now()*.001)*.05); }
+    if(this.customUpdate)this.customUpdate(dt,performance.now()/1000);
+    if(this.autoRotate&&this.model&&!this.quake)this.model.rotation.y+=dt*.22;
+    controls.update();
+  }
+  updateStress(env){
+    const t=performance.now()*.001;
+    const colA=new THREE.Color(); // 复用，避免逐帧逐构件分配 Color
+    this.pieces.forEach((p,i)=>{
+      const wave=(Math.sin(t*6+i*1.3)+1)/2;
+      const v=THREE.MathUtils.clamp(wave*(.25+p.userData.baseStress)*Math.max(.12,env)*1.5,.02,.98);
+      stressColorTo(colA,v);
+      p.material.color.copy(colA);
+      p.material.emissive.copy(colA); p.material.emissiveIntensity=.35;
+      p.userData._sv=v;
+    });
+  }
+  easeInOut(x){return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;}
+}
+const viewer=new Viewer();
+window.viewer=viewer; window.THREE=THREE; window.camera=camera; window.controls=controls; window.renderer=renderer; window.scene=scene;
+window.__proj=(x,y,z)=>{const v=new THREE.Vector3(x,y,z).project(camera);
+  return {sx:(v.x*.5+.5)*innerWidth,sy:(-v.y*.5+.5)*innerHeight};};
+
+/* ============ Toast ============ */
+function toast(msg,type='info',ms=2600){
+  const b=$('#toast-box'); const d=document.createElement('div');
+  d.className=`toast glass rounded-md px-4 py-2 text-sm text-[#e8ddc8] ${type==='err'?'err':type==='ok'?'ok':''}`;
+  d.textContent=msg; b.appendChild(d);
+  setTimeout(()=>{d.style.transition='opacity .4s,transform .4s';d.style.opacity='0';d.style.transform='translateY(-8px)';
+    setTimeout(()=>d.remove(),400);},ms);
+}
+
+/* ================= 展区一：33 种基础榫卯建模器 ================= */
+/* 约定：每个 builder 返回 Group，子构件带 userData.label，便于爆炸/标注/应力 */
+const M = { a:woodMat('huali',1.06), b:woodMat('nanmu',1.02), c:woodMat('zitan',1.1), d:woodMat('zhu',1) };
+function G(){ const g=new THREE.Group();return g; }
+function TP(o,label,stress=.3,dir){ tagPiece(o,label,stress); if(dir)o.userData.dir=dir; return o; }
+/* 梯形断面（燕尾）构件：沿 x 方向，front 宽 back 窄 */
+function taper(len,wf,wb,depth,mat){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(wf/2,wb/2,len,4),mat);
+  m.geometry.rotateZ(Math.PI/2); m.scale.z=depth/Math.max(wf,wb);
+  m.castShadow=m.receiveShadow=true; return m;
+}
+/* 45 度斜切面框料（用于格角）：len 沿 x，右端斜切 */
+function miterBar(len,sq,mat,left=true){
+  const sh=new THREE.Shape();
+  if(left){ sh.moveTo(0,-sq/2); sh.lineTo(len,0); sh.lineTo(0,sq/2); }
+  else { sh.moveTo(0,0); sh.lineTo(len,-sq/2); sh.lineTo(len,sq/2); }
+  sh.closePath();
+  const geo=new THREE.ExtrudeGeometry(sh,{depth:sq,bevelEnabled:false});
+  geo.translate(0,0,-sq/2);
+  const m=new THREE.Mesh(geo,mat); m.castShadow=m.receiveShadow=true; return m;
+}
+
+const JB = {
+/* 1 企口榫 */ qikou(){
+  const g=G();
+  g.add(TP(mergedPiece([{size:[1.6,.4,1.1],pos:[-.85,0,0]},{size:[.18,.22,1.1],pos:[.04,0,0]}],M.a),'起簧板',.3,[-1,0,0]));
+  g.add(TP(simplePiece(1.7,.4,1.1,M.b,[.9,0,0]),'开槽板',.3,[1,0,0]));
+  return g;
+},
+/* 2 银锭榫 */ yinding(){
+  const g=G();
+  const p1=TP(simplePiece(1.5,.3,1.4,M.a,[-.78,0,0]),'左拼板',.25,[-1,.2,0]);
+  const p2=TP(simplePiece(1.5,.3,1.4,M.b,[.78,0,0]),'右拼板',.25,[1,.2,0]);
+  const key=taper(1.0,.62,.3,.16,M.c); key.rotation.y=Math.PI/2; key.position.set(0,.24,0);
+  g.add(p1,p2,TP(key,'银锭榫',.7,[0,1,0])); return g;
+},
+/* 3 裁口榫 */ caikou(){
+  const g=G();
+  g.add(TP(mergedPiece([{size:[1.5,.45,.7],pos:[-.75,-.06,0]},{size:[1.5,.2,.4],pos:[-.75,.15,-.28],r:.01}],M.a),'咬口板甲',.3,[-1,.1,0]));
+  g.add(TP(mergedPiece([{size:[1.5,.45,.7],pos:[.75,-.06,0]},{size:[1.5,.2,.4],pos:[.75,.15,.28],r:.01}],M.b),'咬口板乙',.3,[1,.1,0]));
+  return g;
+},
+/* 4 穿带榫 */ chuandai(){
+  const g=G();
+  g.add(TP(simplePiece(2.8,.14,1.5,M.a,[0,0,0]),'拼板',.3,[0,1,0]));
+  const b=taper(1.9,.42,.26,.16,M.b); b.rotation.y=Math.PI/2; b.position.set(0,-.18,0);
+  g.add(TP(b,'燕尾穿带',.75,[0,-1,0])); return g;
+},
+/* 5 扎榫/抄手榫 */ zhasun(){
+  const g=G();
+  const fingers=[],f2=[]; const n=5,w=.16,d=.9;
+  for(let i=0;i<n;i++){ const z=(i-(n-1)/2)*w;
+    fingers.push({size:[.55,.34,w*.92],pos:[i%2?.05:-.2,0,z]});
+    f2.push({size:[.55,.34,w*.92],pos:[i%2?-.05:.2,0,z]});
+  }
+  fingers.push({size:[1.2,.34,d],pos:[-.85,0,0]});
+  f2.push({size:[1.2,.34,d],pos:[.85,0,0]});
+  g.add(TP(mergedPiece(fingers,M.a),'指状阳件',.4,[-1,0,0]));
+  g.add(TP(mergedPiece(f2,M.b),'指状阴件',.4,[1,0,0])); return g;
+},
+/* 6 暗销榫 */ anxiao(){
+  const g=G();
+  g.add(TP(simplePiece(1.5,.5,1.2,M.a,[-.78,0,0]),'拼板甲',.25,[-1,0,0]));
+  g.add(TP(simplePiece(1.5,.5,1.2,M.b,[.78,0,0]),'拼板乙',.25,[1,0,0]));
+  const p=new THREE.Mesh(cyl(.07,.07,.7,12),M.c); p.rotation.z=Math.PI/2;
+  p.castShadow=true; p.position.set(0,.02,0); g.add(TP(p,'暗木销',.85,[0,1,.3])); return g;
+},
+/* 7 格角榫 */ gejiao(){
+  const g=G();
+  const a=miterBar(1.3,.4,M.a,true); a.position.set(-1.3,0,0);
+  const b=miterBar(1.3,.4,M.b,false); b.rotation.z=Math.PI; b.position.set(0,0,0);
+  g.add(TP(a,'边料(45°)',.4,[-1,.4,0])); g.add(TP(b,'抹料(45°)',.4,[1,.4,0]));
+  const t=simplePiece(.34,.2,.4,M.c,[-.06,0,0],.01); g.add(TP(t,'暗榫舌',.8,[0,1,.4])); return g;
+},
+/* 8 明榫（透榫） */ mingsun(){
+  const g=G();
+  g.add(TP(simplePiece(.55,2.2,.55,M.b,[0,1.1,0]),'立柱（透卯）',.5,[0,.3,1]));
+  g.add(TP(mergedPiece([{size:[2.2,.32,.32],pos:[-1.25,0,0]},{size:[.5,.28,.28],pos:[.38,0,0]}],M.a),'横梁（透榫）',.55,[-1,0,0]));
+  return g;
+},
+/* 9 闷榫（半榫） */ mensun(){
+  const g=G();
+  g.add(TP(simplePiece(.6,2,.6,M.b,[0,1,0]),'立柱（盲卯）',.45,[0,.3,1]));
+  g.add(TP(mergedPiece([{size:[1.7,.34,.34],pos:[-1.05,0,0]},{size:[.3,.28,.28],pos:[-.12,0,0]}],M.a),'横梁（半榫）',.5,[-1,0,0]));
+  return g;
+},
+/* 10 破头楔 */ potouxie(){
+  const g=G();
+  g.add(TP(simplePiece(.55,1.8,.55,M.b,[0,.9,0]),'立柱',.4,[0,.2,1]));
+  g.add(TP(mergedPiece([{size:[2,.3,.3],pos:[-1.2,0,0]},{size:[.62,.28,.28],pos:[.36,0,0]},{size:[.12,.04,.3],pos:[.62,.14,0]}],M.a),'破缝透榫',.6,[-1,0,0]));
+  const w=new THREE.Mesh(new THREE.ConeGeometry(.09,.34,4),M.c); w.rotation.z=-Math.PI/2; w.position.set(.86,.02,0);
+  w.castShadow=true; g.add(TP(w,'锁紧木楔',.9,[1,.3,0])); return g;
+},
+/* 11 勾挂榫 */ gougua(){
+  const g=G();
+  g.add(TP(simplePiece(.5,1.9,.5,M.b,[0,.95,0]),'立柱',.4,[0,.2,1]));
+  g.add(TP(mergedPiece([
+    {size:[1.5,.3,.3],pos:[-.95,0,0]},{size:[.5,.3,.3],pos:[.05,0,0]},
+    {size:[.18,.18,.3],pos:[.32,-.06,0]},{size:[.2,.12,.3],pos:[.28,-.2,0]}
+  ],M.a),'倒钩榫头',.7,[-1,0,0]));
+  const k=simplePiece(.16,.14,.34,M.c,[.18,.24,0],.01); g.add(TP(k,'卡口',.7,[0,1,0])); return g;
+},
+/* 12 半叠榫 */ bandie(){
+  const g=G();
+  g.add(TP(mergedPiece([{size:[2.6,.18,.3],pos:[0,.09,0]},{size:[.3,.18,.3],pos:[0,-.09,0]}],M.a),'横撑（去半）',.4,[0,.5,-1]));
+  g.add(TP(mergedPiece([{size:[.3,.18,2.6],pos:[0,-.09,0]},{size:[.3,.18,.3],pos:[0,.09,0]}],M.b),'纵撑（去半）',.4,[0,.5,1]));
+  return g;
+},
+/* 13 十字卡榫 */ shizika(){
+  const g=G();
+  g.add(TP(mergedPiece([{size:[2.6,.24,.42],pos:[0,.1,0]},{size:[.42,.24,.42],pos:[0,-.1,0]}],M.a),'开槽横木',.45,[0,.4,-1]));
+  g.add(TP(mergedPiece([{size:[.42,.24,2.6],pos:[0,-.1,0]},{size:[.42,.24,.42],pos:[0,.1,0]}],M.b),'开槽纵木',.45,[0,.4,1]));
+  return g;
+},
+/* 14 粽角榫 */ zongjiao(){
+  const g=G();
+  const L=1.5,s=.42;
+  const leg=simplePiece(s,L,s,M.b,[0,-L/2+s*.35,0]); leg.position.set(0,-L/2+s*.35,0);
+  const rx=simplePiece(L,s,s,M.a,[-L/2+s*.35,0,0]);
+  const rz=simplePiece(s,s,L,M.c,[0,0,-L/2+s*.35]);
+  g.add(TP(leg,'立料',.5,[0,-.5,-.3])); g.add(TP(rx,'横料X',.5,[-1,.2,0])); g.add(TP(rz,'横料Z',.5,[0,.2,-1]));
+  const core=simplePiece(.2,.2,.2,woodMat('zitan',1.3),[0,0,0],.02); g.add(TP(core,'犬牙暗榫',.9,[.6,.6,.6]));
+  g.rotation.y=.6; return g;
+},
+/* 15 抱肩榫 */ baojian(){
+  const g=G();
+  g.add(TP(mergedPiece([
+    {size:[.4,1.7,.4],pos:[0,.85,0]},{size:[.18,.3,.5],pos:[.22,1.72,0]},
+    {size:[.18,.22,.42],pos:[.22,1.45,0]},{size:[.34,.12,.34],pos:[.1,1.9,0],r:.01}
+  ],M.b),'腿足（牙嘴）',.6,[0,.2,1]));
+  g.add(TP(mergedPiece([
+    {size:[1.7,.26,.3],pos:[1.05,1.6,0]},{size:[1.7,.24,.1],pos:[1.05,1.36,-.14]},
+    {size:[.3,.16,.34],pos:[.28,1.86,0],r:.01}
+  ],M.a),'牙条',.55,[1,0,0]));
+  g.add(TP(simplePiece(1.9,.12,1.2,M.c,[1,2.02,0],.02),'束腰桌面',.3,[0,1,0])); return g;
+},
+/* 16 插肩榫 */ chajian(){
+  const g=G();
+  g.add(TP(simplePiece(1.8,.12,1.0,M.c,[0,1.7,0],.02),'案面',.3,[0,1,0]));
+  g.add(TP(mergedPiece([
+    {size:[1.7,.24,.28],pos:[0,1.5,0]},{size:[.5,.2,.3],pos:[.7,1.3,0]},
+    {size:[.4,.12,.3],pos:[.78,1.18,0]}
+  ],M.a),'牙条（斜槽）',.55,[0,.3,-1]));
+  g.add(TP(mergedPiece([
+    {size:[.32,1.3,.32],pos:[.9,.55,0]},{size:[.18,.3,.3],pos:[.78,1.3,0],rot:[0,0,.5]},
+    {size:[.34,.14,.3],pos:[.86,1.5,0],r:.01}
+  ],M.b),'斜肩腿足',.7,[1,0,0])); return g;
+},
+/* 17 夹头榫：牙条贴案面底面、牙头夹在腿端开口中，双腿夹住牙条牙头，案面压实闭合 */
+jiatou(){
+  const g=G();
+  const topY=1.72, th=.14;                 // 案面
+  g.add(TP(simplePiece(1.9,th,1.0,M.c,[0,topY,0],.02),'案面',.3,[0,1,0]));
+  const topB=topY-th/2;                    // 案面底面 1.65
+  const apronH=.26, apronY=topB-apronH/2-.01;
+  // 通长牙条：顶面贴案面底面
+  g.add(TP(simplePiece(1.8,apronH,.26,M.a,[0,apronY,0],.01),'牙条（贴案面底面）',.6,[0,.4,0]));
+  [.78,-.78].forEach(x=>{
+    // 牙头：贴在腿侧，上顶牙条
+    g.add(TP(simplePiece(.24,.42,.3,woodMat('zitan',1.05),[x,apronY-.02,0],.01),'牙头（夹于开口）',.65,[Math.sign(x)*.3,.3,0]));
+    // 开口夹腿：腿柱 + 顶端两片夹口夹住牙头/牙条，夹口上缘抵案面
+    g.add(TP(mergedPiece([
+      {size:[.26,1.34,.26],pos:[x,.67,0]},
+      {size:[.09,.46,.1],pos:[x,1.43,.11]},
+      {size:[.09,.46,.1],pos:[x,1.43,-.11]}
+    ],M.b),x>0?'开口夹腿':'',.7,[Math.sign(x),0,0]));
+  });
+  return g;
+},
+/* 18 托角榫：斜角撑两端分别顶入立柱与横梁底面，形成闭合三角 */
+tuojiao(){
+  const g=G();
+  g.add(TP(simplePiece(.3,1.8,.3,M.b,[-.55,.9,0]),'立柱',.4,[-1,0,0]));
+  const beamY=1.7,bH=.26;
+  g.add(TP(simplePiece(1.6,bH,.26,M.a,[.2,beamY,0]),'横梁',.45,[1,.2,0]));
+  // 斜撑：下端抵立柱侧面(-.4,.95)，上端抵横梁底面(.45,beamY-bH/2)
+  const p1=new THREE.Vector3(-.4,.95,0),p2=new THREE.Vector3(.45,beamY-bH/2-.01,0);
+  const len=p1.distanceTo(p2),ang=Math.atan2(p2.y-p1.y,p2.x-p1.x);
+  const br=simplePiece(len,.15,.2,woodMat('zitan',1.15),
+    [(p1.x+p2.x)/2,(p1.y+p2.y)/2,0],.015);
+  br.rotation.z=ang; g.add(TP(br,'斜角撑（两端入榫）',.85,[.3,.4,.3])); return g;
+},
+/* 19 套榫 */ taosun(){
+  const g=G();
+  g.add(TP(mergedPiece([{size:[.45,1.5,.45],pos:[0,.75,0]},{size:[.22,.34,.22],pos:[0,1.67,0]}],M.b),'望柱（套榫）',.5,[0,.2,-1]));
+  const rail=mergedPiece([{size:[1.8,.28,.28],pos:[0,0,0]},{size:[.24,.12,.24],pos:[0,-.16,0],r:.01}],M.a);
+  rail.position.y=2.02;
+  g.add(TP(rail,'横木（盲孔）',.5,[1,.2,0])); return g;
+},
+/* 20 挖烟袋锅榫 */ yandaiguo(){
+  const g=G();
+  const leg=simplePiece(.3,1.7,.3,M.b,[0,.85,0]);
+  const curve=new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,1.7,0),new THREE.Vector3(0,1.95,-.18),new THREE.Vector3(0,2.0,-.55)]);
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,18,.15,10,false),M.a);
+  tube.castShadow=tube.receiveShadow=true;
+  const arm=simplePiece(.3,.3,1.5,M.a,[0,2.0,-1.25]);
+  g.add(TP(leg,'后腿',.4,[0,.1,1])); g.add(TP(tube,'烟袋锅弯头',.8,[.3,.5,0])); g.add(TP(arm,'搭脑',.5,[0,.3,-1])); return g;
+},
+/* 21 托泥榫：四腿底端以榫座落于环形托泥上，腿顶直接托住器座面板，闭合连座 */
+tuoni(){
+  const g=G();
+  const base=new THREE.Mesh(new THREE.TorusGeometry(.8,.08,12,36),M.b); base.rotation.x=Math.PI/2;
+  base.castShadow=base.receiveShadow=true;base.position.y=.1;
+  g.add(TP(base,'环形托泥',.5,[0,-.2,0]));
+  const legB=.24,legH=1.36,legY=.2+legH/2,topY=legY+legH/2;
+  [[.8,0],[-.8,0],[0,.8],[0,-.8]].forEach(([x,z])=>{
+    // 腿身
+    g.add(TP(simplePiece(.22,legH,.22,M.a,[x,legY,z]),`腿足(${x?'横':'纵'})`,.45,[x*.5,.2,z*.5]));
+    // 底端榫座：跨坐在托泥圆环上，与环相交闭合
+    g.add(TP(simplePiece(.26,.18,.26,M.c,[x,.19,z],.02),'腿底榫座（落托泥）',.6,[x*.5,-.2,z*.5]));
+  });
+  // 器座面板：底面直接压在四腿顶
+  g.add(TP(simplePiece(1.5,.1,1.2,M.c,[0,topY+.05,0],.02),'器座面板',.3,[0,.8,0])); return g;
+},
+/* 22 燕尾榫（大进小出） */ yanwei(){
+  const g=G();
+  const dv=taper(.55,.62,.3,.5,M.a); dv.position.set(.28,0,0);
+  g.add(TP(simplePiece(1.5,.6,.6,M.b,[-.8,0,0]),'卯木板',.4,[-1,0,0]));
+  g.add(TP(dv,'燕尾榫头',.8,[1,.15,0])); return g;
+},
+/* 23 楔钉榫 */ xieding(){
+  const g=G();
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-1.2,.3,0),
+    new THREE.Vector3(-.5,.7,0),new THREE.Vector3(.5,.7,0),new THREE.Vector3(1.2,.3,0)]);
+  const half=(xoff)=>{
+    const grp=new THREE.Group();
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(
+      new THREE.CatmullRomCurve3(curve.points.map(p=>p.clone())),20,.13,10,false),M.a);
+    tube.castShadow=tube.receiveShadow=true; grp.add(tube);
+    const joint=simplePiece(.3,.2,.24,M.a,[xoff*.5,.7,0],.01); grp.add(joint);
+    grp.position.x=xoff; return TP(grp,xoff<0?'弧段甲':'弧段乙',.55,[xoff*.7,.2,0]);
+  };
+  g.add(half(-.55),half(.55));
+  const pin=new THREE.Mesh(cyl(.05,.05,.5,8),M.c); pin.rotation.x=Math.PI/2; pin.position.set(0,.7,0);
+  pin.castShadow=true; g.add(TP(pin,'锁紧楔钉',.9,[0,.6,0])); return g;
+},
+/* 24 走马销 */ zoumaxiao(){
+  const g=G();
+  g.add(TP(simplePiece(1.6,.3,1.0,M.b,[0,0,0]),'围栏横板',.35,[-1,0,0]));
+  g.add(TP(mergedPiece([
+    {size:[1.4,.28,.28],pos:[0,0,0]},{size:[.34,.2,.2],pos:[.55,.26,0]},
+    {size:[.24,.14,.16],pos:[.72,.38,0]}
+  ],M.a),'立柱（燕尾活销）',.7,[1,.4,0]));
+  return g;
+},
+/* 25 霸王枨：斜枨上端勾挂桌面底板、下端以销子把桌腿拉向中心，四角闭合 */
+bawang(){
+  const g=G();
+  const topY=1.9,th=.12,bUnder=topY-th/2;
+  g.add(TP(simplePiece(1.8,th,1.4,M.c,[0,topY,0],.02),'桌面',.3,[0,1,0]));
+  const lx=.64,lz=.5;
+  [[lx,lz],[-lx,lz],[lx,-lz],[-lx,-lz]].forEach(([x,z])=>{
+    g.add(TP(simplePiece(.22,1.6,.22,M.b,[x,.8,z]),x>0&&z>0?'桌腿':'',.5));
+  });
+  // 桌面下方两条穿带（暗枨勾挂处），贴桌面底面
+  g.add(TP(simplePiece(1.5,.1,.16,M.a,[0,bUnder-.06,lz*.55],.01),'桌面穿带（勾挂处）',.55,[0,.4,0]));
+  g.add(TP(simplePiece(1.5,.1,.16,M.a,[0,bUnder-.06,-lz*.55],.01),'',.55));
+  // 四根霸王枨：上端勾挂在对应方位的穿带上，下端销入桌腿内侧上部
+  [[lx,lz],[-lx,lz],[lx,-lz],[-lx,-lz]].forEach(([x,z])=>{
+    const top=new THREE.Vector3(x*.34,bUnder-.12,z*.55);
+    const bot=new THREE.Vector3(x*.86,1.25,z*.86);
+    const len=top.distanceTo(bot);
+    const mid=new THREE.Vector3().addVectors(top,bot).multiplyScalar(.5);
+    const br=simplePiece(len,.11,.11,woodMat('zitan',1.1),[mid.x,mid.y,mid.z],.015);
+    br.lookAt(top);br.rotateX(Math.PI/2);
+    g.add(TP(br,x>0&&z>0?'霸王枨（斜暗拉杆）':'',.9));
+    // 上端勾挂榫（咬入穿带）
+    g.add(TP(simplePiece(.13,.15,.13,M.a,[top.x,top.y,top.z],.01),x>0&&z>0?'勾挂榫':'',.8));
+    // 下端销钉（穿入腿内侧）
+    const pin=new THREE.Mesh(cyl(.04,.04,.2,8),M.c);
+    pin.position.set(bot.x,bot.y,bot.z);pin.castShadow=true;
+    g.add(TP(pin,x>0&&z>0?'销钉（拉腿向心）':'',.85));
+  });
+  return g;
+},
+/* 26 束腰榫 */ shuyao(){
+  const g=G();
+  g.add(TP(simplePiece(1.8,.12,1.3,M.c,[0,1.9,0],.02),'台面',.3,[0,1,0]));
+  g.add(TP(simplePiece(1.7,.22,1.2,M.b,[0,1.72,0],.01),'束腰（内收凹槽）',.5,[0,.4,0]));
+  g.add(TP(simplePiece(1.6,.3,1.1,M.a,[0,1.46,0],.02),'牙条',.5,[0,-.2,0]));
+  g.add(TP(simplePiece(.3,1.1,.3,woodMat('huali',1),[.65,.8,.45]),'腿足',.5,[.5,0,.5]));
+  const step=mergedPiece([{size:[.2,.1,.2],pos:[.65,1.58,.45]},{size:[.16,.1,.16],pos:[.65,1.66,.45]}],M.a);
+  g.add(TP(step,'台阶锁闭榫',.85,[.5,.5,.5])); return g;
+},
+/* 27 矮老榫 */ ailao(){
+  const g=G();
+  g.add(TP(simplePiece(2.4,.14,.3,M.a,[0,.9,0],.015),'罗锅枨/下横木',.45,[0,-.2,0]));
+  g.add(TP(simplePiece(2.4,.14,.3,M.a,[0,1.9,0],.015),'桌面框/上横木',.45,[0,.2,0]));
+  [- .75,0,.75].forEach(x=>{
+    const col=mergedPiece([{size:[.16,.7,.16],pos:[x,1.4,0]},{size:[.08,.18,.08],pos:[x,1.02,0]},{size:[.08,.18,.08],pos:[x,1.78,0]}],M.b);
+    g.add(TP(col,'矮老（短柱暗榫）',.7,x?[x*.3,.2,0]:[0,.3,.3]));
+  }); return g;
+},
+/* 28 卡子花榫：雕花卡子上下分别顶住上下两梁枋，两侧销钉入卯，闭合镶嵌于梁枋之间 */
+kazihua(){
+  const g=G();
+  const bH=.16,gap=.72;
+  g.add(TP(simplePiece(2.4,bH,.24,M.a,[0,gap/2+bH/2,0],.015),'上梁枋',.4,[0,.3,0]));
+  g.add(TP(simplePiece(2.4,bH,.24,M.a,[0,-gap/2-bH/2,0],.015),'下梁枋',.4,[0,-.3,0]));
+  const flower=new THREE.Group();
+  for(let i=0;i<4;i++){
+    const petal=simplePiece(.14,.62,.1,woodMat('zitan',1.15),[0,0,0],.02);
+    petal.rotation.z=i*Math.PI/4; flower.add(petal);
+  }
+  // 上下端销榫直接顶入梁枋
+  [[0,gap/2,0],[0,-gap/2,0]].forEach(([x,y,z])=>{
+    const p=new THREE.Mesh(cyl(.05,.05,.14,8),M.c);p.position.set(x,y,z);p.castShadow=true;flower.add(p);});
+  g.add(TP(flower,'镂空卡子花（上下顶梁）',.8,[0,.5,0])); return g;
+},
+/* 29 双榫 */ shuangsun(){
+  const g=G();
+  g.add(TP(simplePiece(.7,1.8,.5,M.b,[0,.9,0]),'双卯立柱',.5,[0,.2,1]));
+  g.add(TP(mergedPiece([
+    {size:[1.4,.36,.42],pos:[-.9,0,0]},
+    {size:[.26,.3,.18],pos:[-.08,.31,.13]},{size:[.26,.3,.18],pos:[-.08,.31,-.13]}
+  ],M.a),'双榫横梁',.7,[-1,0,0])); return g;
+},
+/* 30 长短榫 */ changduan(){
+  const g=G();
+  g.add(TP(simplePiece(.72,1.8,.5,M.b,[0,.9,0]),'顶盖立柱',.5,[0,.2,1]));
+  g.add(TP(mergedPiece([
+    {size:[1.5,.34,.42],pos:[-.95,0,0]},
+    {size:[.34,.28,.18],pos:[-.13,.3,.13]},{size:[.2,.28,.18],pos:[-.2,.3,-.13]}
+  ],M.a),'长短双榫横梁',.7,[-1,0,0])); return g;
+},
+/* 31 落槽榫 */ luocao(){
+  const g=G();
+  g.add(TP(mergedPiece([{size:[2,.3,.3],pos:[0,.28,0]},{size:[2,.3,.3],pos:[0,-.28,0]},
+    {size:[2,.12,.14],pos:[0,.28,.12]},{size:[2,.12,.14],pos:[0,-.28,.12]}],M.b),'槽框',.5,[0,.3,-1]));
+  g.add(TP(simplePiece(2,.42,.08,M.a,[0,0,.06],.01),'浮动心板',.4,[1,0,0]));
+  g.add(TP(simplePiece(.3,.6,.3,woodMat('zitan',1.1),[-1.15,0,0],.015),'边框立柱',.4,[-1,0,0])); return g;
+},
+/* 32 回纹自锁榫：曲折榫头沿回纹阶梯路径嵌入卯体侧面，联动锁销自上落下贯穿销合 */
+huiwen(){
+  const g=G();
+  const post=.8, half=post/2;
+  // 卯体立柱
+  g.add(TP(simplePiece(post,2,post,M.b,[0,1,0]),'卯体（回纹阶梯槽）',.4,[0,.2,1]));
+  // 卯侧回纹阶梯槽颊板（在柱面 +x，留出与榫头咬合的阶梯）
+  g.add(TP(simplePiece(.2,.2,post*.6,M.b,[half+.1,.55,0],.01),'',.5));
+  g.add(TP(simplePiece(.2,.45,post*.6,M.b,[half+.1,1.25,0],.01),'',.5));
+  g.add(TP(simplePiece(.2,.2,post*.6,M.b,[half+.1,1.75,0],.01),'',.5));
+  // 回纹曲折榫头：嵌入颊板阶梯，内端贴柱面，闭合不悬空
+  const zig=mergedPiece([
+    {size:[.34,.2,.4],pos:[half+.17,.55,0]},
+    {size:[.2,.45,.4],pos:[half+.24,.9,0]},
+    {size:[.4,.2,.4],pos:[half+.14,1.25,0]},
+    {size:[.2,.35,.4],pos:[half+.24,1.55,0]},
+    {size:[.34,.2,.4],pos:[half+.17,1.75,0]}
+  ],M.a);
+  g.add(TP(zig,'回纹曲折榫（嵌入阶梯槽）',.85,[1,.3,0]));
+  // 联动锁销：竖直贯穿榫头与卯体
+  const pin=simplePiece(.12,.5,.12,M.c,[half+.24,1.45,0],.01);
+  g.add(TP(pin,'联动锁销（贯穿销合）',.9,[1,.5,0])); return g;
+},
+/* 33 暗燕尾半榫 */ anyanwei(){
+  const g=G();
+  g.add(TP(miterBar(1.2,.5,M.b,false),'外直角乙',.5,[1,.3,0]));
+  const b2=g.children[0]; b2.rotation.z=Math.PI; b2.position.set(0,0,0);
+  const a=miterBar(1.2,.5,M.a,true); a.position.set(-1.2,0,0); g.add(TP(a,'外直角甲',.5,[-1,.3,0]));
+  const dv=taper(.4,.46,.24,.34,woodMat('zitan',1.1)); dv.position.set(-.02,0,0);
+  g.add(TP(dv,'暗藏燕尾',.9,[0,.5,.4])); return g;
+},
+};
+
+/* ================= 展品数据 ================= */
+const ZONE1 = {
+  id:'z1', name:'物之基', sub:'33 种基础榫卯结构谱系',
+  groups:[
+    {title:'壹 · 板材拼接与扩展', items:[]},
+    {title:'贰 · 面框接合', items:[]},
+    {title:'叁 · 立体角接与立柱', items:[]},
+    {title:'肆 · 穿插拉结与活动', items:[]},
+  ],
+  items:[
+ ['qikou','企口榫','槽口榫 · 龙凤榫','两板拼合，一端起槽、一端削簧，互相嵌合。常用于桌面心板与柜门板，既可阻隔水气，又允许板材随四季干湿自由胀缩。',['起槽藏簧，拼合无缝','浮动结构，适应干缩湿胀','无需胶钉即可定位'],JB.qikou],
+ ['yinding','银锭榫','蝴蝶榫 · 拼板锁',`两头宽、中间窄的银锭形木键，横跨嵌在两板接缝处，如蝴蝶伏木。专门承受拼板横向拉力，防止开裂脱胶。`,['楔形自锁，越拉越紧','横跨接缝，抵抗横向拉力'],JB.yinding],
+ ['caikou','裁口榫','咬口 · 凹凸搭接','板边切出阶梯状边槽互相重叠压合，接触面曲折延长，常见于箱柜底板与背板。',['阶梯咬合，遮光挡缝','重叠压合，抗剪切'],JB.caikou],
+ ['chuandai','穿带榫','薄板防翘筋骨','薄板拼接后易起拱翘曲，匠人在板背开出燕尾通槽，横贯打入带燕尾断面的硬木木带，以筋骨之力拉平木板。',['燕尾贯通，单向锁入','以带代骨，校正翘曲'],JB.chuandai],
+ ['zhasun','扎榫','抄手榫 · 指接','两板边缘削成交替指状凸凹，如手指交叉握拳，胶合面成倍增加，常见于小型木盒与托盘转角。',['指状咬合，胶合面倍增','转角受力均匀'],JB.zhasun],
+ ['anxiao','暗销榫','栽销榫 · 隐迹','在拼接面内侧钻孔打入木销，外观毫无痕迹，全凭销钉承担剪切力，是“天衣无缝”的隐形关节。',['外观无痕','销钉抗剪'],JB.anxiao],
+
+ ['gejiao','格角榫','45° 格角拼框','边抹在交角各切 45° 斜面，内部暗藏榫头卯眼，结合后正面只留一道清爽的对角拼缝线，是攒边装板的标准做法。',['45° 斜面合角','内藏榫舌，外见拼缝线'],JB.gejiao],
+ ['mingsun','明榫','透榫 · 端面之美','榫头贯穿卯眼露出端面，古朴结实，是明式家具常见做法；外露的木纹断面本身就是一种工匠美学。',['榫头贯通，承载力强','外露端面，质朴为美'],JB.mingsun],
+ ['mensun','闷榫','半榫 · 隐卯','榫头短于料厚，插入盲孔不打通外皮，构件表面光整严密，用于讲究外观的高档家具。',['榫不出头，表面完整','盲孔定位'],JB.mensun],
+ ['potouxie','破头楔','劈缝打楔 · 终生锁','透榫端头预劈一道缝，装到位后打入小木楔，榫头在卯眼深处张开成倒刺，一经锁死终生不可拔出。',['楔入即锁，不可逆向拆卸','楔涨自锁'],JB.potouxie],
+ ['gougua','勾挂榫','倒钩防脱','榫头带倒钩状凹槽，顺向推入后下落咬死，抗拉防脱性能极强，常用于承重横档。',['推入下落，形成倒钩','抗拉拔'],JB.gougua],
+ ['bandie','半叠榫','半搭接','两构件交叉处各去一半厚度后重叠相接，表面平齐，常见于窗棂方格与十字底座。',['各去半料，交叠平齐'],JB.bandie],
+ ['shizika','十字卡榫','平面网格节点','木料交错处开出对应深槽互插平合，构成受力稳定的二维平面网格，可无限扩展。',['双向开槽互锁','形成平面受力网格'],JB.shizika],
+
+ ['zongjiao','粽角榫','三碰肩 · 三维交汇','三根方料在 X、Y、Z 三轴交汇，外表三个立面都呈现 45° 格角，内部犬牙交错，外形如粽角般端庄圆满，制作极难。',['三轴 45° 合角','暗榫交错，三维自锁'],JB.zongjiao],
+ ['baojian','抱肩榫','束腰家具之魂','桌腿上端开牙嘴嵌入横向牙条，腿足内侧“抱”住牙条肩部，形成三角形刚性支撑，是束腰家具的灵魂节点。',['腿抱牙条，三角刚性','牙嘴咬合，承压抗扭'],JB.baojian],
+ ['chajian','插肩榫','案类 · 重力自锁','案类家具专用：腿顶长榫切出斜肩，斜向切入案面下牙条槽内；重力越大嵌合越紧，是典型自锁结构。',['重力越大越紧（自锁）','斜肩承压'],JB.chajian],
+ ['jiatou','夹头榫','案类 · 夹固双牙','腿足顶端垂直开槽开口，将牙条与两侧牙头牢牢夹在其中，案面压上后坚不可摧。',['开口夹腿，双牙分担','案面荷载直压腿足'],JB.jiatou],
+ ['tuojiao','托角榫','角部斜撑','角部斜撑两端分别以榫卯与横竖料相接，形成三角形，增强垂直与水平方向的抗扭强度。',['三角稳定','斜撑抗扭'],JB.tuojiao],
+ ['taosun','套榫','望柱盲套接','立木顶端削细，直接套入上层构件对应的盲孔，常见于栏杆望柱、架格层板与腿足连接。',['细榫盲套','拆装便捷'],JB.taosun],
+ ['yandaiguo','挖烟袋锅榫','曲面圆转折','椅背搭脑与后腿相接处呈圆润曲面转折，榫卯隐于弯角内部，形似旧时旱烟锅，极考三维曲面加工功力。',['曲木一体转折','榫藏弯内'],JB.yandaiguo],
+ ['tuoni','托泥榫','四足连座','腿足下部以专有榫眼连接环形底座“托泥”，使离散四足在地面形成连续支撑面，防潮且稳当。',['四足连为一体','连续支撑面'],JB.tuoni],
+
+ ['yanwei','燕尾榫','大进小出 · 防拉之王','榫头前大后小呈倒梯形，只能从端头滑入；受垂直方向拉力时越拉越紧，绝对无法扯出，被誉为木作防拉之王。',['倒梯形单向滑入','拉力自锁，无法拽出'],JB.yanwei],
+ ['xieding','楔钉榫','圆弧扶手拼合','圈椅鹅脖圆弧扶手专用：两段弯木各切相嵌的一半，插合后横穿打入木楔锁紧，多段弧木连成浑然一体的圆环。',['半剖互嵌','横穿楔钉锁死圆弧'],JB.xieding],
+ ['zoumaxiao','走马销','推入即锁 · 倒拉即开','带燕尾断面的独立活销，一端栽紧、一端滑入渐收槽道，是罗汉床围栏等可拆卸家具的核心机关。',['燕尾活销，可重复拆装','推入锁、倒拉开'],JB.zoumaxiao],
+ ['bawang','霸王枨','斜向暗拉杆','桌面下方连接桌腿的斜向暗枨：一端勾挂榫钩牢桌面底板，另一端以销子把桌腿拉向中心，无外露牙条而稳固如山。',['内力拉结，外观简洁','勾挂+销钉双重锁固'],JB.bawang],
+ ['shuyao','束腰榫','内收凹槽台阶锁','台面与牙条之间向内收进一道“束腰”，转角以台阶式锁闭榫卯咬合，是明式束腰家具的标志性构造。',['台阶式咬合','内收成腰，层次分明'],JB.shuyao],
+ ['ailao','矮老榫','短柱暗接','上下两根平行横木（如桌面与罗锅枨）之间的微型垂直短柱，两端穿接暗榫，兼具分隔与承重。',['短柱双端暗榫','拉结上下横枨'],JB.ailao],
+ ['kazihua','卡子花榫','雕花装饰节点','镂空雕花构件镶嵌于梁枋之间，既是装饰卡子花，又承担拉结连接作用，装饰与结构合一。',['雕件即结构件','镶嵌定位'],JB.kazihua],
+ ['shuangsun','双榫','双舌防转','单根构件并排开出两个平行榫头插入双孔，受力时杜绝绕轴偏转，连接刚度倍增。',['双榫并列','抗扭转'],JB.shuangsun],
+ ['changduan','长短榫','一长一短各司其职','同一构件并排做一长一短两榫：长榫受拉受剪，短榫定位防扭，常用于大型立柜立柱与顶盖。',['长榫受力，短榫定位','防止偏转'],JB.changduan],
+ ['luocao','落槽榫','全浮动装板','框料内侧开通长凹槽，板缘直接滑入槽中，不胶不钉全浮动，心板随四季干湿自由伸缩而框架不动。',['攒边装板，全浮动','槽道导向，免胶免钉'],JB.luocao],
+ ['huiwen','回纹自锁榫','曲折联动','榫头带多段曲折折角，拼合时须特定角度转动或多向联动才能进入，借鉴回纹之形的自锁巧思。',['折角路径，定向装入','联动锁销'],JB.huiwen],
+ ['anyanwei','暗燕尾半榫','美与力兼得','燕尾榫的隐藏进阶版：正面看是平整直角，内里却藏倒梯形扣接，兼顾极致外观与防脱刚度。',['外观直角无缝','内藏燕尾防脱'],JB.anyanwei],
+  ]
+};
+
+/* 分区归类 */
+ZONE1.items.forEach((it,i)=>{
+  const g = i<6?0: i<13?1: i<21?2:3; ZONE1.groups[g].items.push(it);
+});
+
+/* ================= 应用框架 ================= */
+const ZONES = [ZONE1];
+let currentZone=null, currentItem=null;
+const TABS = [
+  ['z1','物之基'],['z2','势之弘'],['z3','工之巧'],['z4','机之变'],['z5','思之邃']
+];
+function renderTabs(){
+  $('#zone-tabs').innerHTML = TABS.map(([id,n])=>
+    `<button data-z="${id}" class="tab-btn px-3 lg:px-4 py-2 text-gold/75 text-sm">${n}</button>`).join('');
+  $('#zone-tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const item=ZONES.find(z=>z.id===b.dataset.z).items[0][0];
+    syncHash(b.dataset.z,item);
+  });
+}
+function loadZone(id, itemId, fromRouter=false){
+  const zone = ZONES.find(z=>z.id===id);
+  if(!zone){toast('该展区正在布展中…','err');return;}
+  currentZone = zone;
+  $('#zone-tabs').querySelectorAll('[data-z]').forEach(b=>b.classList.toggle('active',b.dataset.z===id));
+  $('#zone-name').textContent = currentZone.name;
+  $('#zone-sub').textContent = currentZone.sub;
+  renderList();
+  const first = itemId && currentZone.items.find(i=>i[0]===itemId);
+  loadItem(first||currentZone.items[0],fromRouter);
+}
+/* ---- 独立路由（hash：#/z4/muniu；刷新/前进后退保持当前展品） ---- */
+function parseHash(){
+  const m=(location.hash||'').match(/^#\/(z[1-5])(?:\/([\w-]+))?/);
+  if(!m)return null;
+  return {zone:m[1],item:m[2]||null};
+}
+function routeFromHash(){
+  const r=parseHash();
+  if(!r){loadZone('z1');return;}
+  const zone=ZONES.find(z=>z.id===r.zone);
+  if(!zone){loadZone('z1');return;}
+  if(r.item && !zone.items.some(i=>i[0]===r.item)){ // 非法展品：回退该展区首项
+    loadZone(r.zone);return;
+  }
+  loadZone(r.zone,r.item||undefined);
+}
+function syncHash(zoneId,itemId){
+  const h=`#/${zoneId}/${itemId}`;
+  if(location.hash===h)return;
+  location.hash=h; // 触发 hashchange → routeFromHash 统一加载
+}
+window.addEventListener('hashchange',routeFromHash);
+function renderList(){
+  const el=$('#exhibit-list');
+  if(currentZone.groups){
+    el.innerHTML = currentZone.groups.map(grp=>`
+      <div class="px-4 pt-3 pb-1 text-[12px] tracking-[.25em] text-bronze">${grp.title}</div>
+      ${grp.items.map(it=>itemRow(it)).join('')}`).join('');
+  }else{
+    el.innerHTML = currentZone.items.map(it=>itemRow(it)).join('');
+  }
+  el.querySelectorAll('.ex-item').forEach(r=>r.onclick=()=>syncHash(currentZone.id,r.dataset.id));
+}
+function itemRow(it){
+  const [id,name,alias]=it;
+  return `<div class="ex-item px-4 py-2" data-id="${id}">
+    <div class="text-[14px]">${name}</div>
+    <div class="text-[12px] text-gold/45 tracking-wider">${alias||''}</div></div>`;
+}
+function loadItem(it,fromRouter=false){
+  if(!it)return;
+  currentItem=it;
+  document.querySelectorAll('.ex-item').forEach(r=>r.classList.toggle('active',r.dataset.id===it[0]));
+  const [id,name,alias,desc,mech,builder,opts={}]=it;
+  if(!fromRouter)syncHash(currentZone.id,id,false);
+  $('#info-cat').textContent = currentZone.name+' · '+(currentZone.sub||'');
+  $('#info-title').textContent = name;
+  $('#info-sub').textContent = alias||'';
+  $('#info-desc').textContent = desc;
+  $('#info-mech').innerHTML = (mech||[]).map(m=>
+    `<div class="flex items-start gap-2 text-[12px] text-[#cdbf9f]"><span class="text-gold mt-1">◆</span><span>${m}</span></div>`).join('');
+  $('#zone-controls').innerHTML = opts.controlsHtml||'';
+  viewer.clearModel();
+  const overlay=$('#game-overlay'); overlay.classList.add('hidden'); overlay.innerHTML='';
+  $('#tray-hint').classList.toggle('hidden',!opts.tray);
+  let model;
+  try{ model = typeof builder==='function' ? builder() : builder; }
+  catch(e){ console.error(e); toast('模型构建失败：'+e.message,'err'); return; }
+  if(model&&model.isObject3D){
+    if(opts.centerY)model.position.y=opts.centerY;
+    const noIntro=['luban','jiulian','jiaoyi'].includes(id);
+    if(noIntro)model.userData.noIntro=true;
+    viewer.register(model);
+    viewer.intro=null;
+    if(model.userData.explodeScale)viewer.model.userData.explodeScale=model.userData.explodeScale;
+    viewer.customUpdate=model.userData.update||null;
+    viewer.customDestroy=model.userData.destroy||null;
+    if(opts.wall)viewer.addCollapseWall();
+    if(opts.onLoad)opts.onLoad(model);
+    viewer.autoRotate = opts.autoRotate!==false;
+    if(!model.userData.noIntro){
+      /* 进入即以拆解状态呈现，随后播放 拆解→拼装 合拢动画；合拢后切到展品专用视角 */
+      viewer.setExplode(1,true);
+      setTimeout(()=>{
+        if(viewer.model===model&&!model.userData.noIntro)viewer.playIntro();
+        if(opts.postIntroCam)setTimeout(()=>{
+          if(viewer.model===model)opts.postIntroCam(model);
+        },600+1200+200);
+      },600);
+    }else if(opts.postIntroCam){
+      opts.postIntroCam(model);
+    }
+  }
+  $('#btn-rotate').classList.toggle('on',viewer.autoRotate);
+  if(opts.after)opts.after(model);
+}
+
+/* ================= 展区二：建筑大木作 ================= */
+const Z2 = { id:'z2', name:'势之弘', sub:'建筑大木作与空间抗震体系', items:[] };
+
+/* 弓形栱（两端翘起 + 斗座） */
+function gongPiece(len, depth, mat, label, stress=.55){
+  const sh=new THREE.Shape();
+  sh.moveTo(-len/2,0); sh.quadraticCurveTo(0,depth*.55,len/2,0);
+  sh.lineTo(len/2,-depth*.28); sh.quadraticCurveTo(0,-depth*.1,-len/2,-depth*.28); sh.closePath();
+  const geo=new THREE.ExtrudeGeometry(sh,{depth:depth*.8,bevelEnabled:true,bevelSize:.02,bevelThickness:.02,bevelSegments:1});
+  geo.translate(0,0,-depth*.4);
+  const m=new THREE.Mesh(geo,mat); m.castShadow=m.receiveShadow=true;
+  return tagPiece(m,label,stress,[0,.5,0]);
+}
+/* 斗（底承座）：上大下小梯形块 */
+function douPiece(sz,mat,label='斗',stress=.6){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(sz*.62,sz*.42,sz*.55,4),mat);
+  m.rotation.y=Math.PI/4; m.castShadow=m.receiveShadow=true;
+  return tagPiece(m,label,stress,[0,.5,0]);
+}
+/* 昂（斜挑梁） */
+function angPiece(len,mat,label='昂'){
+  const grp=new THREE.Group();
+  const b=simplePiece(len,.14,.22,mat,[len*.18,0,0],.02); grp.add(b);
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(.13,.5,4),mat);
+  tip.rotation.z=-Math.PI/2; tip.position.set(len*.5+.18,0,0); tip.castShadow=true; grp.add(tip);
+  return tagPiece(grp,label,.7,[.2,.4,0]);
+}
+/* 斗栱铺作层：layers 控制出跳层数；各层斗、栱、昂、枋逐件接触叠压，拼合后无悬空缝隙 */
+function buildDougong(layers=3){
+  const g=G();
+  const GH=.26;                       // 栱/昂高度
+  // 立柱：柱头直达栌斗底面
+  const colTop=1.34;
+  const col=simplePiece(.55,colTop,.55,M.b,[0,colTop/2,0],.03);
+  g.add(tagPiece(col,'立柱（栌斗下）',.45,[0,-.3,0]));
+  // 栌斗（大斗）：底面落于柱头
+  let topY=colTop;
+  const ludou=douPiece(.7,M.c,'栌斗（大斗）',.7);
+  const LDY=.7*.55;
+  ludou.position.set(0,topY+LDY/2,0); g.add(ludou);
+  topY+=LDY;
+  for(let L=0;L<layers;L++){
+    const span=1.0+L*.62;
+    const gy=topY+GH/2;               // 栱中心线：底沿正好压在下层斗顶面
+    // 横栱（泥道栱 / 横华栱）
+    const gx=gongPiece(span,.3,M.a,L===0?'泥道栱（横向弓形木）':(L===layers-1?'最上层横栱':''));
+    gx.scale.y=GH/.3; gx.position.set(0,gy,0); g.add(gx);
+    const gz=gongPiece(span*.9,.3,woodMat('huali',.92),L===0?'华栱（纵向出跳）':(L===layers-1?'最上层纵栱':''));
+    gz.scale.y=GH/.3; gz.rotation.y=Math.PI/2; gz.position.set(0,gy,0); g.add(gz);
+    if(L>=1){
+      const out=(span/2)*.92;
+      [1,-1].forEach(s=>{
+        const ang=simplePiece(span*.5,GH*.8,.2,woodMat('nanmu',.95),[s*out*.5,gy,s*.02],.02);
+        g.add(tagPiece(ang,L===1&&s>0?'昂（斜向挑梁）':'',.7,[s*.2,.3,0]));
+      });
+    }
+    topY=gy+GH/2;
+    const sDou=.3, sDY=sDou*.55;
+    [-span/2,span/2].forEach(x=>{
+      const s=douPiece(sDou,M.c,L===layers-1?'升（两端托垫）':'',.6);
+      s.position.set(x,topY+sDY/2,0); g.add(s);
+    });
+    [-span*.42,span*.42].forEach(z=>{
+      const s=douPiece(sDou*.92,woodMat('zitan',1.05),'',.6);
+      s.position.set(0,topY+sDY/2,z); g.add(s);
+    });
+    topY+=sDY;
+  }
+  // 挑檐枋：底面直接压在最上层散斗/交互斗顶面
+  const beam=simplePiece(2.4+layers*.62,.3,.5,M.b,[0,topY+.15,0],.02);
+  g.add(tagPiece(beam,'挑檐枋（屋面荷载）',.6,[0,.5,0]));
+  g.userData.explodeScale=1.15;
+  return g;
+}
+Z2.items.push(
+ ['dougong3','单昂三踩斗栱','斗 · 栱 · 翘 · 昂 · 升',
+  '斗栱是位于立柱与屋檐之间的层叠悬挑构件群：斗为底承座，栱是横向弓形木，翘向外出跳，昂为斜向悬臂挑梁，升是两端托垫。它们不靠钉胶，仅以自重与摩擦层层咬合。单昂三踩是最基础的出跳规格。',
+  ['五大构件层层叠扣，纯摩擦传力','地震时上千摩擦副以微位移耗散横向动能','“墙倒屋不塌”的减震器'],
+  ()=>buildDougong(1),
+  {wall:true, centerY:-.4,
+   controlsHtml:`<div class="text-xs text-gold/70">铺作规格</div>
+   <div class="flex gap-2">
+      <button class="ctrl-btn rounded px-3 py-1 text-xs dg-btn on" data-l="1">单昂三踩</button>
+      <button class="ctrl-btn rounded px-3 py-1 text-xs dg-btn" data-l="2">重昂五踩</button>
+   </div>
+   <button id="dg-wave" class="ctrl-btn rounded w-full py-1.5 text-xs">播放：摩擦副耗能波</button>`,
+   after(){
+     document.querySelectorAll('.dg-btn').forEach(b=>b.onclick=()=>{
+       document.querySelectorAll('.dg-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+       viewer.clearModel();
+       const m=buildDougong(+b.dataset.l); viewer.register(m); viewer.customUpdate=m.userData.update;
+     });
+     $('#dg-wave').onclick=()=>viewer.triggerQuake();
+   }}
+ ],
+ ['dougong5','重昂五踩斗栱','出跳两跳 · 重昂',
+  '在三踩基础上再增出一跳并加重昂，悬挑更远、托举更重的屋檐。层数越多，斗栱群的柔性耗能能力越强，应县木塔正是以 54 种不同规格斗栱组合扛过近千年地震。',
+  ['出跳更远，屋檐更深','重昂分担悬臂弯矩'],
+  ()=>buildDougong(2), {wall:true,centerY:-.6,autoRotate:true}
+ ]
+);
+
+/* 抬梁式 / 穿斗式 */
+function buildTailiang(){
+  const g=G();
+  [[-1.6],[1.6]].forEach(([x])=>{
+    const c=simplePiece(.42,2.4,.42,M.b,[x,1.2,0],.03); g.add(tagPiece(c,'立柱',.5,[x*.3,0,.2]));
+    const mt=simplePiece(.16,.16,.16,M.c,[x,2.46,0],.02); g.add(tagPiece(mt,'馒头榫（柱头定位）',.8,[x*.2,.4,0]));
+  });
+  const b1=simplePiece(4.2,.4,.4,M.a,[0,2.75,0],.03); g.add(tagPiece(b1,'大梁（五架梁）',.6,[0,.5,0]));
+  [-.9,.9].forEach(x=>{
+    const p=simplePiece(.26,.5,.26,M.b,[x,3.2,0],.02); g.add(tagPiece(p,'矮柱（柁墩）',.6,[x*.3,.3,0]));
+  });
+  const b2=simplePiece(2.6,.3,.3,M.a,[0,3.6,0],.02); g.add(tagPiece(b2,'二梁（三架梁）',.55,[0,.4,0]));
+  const ridge=simplePiece(.2,.6,.2,woodMat('zitan',1.1),[0,4.05,0],.02); g.add(tagPiece(ridge,'脊瓜柱',.5,[0,.5,0]));
+  const pur=simplePiece(4.6,.22,.22,woodMat('nanmu',.95),[0,4.5,0],.02); pur.rotation.z=.0; g.add(tagPiece(pur,'脊檩',.5,[0,.6,0]));
+  const rf1=simplePiece(3.4,.12,.5,M.c,[-1.2,4.9,-.0],.01); rf1.rotation.z=.4; g.add(tagPiece(rf1,'屋架椽',.3,[-.3,.5,0]));
+  const rf2=simplePiece(3.4,.12,.5,M.c,[1.2,4.9,0],.01); rf2.rotation.z=-.4; g.add(tagPiece(rf2,'屋架椽',.3,[.3,.5,0]));
+  const chuan=simplePiece(4.3,.16,.18,woodMat('huali',.95),[0,2.0,0],.01); g.add(tagPiece(chuan,'穿插枋（拉结柱身）',.7,[0,.2,0]));
+  g.userData.explodeScale=1.3; return g;
+}
+function buildChuandou(){
+  const g=G();
+  const xs=[-2,-1,0,1,2];
+  xs.forEach(x=>{
+    const c=simplePiece(.24,3.2,.24,M.b,[x,1.8,0],.02); g.add(tagPiece(c,Math.abs(x)===2?'檐柱':'金柱（密柱）',.45,[x*.25,.15,0]));
+  });
+  [1.0,1.7,2.4,3.1].forEach((y,i)=>{
+    const f=simplePiece(4.6,.14,.2,i%2?woodMat('nanmu',1):M.a,[0,y,0],.01);
+    g.add(tagPiece(f,'穿枋（贯穿一排列柱）',.75,[0,.3+(i%2)*.1,0]));
+  });
+  const pur=simplePiece(4.8,.18,.18,woodMat('zitan',1),[0,3.55,0],.01); g.add(tagPiece(pur,'檩条直接落柱头',.6,[0,.5,0]));
+  const rf1=simplePiece(3.6,.1,.4,M.c,[-1.1,3.9,0],.01); rf1.rotation.z=.38; g.add(tagPiece(rf1,'密排椽子',.3,[-.3,.4,0]));
+  const rf2=simplePiece(3.6,.1,.4,M.c,[1.1,3.9,0],.01); rf2.rotation.z=-.38; g.add(tagPiece(rf2,'密排椽子',.3,[.3,.4,0]));
+  g.userData.explodeScale=1.3; return g;
+}
+Z2.items.push(
+ ['tailiang','抬梁式梁架','北方殿堂 · 层叠而上',
+  '立柱上承大梁，梁上抬矮柱再承二梁，层叠而上至脊檩。柱梁交汇处用馒头榫定位、穿插枋拉结，内部空间开阔，适合北方大型宫殿殿堂。',
+  ['大梁抬二梁，层叠承重','馒头榫定位柱头，穿插枋拉结柱身','殿堂内部获得完整大空间'],
+  buildTailiang, {centerY:-.8, controlsHtml:`
+  <div class="flex gap-2">
+   <button class="ctrl-btn rounded px-3 py-1 text-xs frame-btn on" data-f="tailiang">抬梁式（北方）</button>
+   <button class="ctrl-btn rounded px-3 py-1 text-xs frame-btn" data-f="chuandou">穿斗式（南方）</button>
+  </div>`, after(){
+    document.querySelectorAll('.frame-btn').forEach(b=>b.onclick=()=>{
+      document.querySelectorAll('.frame-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+      const f=b.dataset.f; const it=Z2.items.find(i=>i[0]===f);
+      viewer.clearModel(); const m=it[5]();viewer.register(m);
+    });
+  }}
+ ],
+ ['chuandou','穿斗式梁架','南方民居 · 以穿代梁',
+  '柱密而梁细，穿枋直接贯穿一整排列柱，形成极轻巧但整体拉结力极强的柔性剪力墙体系，抗风抗震，广泛用于南方民居。',
+  ['穿枋贯穿密柱，无大梁','整体拉结的柔性“剪力墙”','耗材少、抗风抗震'],
+  buildChuandou, {centerY:-1}
+ ]
+);
+
+/* 藻井 */
+function buildCaisson(){
+  const g=G();
+  const sqMat=woodMat('zitan',1.05);
+  const square=new THREE.Group();
+  const s=4.4;
+  [[0,-s/2],[0,s/2],[-s/2,0],[s/2,0]].forEach(([x,z],i)=>{
+    const b=simplePiece(i<2?s:.34,.28,i<2?.34:s,M.b,[x,0,z],.02);
+    square.add(tagPiece(b,'下层方井（四方）',.5,[x*.2,-.3,z*.2]));
+  });
+  square.position.y=0; g.add(square);
+  const oct=new THREE.Group();
+  const R=2.7;
+  for(let i=0;i<8;i++){
+    const a=i/8*Math.PI*2;
+    const b=simplePiece(1.55,.24,.26,woodMat('nanmu',.95),[Math.sin(a)*R,-.85,Math.cos(a)*R],.02);
+    b.rotation.y=a; oct.add(tagPiece(b,'八角井（八方过渡）',.55,[Math.sin(a)*.3,-.3,Math.cos(a)*.3]));
+  }
+  g.add(oct);
+  const circ=new THREE.Mesh(new THREE.TorusGeometry(1.7,.14,10,40),M.c);
+  circ.rotation.x=Math.PI/2; circ.position.y=-1.7; circ.castShadow=true;
+  g.add(tagPiece(circ,'圆井（天圆）',.6,[0,-.5,0]));
+  // 蜂巢微缩斗栱
+  for(let ring_i=0;ring_i<3;ring_i++){
+    const n=16-ring_i*3; const rr=2.35-ring_i*.62; const yy=-.55-ring_i*.55;
+    for(let i=0;i<n;i++){
+      const a=i/n*Math.PI*2;
+      const d=douPiece(.16,woodMat('huali',.9+ring_i*.05),ring_i===2?'向心斗栱':'微缩斗栱',.6);
+      d.position.set(Math.sin(a)*rr,yy,Math.cos(a)*rr); d.userData.dir=[Math.sin(a)*.5,-.4,Math.cos(a)*.5];
+      g.add(d);
+    }
+  }
+  // 龙首
+  const dragon=new THREE.Group();
+  const head=simplePiece(.5,.35,.4,MAT.bronzeDark,[0,0,0],.08); dragon.add(head);
+  const snout=simplePiece(.35,.2,.25,MAT.bronze,[.32,-.05,0],.06); dragon.add(snout);
+  for(let i=0;i<2;i++){const h=new THREE.Mesh(new THREE.ConeGeometry(.03,.3,6),MAT.bronze);
+    h.position.set(-.05+i*.12,.28,0);h.castShadow=true;dragon.add(h);}
+  dragon.position.y=-2.6; g.add(tagPiece(dragon,'悬空龙首（向心挤压承重）',.7,[0,-.6,0]));
+  g.userData.explodeScale=1.5;
+  g.userData.update=(dt)=>{g.rotation.y+=dt*.08;};
+  return g;
+}
+Z2.items.push(
+ ['caisson','天宫穹顶 · 藻井','方井 → 八角井 → 圆井',
+  '藻井是顶棚向上凹进的华丽结构，如智化寺、故宫太和殿的九龙藻井：从下方方井经八角井过渡为顶部圆井，数百个微缩斗栱如蜂巢般向心辐射，完全凭借向心挤压受力，将龙首悬挑聚合于空中。',
+  ['天圆地方的空间哲学','蜂巢斗栱向心挤压，无钉悬挑','仰视如龙宫穹顶'],
+  buildCaisson, {autoRotate:false,
+   onLoad(m){viewer.tweens.length=0;
+     viewer.tweenCam(new THREE.Vector3(0,-.6,6.5),new THREE.Vector3(0,-.6,0));},
+   postIntroCam(m){viewer.tweens.length=0;
+     viewer.tweenCam(new THREE.Vector3(4.6,5.2,6.2),new THREE.Vector3(0,-.7,0));}}
+]);
+
+/* 应县木塔（缩比） */
+/* 四坡攒尖飞檐屋盖（带翘角），w 为半宽；深灰筒瓦，非金属避免高光过曝 */
+const ROOF_MAT=shareMaterial(new THREE.MeshStandardMaterial({color:0x3b352e,metalness:.08,roughness:.82}));
+function hipRoof(w, y, thick, label){
+  const roof=new THREE.Group();
+  const half=w, top=w*.42, rise=thick;
+  const geo=new THREE.CylinderGeometry(top*Math.SQRT2, half*Math.SQRT2, rise, 4, 1);
+  const r=new THREE.Mesh(geo,ROOF_MAT);r.rotation.y=Math.PI/4;
+  r.position.y=rise/2;r.castShadow=r.receiveShadow=true;
+  if(label)tagPiece(r,label,.5,[0,.5,0]); roof.add(r);
+  /* 檐口加厚枋 */
+  const eave=simplePiece(half*2+.3,.12,half*2+.3,woodMat('zitan',1.02),[0,-.02,0],.04);
+  roof.add(eave);
+  /* 四角飞檐翘角 */
+  [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz])=>{
+    const tip=new THREE.Mesh(new THREE.ConeGeometry(.1,.42,6),ROOF_MAT);
+    tip.position.set(sx*half*.98,.08,sz*half*.98);
+    tip.rotation.z=-sx*.7;tip.rotation.x=sz*.7;
+    tip.castShadow=true;roof.add(tip);
+  });
+  roof.position.y=y;
+  return roof;
+}
+function buildPagoda(){
+  const g=G();
+  const levels=5, floorH=1.5;
+  /* 台基（两层石/木台） */
+  const base1=new THREE.Mesh(new THREE.CylinderGeometry(3.4,3.8,.5,8),woodMat('zitan',.9));
+  base1.position.y=.25;base1.rotation.y=Math.PI/8;base1.castShadow=base1.receiveShadow=true;
+  g.add(tagPiece(base1,'双层台基（夯土包砖）',.4,[0,.2,0]));
+  const base2=new THREE.Mesh(new THREE.CylinderGeometry(3.0,3.2,.4,8),woodMat('zitan',1.0));
+  base2.position.y=.7;base2.rotation.y=Math.PI/8;base2.castShadow=true;g.add(base2);
+  for(let L=0;L<levels;L++){
+    const w=4.6-L*.52, y=.95+L*floorH;
+    const colN=8; // 八角每面柱
+    /* 平座（外挑回廊底板） */
+    const plat=new THREE.Mesh(new THREE.CylinderGeometry(w*.62,w*.72,.18,8),woodMat('zitan',.98));
+    plat.rotation.y=Math.PI/8;plat.position.y=y-.12;plat.castShadow=plat.receiveShadow=true;
+    g.add(tagPiece(plat,L===0?'平座（外挑回廊）':'',.5,[0,.3,0]));
+    /* 回廊栏杆 */
+    const rail=new THREE.Mesh(new THREE.CylinderGeometry(w*.66,w*.66,.06,8),woodMat('nanmu',.9));
+    rail.rotation.y=Math.PI/8;rail.position.y=y+.02;g.add(rail);
+    /* 暗层墙体（每面墙板，带门洞简化）：仅前侧两面加标签 */
+    for(let i=0;i<8;i++){
+      const a=i/8*Math.PI*2+Math.PI/8;
+      const wall=simplePiece(w*.42,.86,.1,woodMat('zitan',.82),
+        [Math.sin(a)*w*.42,y+.42,Math.cos(a)*w*.42],.02);
+      wall.rotation.y=a;
+      if(i===0||i===4){wall.scale.x=.6;}
+      g.add(tagPiece(wall,(L===0&&i===2)?'暗层墙体（内有斜撑）':'',.5));
+    }
+    /* 檐柱圈（八角布柱）+ 柱头斗栱；仅正前柱带标签 */
+    for(let i=0;i<colN;i++){
+      const a=i/colN*Math.PI*2+Math.PI/8;
+      const cx=Math.sin(a)*w*.5, cz=Math.cos(a)*w*.5;
+      const c=simplePiece(.16,1.0,.16,woodMat('nanmu',1.0),[cx,y+.45,cz],.02);
+      g.add(tagPiece(c,(L===0&&i===0)?'檐柱（每层八角柱圈）':'',.55,[0,.15,.3]));
+      const d=douPiece(.2,M.c,'',.7);d.position.set(cx,y+1.0,cz);g.add(d);
+      const gg=gongPiece(.42,.16,woodMat('huali',1),'',.6);
+      gg.position.set(cx,y+1.12,cz);gg.rotation.y=-a;g.add(gg);
+    }
+    /* 额外补间斗栱（每面中央） */
+    for(let i=0;i<8;i++){
+      const a=(i+.5)/8*Math.PI*2+Math.PI/8;
+      const d=douPiece(.16,woodMat('huali',1),'',.7);
+      d.position.set(Math.sin(a)*w*.55,y+1.02,Math.cos(a)*w*.55);g.add(d);
+    }
+    /* 屋檐（四坡飞檐 + 瓦垄） */
+    const roof=hipRoof(w*.78, y+1.05, .55,
+      L===0?'层层飞檐（五层六檐·筒瓦）':'');
+    g.add(roof);
+    /* 瓦垄（放射细线） */
+    for(let i=0;i<16;i++){
+      const a=i/16*Math.PI*2;
+      const tile=simplePiece(w*.5,.03,.05,ROOF_MAT,
+        [Math.sin(a)*w*.3,y+1.16,Math.cos(a)*w*.3],.01);
+      tile.rotation.y=-a;g.add(tile);
+    }
+  }
+  const topY=.95+levels*floorH;
+  /* 塔刹：基座 + 仰莲 + 相轮（多层圆环）+ 宝珠 + 刹杆 */
+  const spireBase=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,.3,8),MAT.bronzeDark);
+  spireBase.position.y=topY+.55;spireBase.castShadow=true;
+  g.add(tagPiece(spireBase,'塔刹基座（仰莲）',.6,[0,.4,0]));
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,2.6,10),MAT.bronze);
+  pole.position.y=topY+1.7;pole.castShadow=true;g.add(tagPiece(pole,'铁制刹杆',.6,[0,.5,0]));
+  for(let i=0;i<9;i++){
+    const r=new THREE.Mesh(new THREE.ConeGeometry(.5-i*.035,.16,16),MAT.bronze);
+    r.position.y=topY+.95+i*.16;r.castShadow=true;
+    g.add(tagPiece(r,i===0?'九层相轮':'',.5,[0,.5,0]));
+  }
+  const pearl=new THREE.Mesh(new THREE.SphereGeometry(.16,16,14),MAT.bronze);
+  pearl.position.y=topY+2.7;pearl.castShadow=true;g.add(tagPiece(pearl,'刹顶宝珠',.6,[0,.6,0]));
+  /* 塔刹铁链：上端系于刹杆宝珠下方，下端向内收至顶层屋面内侧铜环风铎，两端锚固不悬空 */
+  const topRoofW=4.6-(levels-1)*.52;
+  [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz],ci)=>{
+    const ax=sx*topRoofW*.46, az=sz*topRoofW*.46;
+    const ay=topY-.3;
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.08,.022,8,18),MAT.bronze);
+    ring.position.set(ax,ay,az);ring.castShadow=true;
+    g.add(tagPiece(ring,ci===0?'屋面铜环（铁链锚固）':'',.6));
+    const bellM=new THREE.Mesh(new THREE.ConeGeometry(.07,.16,8),MAT.bronzeDark);
+    bellM.position.set(ax,ay-.12,az);bellM.castShadow=true;
+    g.add(tagPiece(bellM,ci===0?'风铎':'',.5));
+    const start=new THREE.Vector3(0,topY+2.55,0),end=new THREE.Vector3(ax,ay+.02,az);
+    const mid=start.clone().lerp(end,.5).add(new THREE.Vector3(0,-.28,0));
+    const chain=new THREE.Mesh(
+      new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(start,mid,end),24,.018,6,false),
+      new THREE.MeshStandardMaterial({color:0x8a6d3b,metalness:.55,roughness:.42}));
+    chain.castShadow=true;
+    g.add(tagPiece(chain,ci===0?'塔刹铁链（两端锚固）':'',.6));
+  });
+  g.scale.setScalar(.55);
+  g.userData.explodeScale=.7;
+  return g;
+}
+Z2.items.push(
+ ['pagoda','应县木塔','佛宫寺释迦塔 · 67.31 米',
+  '建于辽代的应县木塔高 67.31 米，是世界现存最高最古的纯木结构楼阁式塔。通体不用一钉，使用 54 种不同规格的斗栱组合，被誉为“中国古建筑斗栱博物馆”，近千年来经受多次强震与炮火仍屹立不倒。',
+  ['全木结构，不用一钉一铁','54 种斗栱规格组合，刚柔并济','五层六檐，地震中整体微摆耗能'],
+  buildPagoda, {centerY:-.2, wall:true,
+   controlsHtml:`<button id="pg-quake" class="ctrl-btn rounded w-full py-1.5 text-xs">模拟强震：墙倒屋不塌</button>
+   <div class="text-[12px] text-gold/50 leading-5">点击后留意：旁侧山墙坍塌，木塔仅整体摇摆后复位</div>`,
+   onLoad(m){viewer.tweens.length=0;
+    viewer.tweenCam(new THREE.Vector3(13.5,9,16.5),new THREE.Vector3(0,2.8,0));},
+    postIntroCam(m){viewer.tweens.length=0;
+      viewer.tweenCam(new THREE.Vector3(13.5,9,16.5),new THREE.Vector3(0,2.8,0));},
+   after(){ $('#pg-quake').onclick=()=>viewer.triggerQuake(); }}
+]);
+
+ZONES.push(Z2);
+
+/* ================= 展区三：明清家具 ================= */
+const Z3 = { id:'z3', name:'工之巧', sub:'明清家具与案头小木作', items:[] };
+function tube(points,r=.1,mat=M.a,seg=24){
+  const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),seg,r,10,false),mat);
+  m.castShadow=m.receiveShadow=true; return m;
+}
+/* 黄花梨圈椅（完整仿真）：马蹄形连续椅圈，三弯靠背，前腿独立、后腿一木连做至扶手 */
+function buildQuanyi(){
+  const g=G();
+  const W=.78,D=.66,seatY=.92,postH=2.52;
+  /* 座面攒边装板 */
+  g.add(tagPiece(simplePiece(W*2+.2,.12,.2,M.b,[0,seatY,D],.02),'前边抹',.4,[0,.1,.3]));
+  g.add(tagPiece(simplePiece(W*2+.2,.12,.2,M.b,[0,seatY,-D],.02),'后边抹',.4,[0,.1,-.3]));
+  g.add(tagPiece(simplePiece(.2,.12,D*2,M.b,[W,seatY,0],.02),'左抹头',.4,[.3,.1,0]));
+  g.add(tagPiece(simplePiece(.2,.12,D*2,M.b,[-W,seatY,0],.02),'右抹头',.4,[-.3,.1,0]));
+  g.add(tagPiece(simplePiece(W*2-.16,.07,D*2-.16,woodMat('huali',1.14),[0,seatY+.02,0],.015),'浮动心板（落槽榫）',.35,[0,.5,0]));
+  /* 四腿：前腿自地面穿过座面与前鹅脖相接；后腿一木连做，顶端直接托住椅圈后端 */
+  [[W,D],[-W,D]].forEach(([x,z])=>{
+    g.add(tagPiece(simplePiece(.17,seatY+.16,.17,M.b,[x,(seatY+.16)/2,z],.025),'前腿（穿过座面接鹅脖）',.55,[x*.4,-.1,z*.4]));
+  });
+  [[W,-D],[-W,-D]].forEach(([x,z])=>{
+    g.add(tagPiece(simplePiece(.17,postH,.17,M.b,[x,postH/2,z],.025),'后腿（一木连做至椅圈）',.55,[x*.4,.1,-.2]));
+  });
+  /* 连续马蹄形椅圈：前扶手端落在前鹅脖顶，后端弧段落在两根后腿柱顶，多段楔钉 */
+  const hoopPts=[
+    [ W*.92,1.72, D*.95],[ W*.98,1.95, D*.55],[ W*.95,2.18, 0],
+    [ W*.82,2.42,-D*.5],[ W*.7,postH+.02,-D*.92],[0,2.72,-D*1.02],
+    [-W*.7,postH+.02,-D*.92],[-W*.82,2.42,-D*.5],[-W*.95,2.18,0],
+    [-W*.98,1.95,D*.55],[-W*.92,1.72,D*.95]
+  ].map(p=>new THREE.Vector3(...p));
+  const segN=5;
+  for(let s=0;s<segN;s++){
+    const a=s/(segN),b=(s+1)/segN;
+    const i0=Math.floor(a*(hoopPts.length-1)),i1=Math.ceil(b*(hoopPts.length-1));
+    const sub=hoopPts.slice(i0,i1+1);
+    const t=tube(sub,.088,woodMat('huali',1.08),20);
+    const mid=hoopPts[Math.floor((i0+i1)/2)];
+    g.add(tagPiece(t,`椅圈弧段（楔钉榫 ${s+1}）`,.65,[Math.sign(mid.x||.01)*.3,.4,-.1]));
+    if(s<segN-1){
+      const j=hoopPts[i1];
+      const pin=new THREE.Mesh(cyl(.028,.028,.22,8),M.c);
+      pin.position.copy(j);pin.castShadow=true;
+      const tan=hoopPts[Math.min(i1+1,hoopPts.length-1)].clone().sub(hoopPts[Math.max(i1-1,0)]).normalize();
+      pin.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tan);
+      g.add(tagPiece(pin,'楔钉',.9,[0,.6,0]));
+    }
+  }
+  /* 前扶手短柱（鹅脖前支）连接扶手端与前腿 */
+  [1,-1].forEach(sgn=>{
+    const st=tube([new THREE.Vector3(W*sgn,seatY+.05,D),new THREE.Vector3(W*.92*sgn,1.4,D*.98),
+      new THREE.Vector3(W*.92*sgn,1.72,D*.95)],.07,M.b,16);
+    g.add(tagPiece(st,'前鹅脖支',.6,[sgn*.3,.2,.3]));
+  });
+  /* S 形靠背板（用带轻微弯曲的盒体，倾斜） */
+  const backCurve=new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,seatY+.02,-D+.06),new THREE.Vector3(0,1.7,-D-.06),
+    new THREE.Vector3(0,2.36,-D*.98),new THREE.Vector3(0,2.7,-D*1.0)]);
+  const back=tube([backCurve.getPoint(.0),backCurve.getPoint(.5),backCurve.getPoint(1)],.05,
+    woodMat('huali',1.16),28);
+  back.scale.x=5.2;
+  g.add(tagPiece(back,'S 形靠背板（攒框）',.55,[0,.3,-.3]));
+  /* 券口/联邦棍：下端落座面前抹，上端顶入椅圈内弧（闭合不悬空） */
+  [1,-1].forEach(sgn=>{
+    const rail=tube([new THREE.Vector3(W*.86*sgn,seatY-.02,D*.8),
+      new THREE.Vector3(W*.92*sgn,1.35,D*.62),
+      new THREE.Vector3(W*.98*sgn,1.93,D*.55)],.045,M.a,16);
+    g.add(tagPiece(rail,'联邦棍（顶入椅圈）',.5,[sgn*.2,.1,.2]));
+  });
+  /* 四面管脚枨 */
+  g.add(tagPiece(simplePiece(W*2+.1,.09,.09,woodMat('nanmu',.95),[0,.28,D],.02),'踏脚枨',.45,[0,-.2,.3]));
+  g.add(tagPiece(simplePiece(W*2+.1,.09,.09,woodMat('nanmu',.95),[0,.28,-D],.02),'后管脚枨',.45,[0,-.2,-.3]));
+  [1,-1].forEach(sgn=>g.add(tagPiece(simplePiece(.09,.09,D*2,woodMat('nanmu',.95),[W*sgn,.28,0],.02),'侧管脚枨',.45,[sgn*.3,-.2,0])));
+  g.userData.explodeScale=1.15;
+  return g;
+}
+Z3.items.push(
+ ['quanyi','黄花梨圈椅','天圆地方 · 楔钉榫',
+  '椅圈弧线圆润流畅，实由三至五段弧木通过楔钉榫连接：两段弯木各切相嵌的一半，插合后横穿木楔锁紧，接口平滑无缝。上圆下方的造型诠释了“天圆地方”的东方造物哲学。',
+  ['多段弧木楔钉拼合，天衣无缝','一木连做的椅腿穿过座面','落槽榫装心板，四季浮动'],
+  buildQuanyi, {centerY:-.3}
+]);
+
+/* 翘头案 */
+function buildQiaotouan(){
+  const g=G();
+  g.add(tagPiece(simplePiece(4.4,.16,1.1,woodMat('huali',1.1),[0,1.8,0],.02),'案面',.4,[0,.4,0]));
+  [-2.2,2.2].forEach(x=>{
+    const up=simplePiece(.3,.2,.3,M.c,[x,1.92,0],.03); up.rotation.z=x>0?-.5:.5;
+    g.add(tagPiece(up,'翘头',.5,[x*.3,.4,0]));
+  });
+  [[-1.8,.9,.42],[1.8,.9,.42],[-1.8,.9,-.42],[1.8,.9,-.42]].forEach(([x,y,z])=>{
+    const leg=mergedPiece([{size:[.22,1.5,.22],pos:[x,y,z]},{size:[.1,.5,.1],pos:[x,1.55,z]}],M.b);
+    g.add(tagPiece(leg,'夹头榫腿足',.6,[x*.3,0,z*.3]));
+  });
+  [-1.8,1.8].forEach(x=>{
+    const ya=mergedPiece([{size:[.16,.3,.16],pos:[x,1.5,.28]},{size:[.16,.3,.16],pos:[x,1.5,-.28]}],M.a);
+    g.add(tagPiece(ya,'夹头榫牙头',.75,[x*.2,.3,0]));
+  });
+  g.add(tagPiece(simplePiece(4,.24,.2,M.a,[0,1.55,0],.015),'通长牙条',.6,[0,.2,0]));
+  g.add(tagPiece(simplePiece(3.8,.1,.1,woodMat('nanmu',.95),[0,.4,0],.01),'管脚枨',.4,[0,-.2,0]));
+  g.userData.explodeScale=1.3;
+  return g;
+}
+Z3.items.push(
+ ['qiaotouan','明式翘头案','夹头榫 · 越压越紧',
+  '案面两端微微翘起形成“翘头”，既挡卷轴滑落又添舒展气势。腿足以夹头榫咬住牙条牙头，案面重力沿竖直线压实四腿；书案越承重，节点越紧密。',
+  ['夹头榫开口夹固牙条牙头','案面荷载直压腿足，越压越紧','翘头兼具实用与造型'],
+  buildQiaotouan, {centerY:-.4}
+]);
+
+/* 四出头官帽椅（完整仿真）：后腿一木通长至搭脑，扶手前后连贯 */
+function buildGuanmaoyi(){
+  const g=G();
+  const W=.58,D=.52,seatY=.95;
+  /* 座面攒框 */
+  g.add(tagPiece(simplePiece(W*2+.16,.1,.18,M.b,[0,seatY,D],.02),'座面前抹',.4,[0,.1,.3]));
+  g.add(tagPiece(simplePiece(W*2+.16,.1,.18,M.b,[0,seatY,-D],.02),'座面后抹',.4,[0,.1,-.3]));
+  g.add(tagPiece(simplePiece(.18,.1,D*2,M.b,[W,seatY,0],.02),'左抹头',.4,[.3,.1,0]));
+  g.add(tagPiece(simplePiece(.18,.1,D*2,M.b,[-W,seatY,0],.02),'右抹头',.4,[-.3,.1,0]));
+  g.add(tagPiece(simplePiece(W*2-.14,.06,D*2-.14,woodMat('huali',1.12),[0,seatY+.02,0],.012),'藤编软屉',.35,[0,.5,0]));
+  /* 后腿：一木连做，自地面穿过座面，经烟袋锅曲面弯转直通搭脑 */
+  [1,-1].forEach(sgn=>{
+    const post=tube([
+      new THREE.Vector3(W*sgn,.05,-D),
+      new THREE.Vector3(W*sgn,1.5,-D),
+      new THREE.Vector3(W*sgn*.98,2.05,-D-.02),
+      new THREE.Vector3(W*sgn,2.28,-D-.02)],.075,M.a,24);
+    g.add(tagPiece(post,'后腿通长（挖烟袋锅榫）',.6,[sgn*.25,.2,0]));
+  });
+  /* 前腿到扶手鹅脖 */
+  [1,-1].forEach(sgn=>{
+    g.add(tagPiece(simplePiece(.16,.95,.16,M.b,[W*sgn,.475,D],.025),'前腿/鹅脖',.55,[sgn*.3,0,.3]));
+    const arm=tube([
+      new THREE.Vector3(W*sgn,seatY,D),
+      new THREE.Vector3(W*1.05*sgn,1.55,D*.7),
+      new THREE.Vector3(W*sgn,1.72,D*.2),
+      new THREE.Vector3(W*sgn,1.78,-D*.4),
+      new THREE.Vector3(W*sgn,1.9,-D)],.068,woodMat('huali',1.08),28);
+    g.add(tagPiece(arm,'弯曲联帮棍扶手（出头）',.6,[sgn*.3,.2,0]));
+    /* 前端出头圆头 */
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),woodMat('huali',1.08));
+    tip.position.set(W*1.05*sgn,1.55,D*.72);tip.castShadow=true;g.add(tagPiece(tip,'扶手出头',.6));
+  });
+  /* 搭脑：搭在两后腿顶端，两端出头并圆润 */
+  const crest=simplePiece(W*2+.55,.15,.18,woodMat('huali',1.1),[0,2.3,-D-.02],.07);
+  g.add(tagPiece(crest,'搭脑（两端出头）',.65,[0,.5,-.2]));
+  /* 靠背三弯板（S 形） */
+  const bc=new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,seatY+.08,-D+.03),new THREE.Vector3(0,1.5,-D-.06),
+    new THREE.Vector3(0,2.05,-D-.02),new THREE.Vector3(0,2.2,-D-.02)]);
+  const back=tube([bc.getPoint(0),bc.getPoint(.5),bc.getPoint(1)],.045,woodMat('huali',1.16),26);
+  back.scale.x=6;
+  g.add(tagPiece(back,'靠背三弯板（烟袋锅转折）',.55,[0,.3,-.2]));
+  /* 管脚枨 */
+  g.add(tagPiece(simplePiece(W*2,.08,.08,woodMat('nanmu',.95),[0,.3,D],.015),'踏脚枨',.45,[0,-.2,.3]));
+  [1,-1].forEach(sgn=>g.add(tagPiece(simplePiece(.08,.08,D*2,woodMat('nanmu',.95),[W*sgn,.32,0],.015),'侧枨',.4,[sgn*.3,-.2,0])));
+  g.userData.explodeScale=1.15;
+  return g;
+}
+Z3.items.push(
+ ['guanmaoyi','四出头官帽椅','挖烟袋锅榫',
+  '后腿穿过座面直通椅背搭脑，横竖木料在顶端以“挖烟袋锅榫”做圆润曲面转折，榫卯隐于弯角内部。搭脑与扶手两端皆伸出柱外，形如古代官帽的展脚。',
+  ['后腿一木通长至搭脑','烟袋锅曲面榫，榫藏弯内','搭脑、扶手四端出头'],
+  buildGuanmaoyi, {centerY:-.2}
+]);
+
+/* 折叠交椅（正确侧 X 构：左右各一副前后腿在纵深平面交叉，共穿一根 x 向铜轴） */
+function buildJiaoyi(fold=0){
+  const g=G();
+  const mat=woodMat('huali',1.06), dark=M.b;
+  const seatW=1.06, seatD=.62;
+  const xSide=seatW/2-.02;
+  /* fold: 展开(f=0)时交叉腿外撇着地；折叠(f=1)时两腿趋近竖直并拢 */
+  const gf=THREE.MathUtils.lerp(.62,.06,fold);   // 腿足前/后着地跨度
+  const th=THREE.MathUtils.lerp(.28,.05,fold);   // 腿顶前/后跨度
+  const topY=THREE.MathUtils.lerp(1.5,1.62,fold);// 腿顶高度
+  const seatY=THREE.MathUtils.lerp(1.42,1.5,fold);
+  const f=gf/(gf+th);                            // 着地端占整腿比例
+  const pivotY=f*topY;                           // 两腿交叉点高度（=铜轴高度）
+  /* 两侧 X 形侧框：每侧两根圆腿，端点真实落地/真实顶住座面与靠背 */
+  const legPts={};
+  [1,-1].forEach(s=>{
+    const x=xSide*s;
+    const front={gnd:[x,0,gf], top:[x,topY,-th]}; // 前腿：前足 → 后顶
+    const back ={gnd:[x,0,-gf],top:[x,topY, th]}; // 后腿：后足 → 前顶
+    legPts[s]={front,back};
+    g.add(tagPiece(tube([new THREE.Vector3(...front.gnd),new THREE.Vector3(...front.top)],.075,mat,16),
+      s>0?'前腿（绕铜轴转动）':'',.6));
+    g.add(tagPiece(tube([new THREE.Vector3(...back.gnd),new THREE.Vector3(...back.top)],.075,dark,16),
+      s>0?'后腿（绕铜轴转动）':'',.6));
+    /* 铜包脚：四腿着地端真实包覆 */
+    [front.gnd,back.gnd].forEach(p=>{
+      const cap=simplePiece(.2,.1,.16,MAT.bronzeDark,[p[0],.06,p[2]],.03);
+      g.add(tagPiece(cap,p===front.gnd&&s>0?'铜包脚/踏杆':'',.5));
+    });
+  });
+  /* 公共转轴：沿 x 贯穿两侧交叉点；轴上两枚铜圆盘夹住侧框 */
+  const axle=new THREE.Mesh(cyl(.065,.065,seatW+.24,18),MAT.bronzeDark);
+  axle.rotation.z=Math.PI/2;axle.position.set(0,pivotY,0);axle.castShadow=true;
+  g.add(tagPiece(axle,'铜包转轴（穿连两腿）',.85,[0,.3,0]));
+  [1,-1].forEach(s=>{
+    const disc=new THREE.Mesh(cyl(.11,.11,.05,20),MAT.bronze);
+    disc.rotation.z=Math.PI/2;disc.position.set(xSide*s+.07*s,pivotY,0);disc.castShadow=true;
+    g.add(disc);
+  });
+  /* 前后腿足踏杆（沿 x 连接同侧两腿的足端） */
+  const stretcher=(z,label)=>{const r=new THREE.Mesh(cyl(.04,.04,seatW+.1,12),dark);
+    r.rotation.z=Math.PI/2;r.position.set(0,.13,z);r.castShadow=true;g.add(tagPiece(r,label,.5));};
+  stretcher(gf,'前踏杆');stretcher(-gf,'后踏杆');
+  /* 绳编软屉：四角落在四根腿顶上（随折叠立起） */
+  const seatGrp=new THREE.Group();seatGrp.position.set(0,seatY,0);
+  seatGrp.rotation.x=THREE.MathUtils.lerp(-.06,-.95,fold);
+  /* 座框 */
+  seatGrp.add(simplePiece(seatW+.1,.08,.08,dark,[0,0,seatD/2],.02));
+  seatGrp.add(simplePiece(seatW+.1,.08,.08,dark,[0,0,-seatD/2],.02));
+  seatGrp.add(simplePiece(.08,.08,seatD+.1,dark,[seatW/2,0,0],.02));
+  seatGrp.add(simplePiece(.08,.08,seatD+.1,dark,[-seatW/2,0,0],.02));
+  seatGrp.add(tagPiece(simplePiece(seatW-.06,.05,seatD-.06,woodMat('zhu',1.05),[0,.01,0],.015),
+    '绳编软屉（随折翻转）',.5,[0,.3,0]));
+  g.add(seatGrp);
+  /* 扶手：自后腿顶(前顶 z=+th)前探，再回落接到前腿顶(z=-th)，端点均与腿顶闭合 */
+  [1,-1].forEach(s=>{
+    const x=xSide*s;
+    const arm=tube([
+      new THREE.Vector3(x,topY,th),
+      new THREE.Vector3(x,topY+.16,th+.18),
+      new THREE.Vector3(x,topY+.14,-th*.2),
+      new THREE.Vector3(x,topY,-th)],.058,mat,24);
+    g.add(tagPiece(arm,s>0?'弯曲扶手（两端接腿顶）':'',.55,[s*.2,.2,0]));
+  });
+  /* 靠背：两根立柱自前腿后顶(z=-th)升起，上接弧形靠背圈，折叠时随之后倒 */
+  const backGrp=new THREE.Group();
+  backGrp.position.set(0,topY,-th);
+  backGrp.rotation.x=THREE.MathUtils.lerp(-.1,-.95,fold);
+  [1,-1].forEach(s=>{
+    backGrp.add(tube([new THREE.Vector3(xSide*s,0,0),
+      new THREE.Vector3(xSide*s*.86,.34,-.16),
+      new THREE.Vector3(.42*s,.52,-.34)],.06,mat,16));
+  });
+  const crest=tube([new THREE.Vector3(-.42,.52,-.34),new THREE.Vector3(-.3,.7,-.46),
+    new THREE.Vector3(0,.76,-.5),new THREE.Vector3(.3,.7,-.46),
+    new THREE.Vector3(.42,.52,-.34)],.075,mat,32);
+  backGrp.add(tagPiece(crest,'弧形靠背（楔钉拼接多段弧木）',.65,[0,.4,-.2]));
+  [-.3,.3].forEach(x=>{const p=new THREE.Mesh(cyl(.025,.025,.16,8),M.c);
+    p.position.set(x,.7,-.46);p.castShadow=true;backGrp.add(tagPiece(p,'楔钉',.85));});
+  g.add(backGrp);
+  g.userData.explodeScale=1.05;
+  g.userData.noExplode=false;
+  return g;
+}
+Z3.items.push(
+ ['jiaoyi','明代折叠交椅','走马销 · 一秒折叠',
+  '前后腿交叉处以铜包件为轴活动连接，结合走马销与翻转脚踏，展开时平稳承重，提起即可一秒折叠收纳，是古代行军与贵族出游的顶级工业设计。',
+  ['交叉轴活动，可快速折叠','铜包件增强节点耐磨','折叠后便于随军携行'],
+  ()=>buildJiaoyi(0), {centerY:-.3, autoRotate:false,
+   controlsHtml:`<div class="text-xs text-gold/70">展开 / 折叠</div>
+   <input id="jy-fold" type="range" min="0" max="100" value="0" class="w-full">
+   <button id="jy-btn" class="ctrl-btn rounded w-full py-1.5 text-xs">播放折叠动作</button>`,
+   after(){
+     let fold=0;
+     const rebuild=()=>{viewer.clearModel();const m=buildJiaoyi(fold);viewer.register(m,{frame:false});
+       viewer.autoRotate=false;$('#btn-rotate').classList.remove('on');};
+     $('#jy-fold').oninput=e=>{fold=e.target.value/100;rebuild();};
+     $('#jy-btn').onclick=()=>{fold=fold>.5?0:1; $('#jy-fold').value=fold*100; rebuild();};
+   }}
+]);
+
+/* 展区排序：四出头官帽椅置首 */
+Z3.items.sort((a,b)=>(a[0]==='guanmaoyi'?-1:b[0]==='guanmaoyi'?1:0));
+
+ZONES.push(Z3);
+
+/* ================= 展区四：古代机械 ================= */
+const Z4 = { id:'z4', name:'机之变', sub:'动态传动与精密制造', items:[] };
+/* 木质齿轮：teeth 齿，r 节圆半径 */
+function gear(r, teeth, thick, mat, label){
+  const g=new THREE.Group();
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(r,r*.92,thick,teeth),mat);
+  wheel.rotation.x=Math.PI/2; wheel.castShadow=wheel.receiveShadow=true; g.add(wheel);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(r*.18,r*.18,thick*1.3,10),MAT.bronzeDark);
+  hub.rotation.x=Math.PI/2; hub.castShadow=true; g.add(hub);
+  for(let i=0;i<teeth;i++){
+    const a=i/teeth*Math.PI*2;
+    const t=simplePiece(r*.16,thick*1.15,r*.22,mat,
+      [Math.cos(a)*(r+thick*.12),0,Math.sin(a)*(r+thick*.12)],.01);
+    t.rotation.y=-a+Math.PI/2; g.add(t);
+  }
+  if(label) tagPiece(g,label,.7);
+  return g;
+}
+function wheelMesh(r,thick,mat,label){
+  const g=new THREE.Group();
+  const w=new THREE.Mesh(new THREE.CylinderGeometry(r,r,thick,24),mat);
+  w.rotation.x=Math.PI/2; w.castShadow=true; g.add(w);
+  [[0,1],[Math.PI/2,1]].forEach(([a])=>{
+    const s=new THREE.Mesh(new THREE.BoxGeometry(r*2,thick*.4,thick*.4),woodMat('zitan',1));
+    s.rotation.y=a; g.add(s);
+  });
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(r,.05,8,28),MAT.bronzeDark);
+  g.add(rim);
+  if(label)tagPiece(g,label,.6);
+  return g;
+}
+/* 记里鼓车木人：站立于平台 y=baseY，面向 +x 击鼓/镯，返回含 arm 的组 */
+function makeDrummer(baseY){
+  const f=new THREE.Group();
+  const robe=new THREE.Mesh(new THREE.CylinderGeometry(.13,.2,.34,12),woodMat('zhu',1.02));
+  robe.position.y=.17;robe.castShadow=true;f.add(robe);
+  f.add(simplePiece(.15,.2,.13,woodMat('zhu',1),[0,.42,0],.04));
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),woodMat('zhu',1));
+  head.position.y=.6;head.castShadow=true;f.add(head);
+  const arm=new THREE.Group();
+  arm.add(simplePiece(.28,.06,.06,MAT.bronzeDark,[.13,0,0],.02));
+  arm.add(simplePiece(.05,.16,.05,M.c,[.28,-.06,0],.01));
+  arm.position.set(0,.46,0);f.add(arm);
+  f.position.y=baseY;
+  f.userData.arm=arm;
+  return f;
+}
+/* ---- 记里鼓车（修复悬空：共轴双轮、鼓座、木阁立柱、双辕、分层木人） ---- */
+function buildJili(){
+  const g=G();
+  const wheelR=.5, axleY=wheelR+.08, track=.62;
+  const deckY=1.05;
+  /* 车架平台 + 车箱栏板 */
+  g.add(tagPiece(simplePiece(2.4,.16,1.5,M.b,[0,deckY,0],.03),'车架平台',.4,[0,.4,0]));
+  [[0,deckY+.17,.72],[0,deckY+.17,-.72]].forEach(([x,y,z])=>{
+    g.add(simplePiece(2.3,.22,.07,M.a,[x,y,z],.02));
+  });
+  [[1.15,deckY+.17,0],[-1.15,deckY+.17,0]].forEach(([x,y,z])=>{
+    g.add(simplePiece(.07,.22,1.4,M.a,[x,y,z],.02));
+  });
+  /* 共轴双轮：车轴沿 z 贯穿车箱，两轮在两侧同一轴上 */
+  const axle=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,track*2+.34,12),MAT.iron);
+  axle.rotation.x=Math.PI/2;axle.position.set(0,axleY,0);axle.castShadow=true;
+  g.add(tagPiece(axle,'车轴（两轮共轴）',.6,[0,.2,0]));
+  const wheels=[];
+  [track,-track].forEach((z,i)=>{
+    const w=wheelMesh(wheelR,.16,woodMat('huali',1),i===0?'道轮（行走轮）':'');
+    w.position.set(0,axleY,z);g.add(w);wheels.push(w);
+  });
+  /* 双辕：从车箱前(+x)斜下到轭，末端横轭（牵引连接，非悬空） */
+  const yokeX=2.1,yokeY=.9;
+  [.3,-.3].forEach(z=>{
+    const pole=tube([new THREE.Vector3(1.1,deckY-.02,z),new THREE.Vector3(1.6,.98,z),
+      new THREE.Vector3(yokeX,yokeY,z)],.045,M.b,12);
+    g.add(tagPiece(pole,z===.3?'车辕（前驾双辕）':'',.35));
+  });
+  g.add(tagPiece(simplePiece(.08,.08,.95,M.b,[yokeX,yokeY,0],.02),'前端横轭',.3));
+  /* 减速齿轮组：车轴立轮(随轴转)→ 卧轮(水平减速)→ 凸轮立轮，均由轴/支座真实穿连 */
+  const gx=-.1;
+  const gw1=gear(.27,12,.14,woodMat('zhu',1),'底齿轮（键固车轴随轮转）');
+  gw1.position.set(gx,axleY,.78);
+  const collar=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.2,12),MAT.bronzeDark);
+  collar.rotation.x=Math.PI/2;collar.position.set(gx,axleY,.78);collar.castShadow=true;
+  g.add(tagPiece(collar,'轴套键（锁轮于轴）',.85));
+  g.add(tagPiece(simplePiece(.1,deckY-axleY-.08,.1,M.c,[gx,(axleY+deckY)/2-.04,.78],.01),'车轴吊杆',.6));
+  const gw2=gear(.24,10,.1,woodMat('huali',.95),'换向卧轮（水平减速）');
+  gw2.position.set(gx,deckY-.13,.78);
+  const camPin=simplePiece(.07,.07,.16,M.c,[.12,0,.1],.01);
+  gw2.add(tagPiece(camPin,'凸轮拨销（击鼓）',.9));
+  g.add(gw1,gw2);
+  const vLen=.46;
+  const vShaft=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,vLen,10),MAT.iron);
+  vShaft.position.set(gx,axleY+.23,.78);g.add(tagPiece(vShaft,'立轴（底齿轮→卧轮）',.55));
+  g.add(tagPiece(simplePiece(.45,.08,.1,M.b,[gx-.02,deckY-.08,.78],.01),'卧轮轴承梁',.5));
+  /* 鼓 + 鼓架（鼓由四足架承托，不再悬空） */
+  const drumSt=tagPiece(simplePiece(.5,.05,.5,M.b,[.62,deckY+.04,0],.01),'鼓架',.4);g.add(drumSt);
+  [.18,-.18].forEach(dx=>[.18,-.18].forEach(dz=>{
+    g.add(simplePiece(.04,.3,.04,M.c,[.62+dx,deckY+.2,dz],.01));
+  }));
+  const drum=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.38,20),woodMat('zitan',1.05));
+  drum.rotation.x=Math.PI/2;drum.position.set(.62,1.42,0);drum.castShadow=true;
+  g.add(tagPiece(drum,'鼓（行一里一击）',.4));
+  /* 下层木人：立于平台，面向 +x 对鼓挥槌 */
+  const fig1=makeDrummer(deckY+.08);fig1.position.x=.18;g.add(fig1);
+  /* 上层木阁：四立柱落于平台，承顶板（不再悬空） */
+  [[.72,.42],[.72,-.42],[-.72,.42],[-.72,-.42]].forEach(([x,z])=>{
+    g.add(simplePiece(.07,.92,.07,M.c,[x,deckY+.46,z],.01));
+  });
+  g.add(tagPiece(simplePiece(1.6,.08,1.05,M.b,[0,1.97,0],.02),'上层木阁顶板',.4));
+  const bell=new THREE.Mesh(new THREE.SphereGeometry(.15,16,12,0,Math.PI),MAT.bronze);
+  bell.position.set(-.18,1.78,0);bell.castShadow=true;
+  g.add(tagPiece(bell,'铜镯（行十里一击）',.4));
+  /* 上层木人：立于顶板，面向 -x 对镯挥槌（缩小） */
+  const fig2=makeDrummer(2.01);fig2.scale.setScalar(.8);fig2.position.x=.2;
+  fig2.rotation.y=Math.PI;g.add(fig2);
+  const upQ=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2);
+  gw2.quaternion.copy(upQ);
+  let t=0,lastStrike=-1,lastBell=-1,g2a=0;
+  g.userData.update=(dt)=>{
+    const w=dt*viewer.speed*2.4;
+    t+=dt*viewer.speed;
+    wheels.forEach(wh=>wh.rotation.z-=w);
+    gw1.rotation.z-=w;
+    g2a-=w;
+    gw2.quaternion.copy(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),g2a).multiply(upQ));
+    const phase=(t*.55)%1;
+    const strike=phase<.18? -phase/.18*.9 : Math.min(0,-.9+(phase-.18)/.5*.9);
+    fig1.userData.arm.rotation.z=strike;
+    fig2.userData.arm.rotation.z=-strike;
+    const li=Math.floor(t*.55);
+    if(li!==lastStrike&&lastStrike>=0){SFX.drum();toast('咚 —— 木人击鼓：已行一里','ok',1400);}
+    lastStrike=li;
+    if(li>0&&li%10===0&&li!==lastBell){SFX.bell();toast('铛 —— 上层击镯：已行十里','ok',1400);lastBell=li;}
+  };
+  g.userData.explodeScale=1.1;
+  g.scale.setScalar(.6);   // 整车进一步缩小，落在舞台圆环内并留出充足边距
+  return g;
+}
+Z4.items.push(
+  ['jili','记里鼓车','古代自动计程车',
+   '车轮驱动一套严密减速的卧轮、立轮木质齿轮组：车行一里，减速轴恰好转满一周，凸轮挑起连杆木槌、靠重力复位击鼓一下；行十里，上层木人再击铜镯一下。全凭齿轮齿数比实现“里程计量”。',
+   ['齿轮齿数比 = 车轮周长与里程的换算','凸轮 + 连杆 + 重力复位','分层报程：鼓一里、镯十里'],
+   buildJili, {autoRotate:false,
+    postIntroCam(){viewer.tweens.length=0;
+      viewer.tweenCam(new THREE.Vector3(-4.8,2.8,5.2),new THREE.Vector3(0,.75,0));}}
+ ]);
+
+/* ---- 指南车（完整结构） ---- */
+function buildZhinan(){
+  const g=G();
+  const wheelR=.5, axleY=wheelR+.08, track=.95;
+  /* 车舆：底板 + 栏板 + 华盖杆 */
+  g.add(tagPiece(simplePiece(2.1,.14,1.3,M.b,[0,1.02,0],.03),'车舆底板',.45,[0,.3,0]));
+  [[0,1.18,.62],[0,1.18,-.62]].forEach(([x,y,z])=>{
+    g.add(tagPiece(simplePiece(2.0,.28,.08,M.a,[x,y,z],.02),'车舆栏板',.4,[0,.2,Math.sign(z)*.3]));
+  });
+  [[1.02,1.18,0],[-1.02,1.18,0]].forEach(([x,y,z])=>{
+    g.add(tagPiece(simplePiece(.08,.28,1.24,M.a,[x,y,z],.02),'侧栏',.4,[Math.sign(x)*.3,.2,0]));
+  });
+  /* 两轮同一条车轴（z 轴方向），各自可差速转动 */
+  const axleBar=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,track*2+0.4,12),MAT.iron);
+  axleBar.rotation.x=Math.PI/2;axleBar.position.set(0,axleY,0);axleBar.castShadow=true;
+  g.add(tagPiece(axleBar,'车轴（两轮共轴）',.6,[0,.2,0]));
+  const wl=wheelMesh(wheelR,.16,woodMat('huali',1),'左轮（随转弯差速）');
+  wl.position.set(0,axleY,track);wl.rotation.y=Math.PI/2;
+  const wr=wheelMesh(wheelR,.16,woodMat('huali',1),'右轮');
+  wr.position.set(0,axleY,-track);wr.rotation.y=Math.PI/2;
+  g.add(wl,wr);
+  /* 车辕（前牵引杆） */
+  g.add(tagPiece(simplePiece(1.9,.1,.1,M.b,[1.7,.85,0],.03),'车辕（前驾双辕之一）',.35,[1,0,0]));
+  g.add(tagPiece(simplePiece(1.9,.1,.1,M.b,[1.7,.85,.35],.03),'车辕',.35,[1,0,.2]));
+  /* 差速齿轮箱（车舆中部，可视化）：左右立轮 + 中央平轮 + 换向小轮 */
+  const box=tagPiece(simplePiece(.9,.5,.7,woodMat('zitan',.8),[0,1.38,0],.02),'差速齿轮箱（离合换向）',.7,[0,.5,0]);
+  g.add(box);
+  const dgL=gear(.2,9,.09,woodMat('zhu',1),'左轮传动立轮');
+  dgL.position.set(-.3,1.38,0);dgL.rotation.y=Math.PI/2;
+  const dgR=gear(.2,9,.09,woodMat('zhu',1),'右轮传动立轮');
+  dgR.position.set(.3,1.38,0);dgR.rotation.y=Math.PI/2;
+  const diff=gear(.24,10,.08,woodMat('huali',.95),'中央差动平轮');
+  diff.position.set(0,1.42,0);
+  g.add(dgL,dgR,diff);
+  [-1,1].forEach(s=>{const idle=gear(.12,7,.07,woodMat('zhu',1),'离合换向小轮');
+    idle.position.set(s*.02,1.38,s*.22);g.add(idle);idle.userData._idle=s;});
+  /* 立柱、转盘、木人 */
+  g.add(tagPiece(simplePiece(.16,.5,.16,M.c,[0,1.78,0],.02),'转盘立柱',.5,[0,.3,0]));
+  const turntable=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.07,28),woodMat('zitan',1.05));
+  turntable.position.set(0,2.08,0);turntable.castShadow=true;
+  g.add(tagPiece(turntable,'回转盘（反向补偿车身转角）',.65,[0,.5,0]));
+  const fig=new THREE.Group();
+  const robe=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,.5,14),woodMat('zhu',1.02));
+  robe.position.y=.25;robe.castShadow=true;fig.add(tagPiece(robe,'木人袍服',.4));
+  const torso=simplePiece(.2,.22,.16,woodMat('zhu',1),[0,.55,0],.05);fig.add(torso);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.13,16,14),woodMat('zhu',1));h.position.y=.75;fig.add(h);
+  const armL=simplePiece(.42,.07,.07,MAT.bronzeDark,[.28,.55,0],.03);
+  const armR=simplePiece(.2,.07,.07,MAT.bronzeDark,[-.1,.55,0],.03);
+  fig.add(tagPiece(armL,'平举指向南方的手臂',.9,[.5,.1,0]));fig.add(armR);
+  fig.position.set(0,2.12,0);g.add(fig);
+  /* 华盖 */
+  g.add(tagPiece(simplePiece(.05,.35,.05,M.c,[0,2.55,0],.01),'华盖杆',.4,[0,.4,0]));
+  const canopy=new THREE.Mesh(new THREE.ConeGeometry(.45,.18,24),woodMat('zitan',1.05));
+  canopy.position.set(0,2.8,0);canopy.castShadow=true;g.add(tagPiece(canopy,'华盖',.5,[0,.5,0]));
+  let turn=0,targetTurn=0,heading=0;
+  g.userData.update=(dt)=>{
+    turn+=(targetTurn-turn)*dt*2.2;
+    const spd=1.7*viewer.speed;
+    const lw=spd*(1+turn*.7), rw=spd*(1-turn*.7);
+    wl.rotation.x-=dt*lw; wr.rotation.x-=dt*rw;
+    dgL.rotation.z-=dt*lw; dgR.rotation.z+=dt*rw;
+    // 车身保持在展台上，仅差速齿轮与木人展示补偿；木人世界朝向恒定朝南
+    heading+=turn*dt*.8;
+    diff.rotation.y-=turn*dt*2.2;
+    fig.rotation.y=-heading;
+  };
+  g.userData.explodeScale=1.15;
+  g.userData.turnSetter=v=>targetTurn=v;
+  return g;
+}
+Z4.items.push(
+ ['zhinan','指南车','纯机械差速导航',
+  '不借磁力，完全依靠定轴轮系与差速齿轮：车辆直行时两轮同速、转盘不动；转弯时两轮产生转速差，差速换向轮自动啮合转盘，反向补偿车身转过的角度，使车顶木人手臂始终指向正南——比西方差速器早了上千年。',
+  ['轮速差 → 差速齿轮 → 反向补偿转角','直行不动、转弯自动修正','木人指向在世界坐标中恒定'],
+  buildZhinan, {autoRotate:false,
+   controlsHtml:`<div class="text-xs text-gold/70">行驶状态（观察木人手臂始终朝南）</div>
+   <div class="flex gap-2">
+     <button class="ctrl-btn rounded px-3 py-1 text-xs zn-btn on" data-v="0">直行</button>
+     <button class="ctrl-btn rounded px-3 py-1 text-xs zn-btn" data-v="1">左转</button>
+     <button class="ctrl-btn rounded px-3 py-1 text-xs zn-btn" data-v="-1">右转</button>
+   </div>`,
+   after(){document.querySelectorAll('.zn-btn').forEach(b=>b.onclick=()=>{
+     document.querySelectorAll('.zn-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+     const m=viewer.model; if(m&&m.userData.turnSetter)m.userData.turnSetter(+b.dataset.v);
+   });}
+ }
+]);
+
+/* ---- 水运仪象台 ---- */
+function buildShuiyun(){
+  const g=G();
+  g.add(tagPiece(simplePiece(2.4,.2,1.6,M.b,[0,.1,0],.02),'塔基木构架（榫卯机架）',.4,[0,.2,0]));
+  [[-1,-.65],[1,-.65],[-1,.65],[1,.65]].forEach(([x,z])=>{
+    g.add(tagPiece(simplePiece(.14,3.4,.14,M.b,[x,1.8,z],.015),'天柱（传动齿轮轴系）',.5,[x*.2,.1,z*.2]));
+  });
+  [.9,1.9,2.9].forEach(y=>{
+    g.add(tagPiece(simplePiece(2.2,.12,1.4,woodMat('nanmu',.95),[0,y,0],.01),'层枋',.4,[0,.2,0]));
+  });
+  // 水轮 + 受水斗
+  const waterWheel=new THREE.Group();
+  for(let i=0;i<8;i++){
+    const a=i/8*Math.PI*2;
+    const scoop=simplePiece(.12,.12,.3,woodMat('zhu',1),
+      [Math.cos(a)*.55,Math.sin(a)*.55,0],.01);
+    scoop.rotation.z=a; waterWheel.add(scoop);
+  }
+  waterWheel.add(tagPiece(new THREE.Mesh(new THREE.TorusGeometry(.55,.05,8,24),M.b),'受水水轮',.7));
+  waterWheel.position.set(-1.15,1.2,0); g.add(waterWheel);
+  /* 横动轴贯穿水轮中心（与水轮同轴，沿 z 方向），连接到天柱齿轮 */
+  const wheelShaft=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.1,12),MAT.iron);
+  wheelShaft.rotation.x=Math.PI/2;wheelShaft.position.set(-1.15,1.2,0);wheelShaft.castShadow=true;
+  g.add(tagPiece(wheelShaft,'水轮横轴（贯穿轮心）',.7,[0,.2,0]));
+  /* 水轮端齿轮 → 天柱立轴齿轮 */
+  const wGear=gear(.2,10,.09,woodMat('zhu',1),'水轮传动齿');
+  wGear.position.set(-1.15,1.2,.62);wGear.rotation.x=Math.PI/2;g.add(wGear);
+  const vGear=gear(.26,12,.1,woodMat('huali',.95),'天柱大齿轮');
+  vGear.position.set(-1.15,1.6,.72);g.add(vGear);
+  const vShaft=simplePiece(.08,2.0,.08,MAT.iron,[-1.15,2.5,.72],.01);
+  g.add(tagPiece(vShaft,'天柱立轴（多级传动）',.6,[-.2,.2,0]));
+  // 天衡（擒纵机构）
+  const escapement=new THREE.Group();
+  const heng=simplePiece(.7,.07,.1,MAT.bronzeDark,[0,0,0],.01);escapement.add(heng);
+  const guan=simplePiece(.06,.4,.06,MAT.bronze,[.3,-.2,0],.01);escapement.add(guan);
+  escapement.position.set(-.4,1.05,0);
+  g.add(tagPiece(escapement,'天衡（擒纵板）+ 天关（止动爪）',.9,[0,.5,0]));
+  // 报时木阁（木偶）
+  for(let i=0;i<5;i++){
+    const fig=simplePiece(.12,.22,.1,woodMat('zhu',1),[.6,1.15+i*.26,.55],.03);
+    g.add(tagPiece(fig,i===0?'报时木人（五层木阁）':'',.4,[.3,.1,0]));
+  }
+  // 浑象（顶部天球）
+  const sphere=new THREE.Mesh(new THREE.SphereGeometry(.45,20,14),
+    new THREE.MeshStandardMaterial({color:0x3a3540,metalness:.4,roughness:.4,wireframe:false}));
+  sphere.position.set(0,3.5,0);sphere.castShadow=true;
+  g.add(tagPiece(sphere,'浑象（天体运行演示）',.5,[0,.6,0]));
+  const ringA=new THREE.Mesh(new THREE.TorusGeometry(.55,.02,6,32),MAT.bronze);ringA.position.copy(sphere.position);g.add(ringA);
+  const ringB=ringA.clone();ringB.rotation.x=Math.PI/2.4;g.add(ringB);
+  // 水流
+  const water=new THREE.Mesh(new THREE.BoxGeometry(.08,1.2,.08),
+    new THREE.MeshBasicMaterial({color:0x5f8fbf,transparent:true,opacity:.5}));
+  water.position.set(-1.45,1.3,0); g.add(water);
+  let t=0,lastTick=-1;
+  g.userData.update=(dt)=>{
+    t+=dt*viewer.speed;
+    const ww=dt*viewer.speed*1.4;
+    waterWheel.rotation.z-=ww;
+    wGear.rotation.z-=ww;
+    vGear.rotation.y+=ww*(.2/.26);
+    sphere.rotation.y+=dt*viewer.speed*.4;
+    // 擒纵：间歇步进——水轮一顿一顿
+    const step=Math.floor(t*1.4);
+    if(step!==lastTick){if(lastTick>=0)SFX.step();lastTick=step;}
+    escapement.rotation.x = (t*1.4-step)<.25 ? Math.sin((t*1.4-step)/.25*Math.PI)*.35:0;
+    ringA.rotation.z=t*.3;
+  };
+  g.userData.explodeScale=1.35;
+  return g;
+}
+Z4.items.push(
+ ['shuiyun','水运仪象台','北宋苏颂 · 擒纵之祖',
+  '北宋苏颂主持建造、高达十几米的天文钟：恒定水流注入受水斗驱动水轮，而“天衡”擒纵板与“天关”止动爪把连续水流转换为精准的离散步进，再经多级天柱齿轮轴系同时驱动浑仪观测、浑象演示与五层木阁自动报时。这是现代机械钟表擒纵机构（Escapement）的直接祖先。',
+  ['天衡/天关 = 世界最早的机械擒纵器','连续水流 → 精准离散脉冲步进','一塔三用：观测、演示、报时'],
+  buildShuiyun, {centerY:-.2}
+]);
+
+/* ---- 木牛流马（仿真木雕牛：可开后盖空心粮厢 + 凸显牛舌锁 + 四足曲柄连杆 + 拍臀行走） ---- */
+function buildMuniu(){
+  const g=G();
+  const wood=woodMat('huali',1.05), dark=woodMat('zitan',1.05), bamboo=woodMat('zhu',1.05);
+  const tongueMat=new THREE.MeshStandardMaterial({color:0xa65a3a,roughness:.5});
+  const grainMat=new THREE.MeshStandardMaterial({color:0xcda25c,roughness:.85});
+  const cavityMat=new THREE.MeshStandardMaterial({color:0x1b130c,roughness:1});
+
+  /* ===== 空心粮厢（五板拼箱，顶部敞开，后盖可向上翻开） ===== */
+  g.add(tagPiece(simplePiece(1.92,.08,.92,dark,[-.02,.9,0],.02),'粮厢底板',.5));
+  g.add(tagPiece(simplePiece(.1,.74,.92,wood,[.94,1.28,0],.02),'前腹墙板',.5,[.3,.3,0]));
+  g.add(tagPiece(simplePiece(.1,.74,.92,dark,[-1.0,1.28,0],.02),'后臀墙板',.5,[-.3,.3,0]));
+  [.42,-.42].forEach((z,si)=>{
+    g.add(tagPiece(simplePiece(1.92,.74,.08,wood,[-.02,1.28,z],.02),si===0?'侧腹墙板':'',.5,[0,.3,Math.sign(z)*.3]));
+    for(let i=0;i<6;i++){
+      const rod=new THREE.Mesh(cyl(.028,.028,1.62,10),bamboo);
+      rod.rotation.z=Math.PI/2;rod.position.set(-.02,1.02+i*.09,z+Math.sign(z)*.055);rod.castShadow=true;g.add(rod);
+    }
+    [[.5,.034],[.15,.028],[-.25,.028]].forEach(([x,rr])=>{
+      const rv=new THREE.Mesh(cyl(rr,rr,.045,10),dark);
+      rv.rotation.x=Math.PI/2;rv.position.set(x,1.4,z+Math.sign(z)*.05);g.add(rv);
+    });
+    const x1=simplePiece(.24,.05,.05,dark,[-.1,1.34,z+Math.sign(z)*.05],.01);x1.rotation.z=Math.PI/4;g.add(x1);
+    const x2=simplePiece(.24,.05,.05,dark,[-.1,1.34,z+Math.sign(z)*.05],.01);x2.rotation.z=-Math.PI/4;g.add(x2);
+  });
+  /* 内腔（深色空腔 + 粮堆），开盖后可见 */
+  g.add(tagPiece(simplePiece(.84,.04,.7,cavityMat,[-.42,.98,0],.01),'粮厢空腔（内空装粮）',.4));
+  [[-.55,.02],[-.4,.06],[-.28,-.02],[-.46,-.05],[-.2,.05],[-.6,.06]].forEach(([x,z],i)=>{
+    const gr=new THREE.Mesh(new THREE.SphereGeometry(.07+(i%2)*.02,10,8),grainMat);
+    gr.position.set(x,1.06+i*.012,z);gr.castShadow=true;
+    if(i===0)tagPiece(gr,'粮草',.4);g.add(gr);
+  });
+  /* 前半固定顶板 */
+  g.add(simplePiece(.82,.08,.86,wood,[.5,1.66,0],.025));
+  /* 后盖：后缘活榫，翻开后露出空腔粮堆 */
+  const lidG=new THREE.Group();lidG.position.set(-.92,1.66,0);
+  lidG.add(tagPiece(simplePiece(1.02,.09,.86,dark,[.51,0,0],.03),'后盖（活榫可启）',.6,[-.2,.5,0]));
+  const lidBtn=tagPiece(new THREE.Mesh(cyl(.09,.1,.07,18),MAT.bronze),'顶盖铜钮 · 点此开盖',.9);
+  lidBtn.position.set(.51,.1,0);lidBtn.castShadow=true;lidBtn.userData.noExplode=true;lidG.add(lidBtn);
+  const lidBtnRing=new THREE.Mesh(new THREE.TorusGeometry(.12,.012,8,24),MAT.bronzeDark);
+  lidBtnRing.rotation.x=Math.PI/2;lidBtnRing.position.set(.51,.07,0);lidBtnRing.userData.noExplode=true;lidG.add(lidBtnRing);
+  g.add(lidG);
+
+  /* ===== 前颈胸整块木雕 ===== */
+  g.add(tagPiece(mergedPiece([
+    {size:[.46,.5,.64],pos:[1.08,1.32,0],r:.1},
+    {size:[.32,.36,.46],pos:[1.28,1.46,0],r:.1}],wood),'前颈胸（整块木雕）',.5,[.3,.3,0]));
+
+  /* ===== 仿真牛头 ===== */
+  const headG=new THREE.Group();headG.position.set(1.34,1.5,0);
+  headG.scale.setScalar(1.12);
+  headG.add(tagPiece(mergedPiece([
+    {size:[.52,.44,.46],pos:[.04,.1,0],r:.16},
+    {size:[.34,.32,.42],pos:[-.12,.3,0],r:.13}],wood),'牛头（整块木雕）',.6,[.4,.3,0]));
+  /* 吻部（前伸方钝）+ 鼻镜 + 鼻孔 + 下颌 */
+  headG.add(tagPiece(simplePiece(.48,.27,.34,wood,[.42,-.03,0],.11),'牛吻',.55));
+  headG.add(simplePiece(.15,.21,.3,dark,[.68,-.04,0],.07));
+  [.09,-.09].forEach(z=>{
+    const no=new THREE.Mesh(cyl(.028,.028,.03,8),MAT.iron);
+    no.rotation.z=Math.PI/2;no.position.set(.77,-.02,z);headG.add(no);
+  });
+  headG.add(simplePiece(.4,.13,.26,dark,[.34,-.21,0],.05));
+  /* 双眼 + 眉骨 */
+  [.22,-.22].forEach(z=>{
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.058,14,12),MAT.bronzeDark);
+    eye.position.set(.06,.21,z);headG.add(eye);
+    headG.add(simplePiece(.16,.05,.05,dark,[.02,.27,z*.92],.02));
+  });
+  /* 双耳（叶形外展）+ 大弯月角 */
+  [.3,-.3].forEach(z=>{
+    const ear=simplePiece(.09,.28,.18,wood,[-.1,.34,z*1.02],.03);
+    ear.rotation.x=z>0?.5:-.5;ear.rotation.z=z>0?.15:-.15;
+    headG.add(tagPiece(ear,z>0?'牛耳':'',.5));
+    const horn=tube([new THREE.Vector3(-.02,.32,z*.42),new THREE.Vector3(-.1,.72,z*.92),
+      new THREE.Vector3(-.36,.66,z*1.16),new THREE.Vector3(-.46,.7,z*1.02)],.06,dark,20);
+    headG.add(tagPiece(horn,z>0?'弯月角':'',.6));
+  });
+  /* 牛舌锁：醒目长舌自吻下垂出，根部竖销，转动即联动锁舌销咬死曲柄 */
+  const tongueG=new THREE.Group();tongueG.position.set(.3,-.2,0);
+  const tpin=new THREE.Mesh(cyl(.04,.04,.3,10),MAT.bronze);tongueG.add(tpin);
+  tongueG.add(tagPiece(simplePiece(.5,.08,.17,tongueMat,[.22,-.05,0],.035),'牛舌（转动即锁死）',1,[.4,-.3,0]));
+  tongueG.add(simplePiece(.13,.1,.2,tongueMat,[.46,-.07,0],.04));
+  headG.add(tongueG);
+  g.add(headG);
+
+  /* ===== 底盘车架 ===== */
+  g.add(tagPiece(simplePiece(1.55,.12,.52,dark,[-.02,.84,0],.02),'腹内车架',.4));
+  const shaft=new THREE.Mesh(cyl(.032,.032,1.35,10),MAT.iron);
+  shaft.rotation.z=Math.PI/2;shaft.position.set(-.02,.62,0);shaft.castShadow=true;
+  g.add(tagPiece(shaft,'传动轴（连通前后曲柄）',.6));
+
+  /* ===== 四足 + 两侧曲柄连杆（机械运动全可视） ===== */
+  const legs=[],cranks=[],rods=[];
+  const upV=new THREE.Vector3(0,1,0),tmpA=new THREE.Vector3(),tmpB=new THREE.Vector3();
+  const makeRod=()=>{const m=new THREE.Mesh(cyl(.024,.024,1,8),bamboo);m.castShadow=true;
+    m.userData.noExplode=true;g.add(m);return m;};
+  const setRod=(m,a,b)=>{tmpA.copy(a);tmpB.copy(b);const v=new THREE.Vector3().subVectors(tmpB,tmpA);
+    const len=v.length()||1e-3;m.position.copy(tmpA).addScaledVector(v,.5);
+    m.quaternion.setFromUnitVectors(upV,v.normalize());m.scale.set(1,len,1);};
+  [[.5,1],[-.55,-1]].forEach(([cx,frontSign])=>{
+    const isFront=frontSign===1;
+    [1,-1].forEach(s=>{
+      const phase=isFront?(s>0?Math.PI/2:3*Math.PI/2):(s>0?0:Math.PI);
+      /* 板腿：髋铰 + 腿板 + 屈膝 + 阔蹄 */
+      const hip=new THREE.Group();hip.position.set(cx,.78,s*.33);
+      const plank=simplePiece(.15,.6,.12,wood,[0,-.3,0],.02);
+      if(isFront&&s>0)tagPiece(plank,'板腿（髋铰摇杆）',.8);hip.add(plank);
+      const knee=new THREE.Group();knee.position.set(0,-.58,0);
+      const shin=simplePiece(.12,.3,.1,bamboo,[0,-.14,0],.02);
+      if(isFront&&s>0)tagPiece(shin,'屈膝小腿',.7);knee.add(shin);
+      knee.add(simplePiece(.25,.09,.2,dark,[isFront?0.03:-0.03,-.31,0],.03));
+      hip.add(knee);g.add(hip);
+      const lever=new THREE.Object3D();lever.position.set(0,-.18,s*.1);hip.add(lever);
+      legs.push({hip,knee,lever,isFront,phase,baseY:hip.position.y});
+      /* 侧曲柄齿轮 + 偏心销 */
+      const disc=gear(isFront?.17:.15,8,.07,bamboo,isFront&&s>0?'曲柄齿轮（偏心销）':'');
+      disc.position.set(cx,.78,s*.47);disc.userData.noExplode=true;g.add(disc);
+      const pin=new THREE.Mesh(cyl(.026,.026,.13,8),MAT.bronzeDark);
+      pin.rotation.x=Math.PI/2;pin.position.set(isFront?.11:.1,0,0);pin.userData.noExplode=true;disc.add(pin);
+      cranks.push({disc,pin,phase});
+      /* 偏心销 → 腿板连杆 */
+      const rod=makeRod();if(isFront&&s>0)tagPiece(rod,'曲柄连杆（销→腿）',.9);
+      rods.push({rod,pin,lever});
+    });
+  });
+  /* 牛舌联动锁舌销：锁死时水平滑入前曲柄齿槽，曲柄不能转 */
+  const bolt=tagPiece(simplePiece(.22,.07,.07,MAT.iron,[.72,.78,.47],.015),'锁舌销（牛舌联动咬死曲柄）',.95);
+  bolt.userData.noExplode=true;g.add(bolt);
+
+  /* ===== 下垂牛尾（行走时左右轻摆） ===== */
+  const tailG=new THREE.Group();tailG.position.set(-1.02,1.46,0);
+  tailG.add(tagPiece(tube([new THREE.Vector3(0,0,0),new THREE.Vector3(-.14,-.26,0),
+    new THREE.Vector3(-.24,-.58,0),new THREE.Vector3(-.16,-.9,0)],.034,dark,16),'下垂牛尾',.4,[-.2,-.3,0]));
+  const tuft=new THREE.Mesh(new THREE.ConeGeometry(.07,.2,8),dark);
+  tuft.position.set(-.15,-.98,0);tuft.castShadow=true;tailG.add(tuft);
+  g.add(tailG);
+
+  /* ===== 拍屁股：后臀外侧铜垫（3D 可点） ===== */
+  const rumpPad=tagPiece(new THREE.Mesh(cyl(.13,.13,.05,22),MAT.bronze),'拍牛臀 · 点此行走',.9);
+  rumpPad.rotation.z=Math.PI/2;rumpPad.position.set(-1.07,1.3,0);rumpPad.userData.noExplode=true;
+  const rumpRing=new THREE.Mesh(new THREE.TorusGeometry(.16,.015,8,26),MAT.bronze);
+  rumpRing.rotation.y=Math.PI/2;rumpRing.position.set(-1.1,1.3,0);rumpRing.userData.noExplode=true;g.add(rumpRing);
+  g.add(rumpPad);
+
+  /* ===== 状态与动画 ===== */
+  let t=0,walking=false,locked=false,lidOpen=false,walkT=0,boltX=.72,lidA=0,tongueA=0,rumpPulse=0,rumpShake=0;
+  const ease=(cur,target,k,dt)=>cur+(target-cur)*(1-Math.pow(1-k,dt*60));
+  const TAU=Math.PI*2;
+  const gaitPose=p=>{
+    const u=((p%TAU)+TAU)%TAU/TAU;
+    let hip,knee,lift,v;
+    if(u<.65){
+      v=u/.65; hip=.3*(1-2*v); knee=0; lift=0;
+    }else if(u<.75){
+      hip=-.3; knee=0; lift=.03;
+    }else{
+      v=(u-.75)/.25; hip=THREE.MathUtils.lerp(-.3,.3,v*v*(3-2*v));
+      knee=Math.sin(v*Math.PI); lift=Math.sin(v*Math.PI);
+    }
+    return {hip,knee,lift};
+  };
+  const patRump=()=>{
+    if(locked){rumpShake=1;SFX.reject();
+      toast('牛舌锁死，四足纹丝不动！先旋回牛舌解锁','err');return;}
+    walking=true;walkT=0;rumpPulse=1;SFX.place();
+    toast('啪！木牛甩尾开步——四足对角交替迈步','ok');
+  };
+  const toggleLock=()=>{
+    locked=!locked;
+    if(locked){walking=false;SFX.reject();toast('咔哒！牛舌转动，锁舌销咬死曲柄，木牛锁死','ok');}
+    else{SFX.place();toast('牛舌旋回原位，锁已开——再拍屁股即可行走','ok');}
+    return locked;
+  };
+  const toggleLid=()=>{lidOpen=!lidOpen;SFX.pick();return lidOpen;};
+
+  g.userData.update=(dt)=>{
+    t+=dt*viewer.speed;
+    if(viewer.explode>.05)return;
+    let ang=0;
+    if(walking&&!locked){
+      walkT+=dt;if(walkT>6)walking=false;
+      const w=t*3.4;ang=w;
+      g.position.y=.012+Math.abs(Math.sin(w*2))*.024;
+      g.rotation.z=Math.sin(w*2)*.012;
+      headG.rotation.z=Math.sin(w)*.09;
+      tailG.rotation.z=Math.sin(w*.8)*.18;
+      rumpRing.scale.setScalar(1+Math.sin(t*6)*.06);
+    }else{
+      g.position.y=ease(g.position.y,0,.2,dt);
+      g.rotation.z=ease(g.rotation.z,0,.15,dt);
+      headG.rotation.z=ease(headG.rotation.z,0,.15,dt);
+      tailG.rotation.z=ease(tailG.rotation.z,0,.15,dt);
+      rumpRing.scale.setScalar(1);
+    }
+    /* 曲柄转角：行走时转动，停/锁时回正 */
+    cranks.forEach(c=>{c.disc.rotation.z=ease(c.disc.rotation.z,walking?ang+c.phase:0,.25,dt);});
+    /* 四足：对角腿同相（右前+左后、左前+右后），前膝与后跗关节反向弯曲 */
+    legs.forEach(L=>{
+      if(walking){
+        const pose=gaitPose(ang+L.phase);
+        L.hip.rotation.z=ease(L.hip.rotation.z,pose.hip,.45,dt);
+        L.hip.position.y=L.baseY+pose.lift*.14;
+        L.knee.rotation.z=ease(L.knee.rotation.z,pose.knee*(L.isFront?-.9:.9),.45,dt);
+      }else{
+        L.hip.rotation.z=ease(L.hip.rotation.z,0,.2,dt);
+        L.hip.position.y=ease(L.hip.position.y,L.baseY,.2,dt);
+        L.knee.rotation.z=ease(L.knee.rotation.z,0,.2,dt);
+      }
+    });
+    rods.forEach(r=>{r.pin.getWorldPosition(tmpA);r.lever.getWorldPosition(tmpB);setRod(r.rod,tmpA,tmpB);});
+    /* 牛舌 / 锁舌销 / 后盖联动 */
+    tongueA=ease(tongueA,locked?-1.05:0,.18,dt);tongueG.rotation.z=tongueA;
+    boltX=ease(boltX,locked?.36:.72,.18,dt);bolt.position.x=boltX;
+    lidA=ease(lidA,lidOpen?1.32:0,.16,dt);lidG.rotation.z=lidA;
+    if(rumpPulse>0){rumpPulse-=dt*1.8;rumpPad.scale.setScalar(1+Math.max(0,rumpPulse)*.35);}
+    else rumpPad.scale.setScalar(1);
+    if(rumpShake>0){rumpShake-=dt*2.4;rumpPad.position.z=Math.sin(t*40)*.05*Math.max(0,rumpShake);}
+    else rumpPad.position.z=0;
+  };
+  g.userData.patRump=patRump;
+  g.userData.toggleLock=toggleLock;
+  g.userData.toggleLid=toggleLid;
+
+  /* 3D 点选牛臀（点击，不影响轨道拖拽） */
+  const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
+  let downXY=null;
+  const toNDC=ev=>{const r=renderer.domElement.getBoundingClientRect();
+    mv.set(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);};
+  const onDown=ev=>{downXY=[ev.clientX,ev.clientY];};
+  const onUp=ev=>{
+    if(!downXY)return;const moved=Math.hypot(ev.clientX-downXY[0],ev.clientY-downXY[1]);downXY=null;
+    if(moved>7)return;
+    toNDC(ev);ray.setFromCamera(mv,camera);
+    if(ray.intersectObject(rumpPad,false).length){patRump();return;}
+    if(ray.intersectObject(lidBtn,true).length){
+      const open=toggleLid();
+      const btn=$('#mn-lid');if(btn)btn.textContent=open?'合上后盖':'打开后盖：查看空腔粮草';
+    }
+  };
+  renderer.domElement.addEventListener('pointerdown',onDown);
+  renderer.domElement.addEventListener('pointerup',onUp);
+  g.userData.destroy=()=>{
+    renderer.domElement.removeEventListener('pointerdown',onDown);
+    renderer.domElement.removeEventListener('pointerup',onUp);
+  };
+
+  g.userData.explodeScale=1.05;
+  g.scale.setScalar(1.08);
+  return g;
+}
+
+Z4.items.push(
+  ['muniu','木牛流马','山地步进运输机器人',
+   '相传为蜀汉诸葛亮所创，用于翻越秦岭栈道运粮。牛腹为顶部敞开、后盖可启的空心木箱，内装粮草；前端整块木雕仿真牛头、弯角垂耳，牛舌醒目外露并即总开关；四足以髋铰板腿、侧曲柄齿轮与连杆相连。拍一下后臀铜垫，曲柄转动、四足对角交替屈膝迈步、牛尾轻摆、车身随步态起伏；转动牛舌则锁舌销滑入曲柄齿槽，四足即刻锁死，再拍亦不能行，旋回牛舌解锁后拍臀即可继续行走。',
+   ['可开后盖的空心粮厢，内装粮草','侧曲柄齿轮 + 连杆驱动四足对角迈步','牛舌外露即锁：转动锁死，拍臀停行'],
+   buildMuniu, {autoRotate:false,
+    controlsHtml:`<button id="mn-walk" class="ctrl-btn rounded w-full py-1.5 text-xs">拍牛臀：行走（也可直接点 3D 后臀铜垫）</button>
+    <button id="mn-lock" class="ctrl-btn rounded w-full py-1.5 text-xs">转动牛舌：锁死机关</button>
+    <button id="mn-lid" class="ctrl-btn rounded w-full py-1.5 text-xs">打开后盖：查看空腔粮草</button>
+    <div class="text-[12px] text-gold/50">转动牛舌后锁死，再拍亦不动；旋回牛舌后拍臀继续走</div>`,
+    after(){
+      $('#mn-walk').onclick=()=>viewer.model.userData.patRump();
+      $('#mn-lock').onclick=e=>{const locked=viewer.model.userData.toggleLock();
+        e.target.textContent=locked?'旋回牛舌：解除锁死':'转动牛舌：锁死机关';};
+      $('#mn-lid').onclick=e=>{const open=viewer.model.userData.toggleLid();
+        e.target.textContent=open?'合上后盖':'打开后盖：查看空腔粮草';};
+    }
+  }
+]);
+
+/* ---- 诸葛连弩（按实物重构：卧式弓 + 箭匣 + X形拉杆 + 曲形托，前向射击） ---- */
+function buildLiannu(){
+  const g=G();
+  const wood=woodMat('huali',1.05), dark=woodMat('zitan',1.05), bamboo=woodMat('zhu',1.06);
+  const STRING_COL=0x2a241c;
+  /* 弩身主梁（弦槽长木） */
+  const beam=mergedPiece([
+    {size:[3.0,.22,.3],pos:[-.1,.85,0]},
+    {size:[.5,.34,.42],pos:[-1.55,.85,0],r:.03},   /* 前端弓托木块 */
+  ],wood);
+  tagPiece(beam,'弩身主梁（弦槽长木）',.5);
+  beam.userData.labelOff=[-.3,-.35,0];g.add(beam);
+  /* 槽内弦轨暗线 */
+  const rail=simplePiece(2.4,.03,.05,dark,[-.1,.98,0],.01);
+  g.add(rail);
+  /* 复合弓：水平横装于前端 x=-1.8，弓面在 XZ 平面，向 -x 外凸，沿 z 张开 */
+  const bowPts=[];
+  for(let i=0;i<=20;i++){
+    const a=Math.PI*(i/20);
+    bowPts.push(new THREE.Vector3(-1.8-Math.sin(a)*.34,.85,Math.cos(a)*.95));
+  }
+  const bowUp=tube(bowPts,.05,dark,24);
+  const bowDn=tube(bowPts.map(p=>p.clone().setZ(-p.z)),.05,dark,24);
+  tagPiece(bowUp,'复合弓臂（筋角木三层缠绳）',.8);
+  bowUp.userData.labelOff=[0,.25,.5];g.add(bowUp);
+  g.add(bowDn);
+  /* 弓梢挂弦头 + 缠绳箍（环面垂直于弓臂切线） */
+  const ropeMat=new THREE.MeshStandardMaterial({color:0x6b5132,roughness:.9});
+  [.95,-.95].forEach(z=>{
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),dark);
+    tip.position.set(-2.14,.85,z);tip.castShadow=true;g.add(tip);
+    for(let k=0;k<3;k++){
+      const a=z>0?(0.12+k*.28):(Math.PI-.12-k*.28);
+      const px=-1.8-Math.sin(a)*.34, pz=Math.cos(a)*.95;
+      const tg=new THREE.Vector3(-Math.cos(a)*.34,0,-Math.sin(a)*.95).normalize();
+      const band=new THREE.Mesh(new THREE.TorusGeometry(.068,.016,6,14),ropeMat);
+      band.position.set(px,.85,pz);
+      band.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),tg);
+      g.add(band);
+    }
+  });
+  /* 弩弦（V 形双线，汇于弦扣），x 越小越靠前 */
+  const strMat=new THREE.LineBasicMaterial({color:STRING_COL});
+  const strA=new THREE.Line(new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-2.14,.85,.95),new THREE.Vector3(-.6,.86,0)]),strMat);
+  const strB=new THREE.Line(new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-2.14,.85,-.95),new THREE.Vector3(-.6,.86,0)]),strMat);
+  g.add(strA,strB);
+  const nock=simplePiece(.12,.1,.12,dark,[-.6,.86,0],.02);
+  g.add(tagPiece(nock,'弦扣（牙钩住）',.8));
+  /* 箭匣：竖置木匣，下半实体、上半开盖式透明，内部叠装短矢 */
+  const magG=new THREE.Group();magG.position.set(.1,1.18,0);
+  const magLower=simplePiece(.72,.22,.34,wood,[0,0,0],.03);
+  magG.add(tagPiece(magLower,'箭匣匣体（重力落矢）',.7));
+  const magMat=new THREE.MeshStandardMaterial({color:0x8a5a32,roughness:.6,
+    transparent:true,opacity:.42});
+  const magBack=simplePiece(.72,.5,.04,magMat,[0,.36,-.16],.02);
+  const magSide1=simplePiece(.04,.5,.34,magMat,[-.36,.36,0],.02);
+  const magSide2=simplePiece(.04,.5,.34,magMat,[.36,.36,0],.02);
+  magG.add(tagPiece(magBack,'透明匣盖（可见叠矢）',.6),magSide1,magSide2);
+  /* 匣内叠装短矢：竖向堆叠，矢尖朝下对准弦槽（容量 10 支，初始满匣） */
+  const stackBolts=[];
+  for(let i=0;i<10;i++){
+    const b=magBolt();
+    b.position.set(0,.06+i*.052,0);
+    magG.add(b);stackBolts.push(b);
+  }
+  g.add(magG);
+  function magBolt(){
+    const gr=new THREE.Group();
+    const shaft=new THREE.Mesh(cyl(.016,.016,.2,8),bamboo);
+    shaft.castShadow=true;gr.add(shaft);
+    const head=new THREE.Mesh(new THREE.ConeGeometry(.03,.07,10),MAT.iron);
+    head.position.y=-.13;head.castShadow=true;gr.add(head);
+    return gr;
+  }
+  /* 机槽待发箭（槽上一支） */
+  function trackBolt(){
+    const gr=new THREE.Group();
+    const shaft=simplePiece(.85,.03,.03,bamboo,[0,0,0],.006);
+    gr.add(tagPiece(shaft,'待发短矢',.5));
+    const head=new THREE.Mesh(new THREE.ConeGeometry(.035,.12,12),MAT.iron);
+    head.rotation.z=Math.PI/2;head.position.x=-.48;head.castShadow=true;gr.add(head);
+    const fletch=simplePiece(.1,.05,.02,MAT.string,[.42,0,0],.005);gr.add(fletch);
+    gr.position.set(-.2,.9,0);return gr;
+  }
+  let loadedBolt=trackBolt();loadedBolt.visible=false;g.add(loadedBolt);
+  let flying=[];
+  /* X 形拉杆：两根长木臂在弦扣附近交叉枢轴，后端为 T 形推柄（沿机身上方） */
+  const leverG=new THREE.Group();leverG.position.set(-.55,1.12,0);
+  const armA=mergedPiece([
+    {size:[2.05,.1,.1],pos:[.85,.32,.06],rot:[0,0,-.32]},
+  ],wood);
+  const armB=mergedPiece([
+    {size:[2.05,.1,.1],pos:[.85,.32,-.06],rot:[0,0,-.32]},
+  ],wood);
+  leverG.add(tagPiece(armA,'X形压弦拉杆（一推一拉）',.8),armB);
+  /* 枢轴铆钉 */
+  const pin=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.3,12),MAT.iron);
+  pin.rotation.x=Math.PI/2;leverG.add(tagPiece(pin,'枢轴铆钉',.7));
+  /* T 形握柄 */
+  const handle=mergedPiece([
+    {size:[.16,.2,.5],pos:[1.85,.72,0],r:.06},
+    {size:[.1,.35,.12],pos:[1.72,.5,0],r:.04},
+  ],wood);
+  leverG.add(tagPiece(handle,'T形推柄',.7));
+  g.add(leverG);
+  /* 曲形后托（上翘钩状） */
+  const stock=tube([
+    new THREE.Vector3(1.35,.85,0),new THREE.Vector3(1.75,.92,0),
+    new THREE.Vector3(2.05,1.02,0),new THREE.Vector3(2.35,1.08,0),
+    new THREE.Vector3(2.45,1.0,.05)],.075,dark,20);
+  tagPiece(stock,'曲形抵肩托',.5);stock.userData.labelOff=[.45,.25,0];g.add(stock);
+  /* 悬刀扳机（机匣下方） */
+  const xuan=new THREE.Group();xuan.position.set(.45,.74,0);
+  const trig=simplePiece(.08,.3,.08,MAT.bronzeDark,[0,-.12,0],.01);trig.rotation.x=.4;
+  xuan.add(tagPiece(trig,'悬刀扳机',.8));g.add(xuan);
+  /* 补矢架：弩身后侧底部的架座 + 平放 10 支备用短矢（金属簇朝向前 -x）；
+     箭尽点击后，架上的箭矢逐支飞入箭匣，架上随之减少；装填完毕后架上恢复满 10 支展示 */
+  const spareG=new THREE.Group();
+  spareG.add(simplePiece(.2,.1,1.05,wood,[1.4,.42,-.18],.02));
+  const spareBolts=[];
+  for(let i=0;i<10;i++){
+    const gr=new THREE.Group();
+    const sh=new THREE.Mesh(cyl(.013,.013,.82,8),bamboo);
+    sh.rotation.z=Math.PI/2;sh.castShadow=true;gr.add(sh);
+    const hd=new THREE.Mesh(new THREE.ConeGeometry(.03,.11,10),MAT.iron);
+    hd.rotation.z=Math.PI/2;hd.position.x=-.46;hd.castShadow=true;gr.add(hd);
+    const fl=simplePiece(.09,.04,.015,MAT.string,[.38,0,0],.004);gr.add(fl);
+    gr.position.set(1.4,.52+(i%2)*.05,-.38+Math.floor(i/2)*.075);
+    spareG.add(gr); spareBolts.push(gr);
+  }
+  g.add(tagPiece(spareG,'补矢架（箭尽点击，自动装填10支）',.4));
+  /* 缺矢提示标签：挂在补矢架旁，仅在箭尽时显示，点击补矢架即装填后消失 */
+  const refillDiv=document.createElement('div');
+  refillDiv.className='label3d';
+  refillDiv.textContent='箭矢已尽 · 点击补矢架装填 10 支';
+  refillDiv.style.color='#f0b07a';refillDiv.style.borderColor='rgba(224,138,90,.8)';
+  refillDiv.style.fontSize='13px';refillDiv.style.padding='3px 10px';
+  const refillLabel=new CSS2DObject(refillDiv);
+  refillLabel.position.set(1.4,1.0,-.95);refillLabel.visible=false;
+  g.add(refillLabel);
+
+  const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+  function setString(x){
+    strA.geometry.setFromPoints([new THREE.Vector3(-2.14,.85,.95),new THREE.Vector3(x,.86,0)]);
+    strB.geometry.setFromPoints([new THREE.Vector3(-2.14,.85,-.95),new THREE.Vector3(x,.86,0)]);
+    nock.position.x=x;
+  }
+  let ammo=10;                 // 当前匣内可射短矢数（容量10）
+  let kickT=null;              // 击发后拉杆/弓弦的回弹动画计时（秒），null 为静止
+  let refilling=false, refillT=0, refillNext=0;  // 补矢动画：总计时、下一支起飞时刻
+  const refillFlights=[];      // 正在从补矢架飞向箭匣的箭矢动画
+  const _v={from:new THREE.Vector3()};
+  stackBolts.forEach((b,i)=>b.visible=true);
+
+  function fire(){
+    if(refilling||kickT!==null)return;   // 回弹/装填期间锁定
+    if(ammo<=0){ toast('缺少箭矢！点击弩身后侧补矢架自动装填','err',2200); return; }
+    ammo--;
+    /* 匣内最上方一支被取走入槽 */
+    if(stackBolts[ammo])stackBolts[ammo].visible=false;
+    /* 击发瞬间：弦拉满后回弹、T形推柄顿挫，随后射出一支短矢 */
+    kickT=0;
+    const b=trackBolt();b.visible=true;b.position.set(-.3,.9,0);g.add(b);flying.push(b);
+    SFX.twang();
+    if(ammo<=0){ refillLabel.visible=true; toast('10 支短矢已射尽 · 点击补矢架装填','err',2600); }
+  }
+  /* 一支备用矢自补矢架起飞：保留世界位姿移入根组，插值飞向箭匣第 slot 层，到位后入匣并隐藏 */
+  function launchSpareBolt(index){
+    const gr=spareBolts[index];
+    g.updateWorldMatrix(true,false);
+    gr.getWorldPosition(_v.from);
+    g.attach(gr);                    // 移入根组，保持世界位姿（底部该支随即从架上消失）
+    const anim={gr, slot:index, t:0, dur:.55,
+      from:_v.from.clone(),
+      to:new THREE.Vector3(.1,1.24+index*.052,0),
+      rotFrom:gr.quaternion.clone(),
+      rotTo:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2)};
+    refillFlights.push(anim);
+  }
+  function startRefill(){
+    if(refilling||ammo>0)return;
+    refilling=true; refillT=0; refillNext=0;
+    refillFlights.length=0;
+    toast('从补矢架取矢，逐支装入箭匣……','ok',1600);
+  }
+
+  /* 3D 点击交互：点 T 形推柄/拉杆击发；缺矢后点补矢架装填 */
+  const raycaster=new THREE.Raycaster();
+  function raycast(ev){
+    const r=renderer.domElement.getBoundingClientRect();
+    const ndc=new THREE.Vector2(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);
+    raycaster.setFromCamera(ndc,camera);
+    return raycaster;
+  }
+  const onDown=(ev)=>{
+    if(viewer.model!==g)return;
+    const hits=raycast(ev).intersectObjects([leverG,spareG],true);
+    if(!hits.length)return;
+    let o=hits[0].object;
+    if(o===spareG||o.parent===spareG||o.parent?.parent===spareG){
+      if(ammo<=0)startRefill(); else toast('箭匣尚有余矢（'+ammo+' 支），继续点击 T 形推柄发射','ok',1600);
+      return;
+    }
+    fire();
+  };
+  renderer.domElement.addEventListener('pointerdown',onDown);
+
+  g.userData.update=(dt,tAbs)=>{
+    /* 击发回弹动画：推柄先后拉 0.12s 再回位，弦由拉满位(.45)快速回弹至前位(-2.0)再静息(-.6) */
+    if(kickT!==null){
+      kickT+=dt;
+      if(kickT<.12){ const k=ease(kickT/.12);
+        leverG.rotation.z=THREE.MathUtils.lerp(0,-.32,k);
+        setString(THREE.MathUtils.lerp(-.6,.45,k));
+      }else if(kickT<.26){ const k=ease((kickT-.12)/.14);
+        leverG.rotation.z=THREE.MathUtils.lerp(-.32,0,k);
+        setString(THREE.MathUtils.lerp(.45,-2.0,Math.min(1,k*1.4)));
+      }else{ setString(-.6);leverG.rotation.z=0;kickT=null; }
+    }
+    /* 补矢装填动画：备用矢自补矢架逐支起飞入匣（架上随之减少），全部到位后架上还原满 10 支 */
+    if(refilling){
+      refillT+=dt;
+      while(refillNext<10&&refillT>=refillNext*.1){
+        launchSpareBolt(refillNext); refillNext++;
+      }
+      for(let i=refillFlights.length-1;i>=0;i--){
+        const a=refillFlights[i]; a.t+=dt;
+        const k=ease(Math.min(1,a.t/a.dur));
+        a.gr.position.lerpVectors(a.from,a.to,k);
+        a.gr.position.y+=Math.sin(k*Math.PI)*.18;   // 抛物线起弧
+        a.gr.quaternion.slerpQuaternions(a.rotFrom,a.rotTo,k); // 水平束矢姿态 → 匣内竖直
+        if(k>=1){
+          a.gr.visible=false;                       // 入匣：隐藏飞行矢，显示该层匣内矢
+          stackBolts[a.slot].visible=true; SFX.pick();
+          g.remove(a.gr);
+          refillFlights.splice(i,1);
+        }
+      }
+      if(refillNext>=10&&refillFlights.length===0){
+        refilling=false; ammo=10; refillLabel.visible=false;
+        stackBolts.forEach((b,i)=>{b.visible=true;b.position.y=.06+i*.052;});
+        /* 还原补矢架展示：10 支备用矢全部回到架上原位 */
+        spareBolts.forEach((gr,i)=>{
+          gr.visible=true;
+          gr.position.set(1.4,.52+(i%2)*.05,-.38+Math.floor(i/2)*.075);
+          gr.quaternion.identity();
+          spareG.add(gr);
+        });
+        SFX.assemble(); toast('10 支短矢装填完毕，可继续发射','ok',2200);
+      }
+    }
+    flying.forEach(b=>b.position.x-=dt*18); /* 朝弓端（-x）前飞 */
+    flying=flying.filter(b=>{if(b.position.x<-5){
+      g.remove(b);
+      /* 飞箭离场：释放其每支独有几何体（杆/簇/羽），材质为共享池材质不释放，避免常驻泄漏 */
+      b.traverse(o=>{if(o.geometry)o.geometry.dispose();});
+      return false;}return true;});
+  };
+  g.userData.destroy=()=>{ /* 切走展品时移除交互监听并释放仍在飞的箭矢 */
+    renderer.domElement.removeEventListener('pointerdown',onDown);
+    flying.forEach(b=>b.traverse(o=>{if(o.geometry)o.geometry.dispose();}));
+    flying=[];
+  };
+  g.userData.explodeScale=.9;
+  g.scale.setScalar(1.12);
+  return g;
+}
+Z4.items.push(
+ ['liannu','诸葛连弩','元戎弩 · 点击连发',
+  '上方木匣叠装 10 支短矢。点击弩身后端的 T 形推柄即可击发：压弦、落矢、挂机、回弹一次完成，短矢离弦前射。10 支射尽后点击弩身侧后的补矢架自动装填，补满后可继续发射。',
+  ['点击 T 形推柄实时击发，短矢离弦射出','箭匣容量 10 支，射尽提示缺矢','点击补矢架自动装填 10 支，循环连发'],
+  buildLiannu, {autoRotate:false,
+    controlsHtml:`<div class="text-[12px] text-[#cdbf9f] leading-6 bg-gold/5 border border-gold/20 rounded p-2">
+      ① 点击弩身后端 <span class="text-gold2">T 形推柄</span> 发射一支<br>
+      ② 射满 10 支后提示缺矢<br>
+      ③ 点击弩身侧后 <span class="text-gold2">补矢架</span> 自动装填 10 支
+    </div>`}
+ ]);
+
+ZONES.push(Z4);
+
+/* ================= 展区五：益智解密 ================= */
+const Z5 = { id:'z5', name:'思之邃', sub:'微缩益智与空间拓扑解密', items:[] };
+
+/* ---- 鲁班锁（六根，标准 6 单位方木条，拼装后严丝合缝） ---- */
+/* 木条沿自身长轴 = 3 个单位方块：-1、0、+1。cut 集表示在中央单位挖去的横截面象限
+   (象限以截面两轴的 ± 标记)。不挖则保留，构成 1×1×1 的实心榫/缺口。 */
+const LOCK_S=.26;
+function lockBar(kind, mat){
+  const S=LOCK_S, L=S*3;
+  // 每个 kind 给出三段（左 L / 中 M / 右 R）保留的截面方块，象限用 [横,竖] 符号
+  // 截面：u=垂直于长轴的水平方向，v=竖直方向；每段占 {[+1,+1],[+1,-1],[-1,+1],[-1,-1]} 中若干
+  const Q=[[1,1],[1,-1],[-1,1],[-1,-1]];
+  const ALL=Q, NONE=[];
+  let mid;
+  if(kind==='A')mid=ALL;                   // 中央完整（整根实条）
+  else if(kind==='B')mid=[[-1,-1],[-1,1]]; // 中央仅留一侧（u=-1 两块）
+  else if(kind==='C')mid=[[-1,-1]];        // 仅留对角一块
+  else if(kind==='D')mid=[[1,-1]];         // 仅留对角一块（另一侧）
+  else mid=NONE;                           // key：中央整段挖空，仅两端实块
+  const seg=(cells,x)=>(cells||ALL).map(([u,v])=>({size:[S,S,S],pos:[x,v*S/2,u*S/2]}));
+  const parts=[...seg(ALL,-S),...seg(mid,0),...seg(ALL,S)];
+  return mergedPiece(parts,mat);
+}
+/* 装配目标：三对方木条分别占据 ±S 格线，中心在原点；键值 kind 决定中央缺口朝向，
+   经几何校验拼合后六件正交咬合、严丝合缝（无重叠、无空隙） */
+const LOCK_AY=.5; // 装配核心整体抬升高度（使束底贴地）
+const LOCK_DEFS=[
+ {id:'p1',kind:'C',axis:'x',home:new THREE.Vector3(0,LOCK_AY-LOCK_S,-LOCK_S),label:'横木条·甲',mat:'huali'},
+ {id:'p2',kind:'B',axis:'y',home:new THREE.Vector3(-LOCK_S,LOCK_AY,-LOCK_S),label:'立木条·乙',mat:'nanmu'},
+ {id:'p4',kind:'B',axis:'z',home:new THREE.Vector3(-LOCK_S,LOCK_AY-LOCK_S,0),label:'纵木条·丁',mat:'zitan'},
+ {id:'p3',kind:'D',axis:'y',home:new THREE.Vector3(LOCK_S,LOCK_AY,LOCK_S),label:'立木条·丙',mat:'nanmu'},
+ {id:'p5',kind:'A',axis:'z',home:new THREE.Vector3(LOCK_S,LOCK_AY+LOCK_S,0),label:'纵木条·戊',mat:'zitan'},
+ {id:'p6',kind:'key',axis:'x',home:new THREE.Vector3(0,LOCK_AY+LOCK_S,LOCK_S),label:'钥匙柱（唯一完整滑道）',mat:'zhu'},
+];
+/* 教学式固定装配顺序（含错位时的古人避让提示） */
+const LOCK_ORDER=[
+ {id:'p1',tip:'先以横木条甲定下侧基准——“先榫后卯，立柱为基”'},
+ {id:'p2',tip:'立木条乙靠甲就位，缺口彼此避让'},
+ {id:'p4',tip:'纵木条丁穿入，三向各占其位而互不干涉'},
+ {id:'p3',tip:'立木条丙自另一侧合入，与乙对位咬合'},
+ {id:'p5',tip:'纵木条戊（整根实条）封填中央骨格'},
+ {id:'p6',tip:'最后滑入钥匙柱！唯此柱中空成滑道，一推到底，全盘锁死'},
+];
+function buildLuban(){
+  const g=G(); g.name='luban';
+  g.userData.pieces={};
+  LOCK_DEFS.forEach((d,i)=>{
+    const bar=lockBar(d.kind, woodMat(d.mat, d.kind==='key'?1.15:1));
+    if(d.axis==='x')bar.rotation.z=0;
+    if(d.axis==='y')bar.rotation.z=Math.PI/2;
+    if(d.axis==='z')bar.rotation.y=Math.PI/2;
+    tagPiece(bar,d.label,d.kind==='key'?.9:.6);
+    bar.userData.noExplode=true;
+    bar.userData.lockId=d.id;
+    bar.userData.home=new THREE.Vector3(); // 装配后原位（稍后由 home 设定）
+    g.add(bar);
+    g.userData.pieces[d.id]=bar;
+  });
+  g.userData.explodeScale=0;
+  return g;
+}
+function startLubanGame(g){
+  const placed=new Set(); let stepIdx=0;
+  const pieces=g.userData.pieces;
+  const AC=LOCK_AY; // 装配核心高度（世界 y）
+  const TY=LOCK_S*1.5+.02; // 托盘散件着地高度（条束半高）
+  // 托盘散件位：左后两排弧形摆开，留出中央装配区，互不重叠
+  const tray=[
+    new THREE.Vector3(-2.05,TY,2.7),new THREE.Vector3(-1.23,TY,3.05),
+    new THREE.Vector3(-.41,TY,2.75),new THREE.Vector3(.41,TY,3.1),
+    new THREE.Vector3(1.23,TY,2.78),new THREE.Vector3(2.05,TY,3.08)];
+  LOCK_DEFS.forEach((d,i)=>{
+    const p=pieces[d.id];
+    p.userData.home=d.home.clone();
+    p.position.copy(tray[i]);
+    p.userData.tray=tray[i].clone();
+  });
+  // 锁体基座（空框架提示：恰好框住拼合后的 3×3×3 方木条束）
+  const hint=new THREE.Group();
+  const gh=LOCK_S*3+.12;
+  const ghost=new THREE.Mesh(new THREE.BoxGeometry(gh,gh,gh),
+    new THREE.MeshBasicMaterial({color:0xc9a25f,wireframe:true,transparent:true,opacity:.28}));
+  hint.position.set(0,AC,0); hint.add(ghost); g.add(hint);
+  viewer.autoRotate=false;$('#btn-rotate').classList.remove('on');
+  viewer.setExplode(0,true);
+  // 游戏专用取景：轻俯角，中央装配框与前方托盘同框，全部在可视区内
+  viewer.tweens.length=0;
+  camera.position.set(0,3.6,8.4);controls.target.set(0,.9,1.1);
+  viewer.tweenCam(new THREE.Vector3(0,3.6,8.4),new THREE.Vector3(0,.9,1.1));
+
+  const progressEl=()=>document.getElementById('lb-progress');
+  const updateUI=()=>{const e=progressEl();if(e)e.textContent=`已装 ${placed.size} / 6 · 第 ${Math.min(stepIdx+1,6)} 步`;};
+  const setHint=txt=>{const e=$('#lb-hint');if(e)e.textContent=txt;};
+  setHint('从右侧托盘拖起第一根木条，嵌入中央框架。');
+  updateUI();
+
+  const ray=new THREE.Raycaster();const v2=new THREE.Vector2();
+  const dragPlane=new THREE.Plane();const dragPoint=new THREE.Vector3();
+  let dragging=null, hovered=null;
+  const raycast=ev=>{
+    const r=renderer.domElement.getBoundingClientRect();
+    v2.set(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);
+    ray.setFromCamera(v2,camera);return ray;
+  };
+  const onDown=ev=>{
+    const hits=raycast(ev).intersectObjects(Object.values(pieces),false);
+    if(!hits.length)return;
+    const p=hits[0].object;
+    if(placed.has(p.userData.lockId)){toast('此件已装妥，按“重置本关”可重来');return;}
+    dragging=p; controls.enabled=false; SFX.pick();
+    // 公共水平拖拽平面（过装配核心），保证各件落点与目标在同一高度投影
+    dragPlane.set(new THREE.Vector3(0,1,0),-AC);
+    // 抓取时记录“抓住的表面点”相对工件原点的平面内偏移
+    if(!ray.ray.intersectPlane(dragPlane,dragPoint))return;
+    p.userData._scale=p.scale.x; p.userData._grabY=p.position.y;
+    p.userData._off=new THREE.Vector3(p.position.x-dragPoint.x,0,p.position.z-dragPoint.z);
+    p.scale.setScalar(1.08);
+    renderer.domElement.style.cursor='grabbing';
+  };
+  const onMove=ev=>{
+    if(!dragging){
+      const hits=raycast(ev).intersectObjects(Object.values(pieces).filter(p=>!placed.has(p.userData.lockId)),false);
+      renderer.domElement.style.cursor=hits.length?'grab':'';
+      if(hovered&&hovered!==dragging)hovered.scale.setScalar(hovered.userData._scale||1);
+      hovered=hits[0]?.object; if(hovered&&!placed.has(hovered.userData.lockId))hovered.scale.setScalar(1.05);
+      return;
+    }
+    if(!raycast(ev).ray.intersectPlane(dragPlane,dragPoint))return;
+    // 靠近核心时自动抬升到装配高度，与线框对位；远离则保持托盘高度
+    const toCore=Math.hypot(dragPoint.x,dragPoint.z);
+    const lift=THREE.MathUtils.clamp(1-(toCore-1.2)/1.2,0,1);
+    const y=THREE.MathUtils.lerp(dragging.userData._grabY,AC,lift*lift);
+    dragging.position.set(dragPoint.x,y,dragPoint.z);
+  };
+  const snapRafs=new Set();
+  const snapAnim=(p,target,done)=>{
+    const from=p.position.clone();const t0=performance.now();const dur=280;
+    const handle={};
+    function tick(now){
+      const k=Math.min(1,(now-t0)/dur);
+      p.position.lerpVectors(from,target,1-Math.pow(1-k,3));
+      if(k>=1){snapRafs.delete(handle);p.position.copy(target);done&&done();return;}
+      handle.raf=requestAnimationFrame(tick);
+    }
+    handle.raf=requestAnimationFrame(tick); snapRafs.add(handle);
+  };
+  const onUp=()=>{
+    if(!dragging)return;
+    const p=dragging; dragging=null; controls.enabled=true; renderer.domElement.style.cursor='';
+    const id=p.userData.lockId; const d=LOCK_DEFS.find(x=>x.id===id);
+    const targetWorld=d.home.clone();
+    const dist=Math.hypot(p.position.x-targetWorld.x,p.position.z-targetWorld.z);
+    const expected=LOCK_ORDER[stepIdx];
+    if(dist<1.7){
+      if(expected.id===id){
+        snapAnim(p,targetWorld,()=>{
+          p.position.copy(targetWorld);
+          p.userData.noExplode=true;
+          p.scale.setScalar(1); SFX.place();
+          placed.add(id); stepIdx++;
+          updateUI();
+          if(stepIdx<6){setHint(LOCK_ORDER[stepIdx].tip);toast('咬合成功！'+expected.tip,'ok',2400);}
+          else{win();}
+        });
+      }else{
+        // 顺序错误：结构干涉卡顿
+        snapAnim(p,p.userData.tray,()=>{p.position.copy(p.userData.tray);});
+        p.scale.setScalar(1);
+        const need=LOCK_ORDER[stepIdx]; SFX.reject();
+        toast(`咬合卡顿！「${d.label}」为时尚早——应先装「${need.id==='p6'?'钥匙柱':LOCK_DEFS.find(x=>x.id===need.id).label}」`,'err',3200);
+        setHint('古人讲究“先榫后卯、错位入扣”：'+need.tip);
+        shakePiece(p);
+      }
+    }else{
+      // 未对准安装位
+      snapAnim(p,p.userData.tray,()=>{p.position.copy(p.userData.tray);});
+      p.scale.setScalar(1);
+    }
+  };
+  const shakeTimers=new Set();
+  function shakePiece(p){
+    const base=p.userData.tray;let n=0;
+    const id=setInterval(()=>{n++;
+      p.position.set(base.x+(Math.random()-.5)*.12,base.y+(Math.random()-.5)*.05,base.z+(Math.random()-.5)*.12);
+      if(n>8){clearInterval(id);shakeTimers.delete(id);p.position.copy(base);}},45);
+    shakeTimers.add(id);
+  }
+  function win(){
+    setHint('六木归位，钥匙柱一推到底——整锁浑然一体！');
+    toast('鲁班锁拼装完成！易拆难装，你已悟得避让自锁之道','ok',3400);
+    g.userData.locked=true; SFX.win();
+    const ov=$('#game-overlay');
+    ov.innerHTML=`<div class="glass rounded-lg p-8 text-center win-glow max-w-md">
+      <div class="seal w-14 h-14 mx-auto flex items-center justify-center text-2xl font-bold">匠</div>
+      <div class="font-kai text-2xl text-gold2 mt-4 tracking-[.3em]">大 巧 不 工</div>
+      <p class="text-sm text-[#cdbf9f] mt-3 leading-7">六根木条正交咬合，唯钥匙柱可解锁全局。<br>你已掌握“先榫后卯、错位入扣”的骨骼避让逻辑。</p>
+      <div class="flex gap-3 justify-center mt-5">
+        <button id="lb-close" class="ctrl-btn rounded-full px-6 py-2 text-sm tracking-widest">关闭查看</button>
+        <button id="lb-again" class="ctrl-btn rounded-full px-6 py-2 text-sm tracking-widest">再拼一次</button>
+      </div>
+    </div>`;
+    ov.classList.remove('hidden');
+    $('#lb-again').onclick=()=>{ov.classList.add('hidden');ov.innerHTML='';restart();};
+    $('#lb-close').onclick=()=>{ov.classList.add('hidden');ov.innerHTML='';};
+  }
+  function restart(){
+    stepIdx=0;placed.clear();g.userData.locked=false;
+    LOCK_DEFS.forEach((d,i)=>{const p=pieces[d.id];p.position.copy(p.userData.tray);p.scale.setScalar(1);});
+    updateUI();setHint('从右侧托盘拖起第一根木条，嵌入中央框架。');
+    const ov=$('#game-overlay');ov.classList.add('hidden');ov.innerHTML='';
+  }
+  g.userData.restart=restart;
+  const el=renderer.domElement;
+  el.addEventListener('pointerdown',onDown);
+  el.addEventListener('pointermove',onMove);
+  el.addEventListener('pointerup',onUp);
+  g.userData.update=(dt)=>{ if(!g.userData.locked)hint.rotation.y+=dt*.4; };
+  g.userData.destroy=()=>{
+    el.removeEventListener('pointerdown',onDown);
+    el.removeEventListener('pointermove',onMove);
+    el.removeEventListener('pointerup',onUp);
+    shakeTimers.forEach(id=>clearInterval(id)); shakeTimers.clear();
+    snapRafs.forEach(h=>cancelAnimationFrame(h.raf)); snapRafs.clear();
+  };
+}
+Z5.items.push(
+ ['luban','鲁班锁（孔明锁）','六柱 · 拖拽拼装闯关',
+  '六根带不同缺口的长木条在三维正交方向上咬合为一个整体。其中有且仅有一根“钥匙柱”保留完整滑道，必须按特定顺序先榫后卯、错位入扣，最后滑入钥匙柱，整锁才能锁死。请把下方托盘上的散件逐一拖入中央框架——顺序错误将发生咬合卡顿。',
+  ['拖拽 3D 工件进行真实拼装','顺序/位置错误触发结构干涉提示','唯一钥匙柱最后滑入，全盘锁死'],
+  buildLuban, {autoRotate:false, tray:true,
+   controlsHtml:`
+   <div class="text-center"><div id="lb-progress" class="text-gold2 text-sm tracking-widest">已装 0 / 6 · 第 1 步</div></div>
+   <div id="lb-hint" class="text-[12px] text-[#cdbf9f] leading-6 bg-gold/5 border border-gold/20 rounded p-2 min-h-[3.2rem]"></div>
+   <button id="lb-reset" class="ctrl-btn rounded w-full py-1.5 text-xs">重置本关</button>`,
+   after(model){
+     startLubanGame(model);
+    $('#lb-reset').onclick=()=>model.userData.restart&&model.userData.restart();
+   }}
+]);
+
+/* ---- 九连环 3D 场景 ---- */
+function buildNineRings3D(){
+  const g=G();
+  const bronze=MAT.bronze, wood=woodMat('zitan',1.05);
+  /* 剑形长柄（扁环/手柄）：前尖后宽的长剑状铜木柄，水平 */
+  const blade=mergedPiece([
+    {size:[2.2,.06,.34],pos:[-.2,1.1,0]},
+    {size:[.7,.08,.5],pos:[1.4,1.1,0]},
+  ],bronze);
+  g.add(tagPiece(blade,'长柄扁环（剑）',.6,[0,-.3,0]));
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(.2,.5,4),bronze);
+  tip.rotation.z=Math.PI/2;tip.position.set(-1.7,1.1,0);tip.castShadow=true;g.add(tip);
+  /* 九个圆环，通过细立柱穿接在一排底座横木上 */
+  const rings=[];
+  const startX=-1.2, gap=.34;
+  const baseRail=simplePiece(3.4,.1,.18,wood,[.1,.55,0],.02);
+  g.add(tagPiece(baseRail,'穿环立柱底座',.5,[0,.2,0]));
+  for(let i=0;i<9;i++){
+    const x=startX+i*gap;
+    /* 立柱 */
+    const post=simplePiece(.05,.5,.05,wood,[x,.82,0],.01);
+    g.add(tagPiece(post,i===0?'铜木立柱（穿接各环）':'',.5,[0,.2,0]));
+    /* 圆环：竖直面（YZ 平面），环面朝向 x */
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.21,.035,10,28),bronze);
+    ring.position.set(x,1.35,0);ring.rotation.y=Math.PI/2;
+    ring.castShadow=true;
+    g.add(tagPiece(ring,`第${9-i}环`,.7,[0,.5,0]));
+    /* 环顶连杆到长柄（可活动的穿接关系，用小横杆表示） */
+    const link=simplePiece(.04,.12,.04,bronze,[x,1.14,0],.01);
+    g.add(link);
+    rings.push(ring);
+  }
+  /* 支架（展示架） */
+  [1,-1].forEach(s=>{
+    const stand=simplePiece(.12,1.1,.12,wood,[1.85*s,.55,0],.02);
+    g.add(tagPiece(stand,s>0?'展示支架':'',.4,[s*.3,0,0]));
+  });
+  g.add(tagPiece(simplePiece(4.1,.1,.5,wood,[0,.05,0],.02),'底座',.4,[0,-.2,0]));
+  let t=0;
+  g.userData.update=(dt)=>{t+=dt*.5;
+    rings.forEach((r,i)=>{r.position.z=Math.sin(t+i*.5)*.02;});};
+  g.userData.explodeScale=1.2;
+  return g;
+}
+
+/* ---- 九连环 ---- */
+/* 生成标准最优解（341 步）。规则：环 n 可动当且仅当环 n-1 在架且其前全部解下。
+   rem(n)=把前 n 环全解下；put(n)=把前 n 环全装上（起始前 n 环全解下）。 */
+function solveNineRings(){
+  const steps=[];
+  const rem=n=>{
+    if(n<=0)return;
+    if(n===1){steps.push({n:1,on:false});return;}
+    rem(n-2);
+    steps.push({n,on:false});
+    put(n-2);
+    rem(n-1);
+  };
+  const put=n=>{
+    if(n<=0)return;
+    if(n===1){steps.push({n:1,on:true});return;}
+    put(n-1);
+    rem(n-2);
+    steps.push({n,on:true});
+    put(n-2);
+  };
+  rem(9);
+  return steps;
+}
+function openJiuLianhuan(){
+  const ov=$('#game-overlay');
+  let state=new Array(9).fill(1); let moves=0;
+  const canToggle=n=>{ // 1-based
+    if(n===1)return true;
+    if(n===2)return state[0]===1;
+    return state[n-2]===1 && state.slice(0,n-2).every(v=>v===0);
+  };
+  const render=()=>{
+    const rings=state.map((on,i)=>{
+      const n=i+1; const ok=canToggle(n);
+      return `<g class="ring" data-n="${n}" style="${ok?'opacity:1':'opacity:.5'}">
+        <circle cx="0" cy="0" r="26" fill="none" stroke="${on?'#c9a25f':'#5a4632'}" stroke-width="6"/>
+        <circle cx="0" cy="0" r="26" fill="none" stroke="${ok?'#ffe9b8':'none'}" stroke-width="2" class="${on?'':'off'}"/>
+      </g>`;
+    }).reverse().map((c,i)=>`<g transform="translate(${60+i*52},120)">${c}
+      <text x="0" y="52" text-anchor="middle" fill="#8a6d3b" font-size="13">${9-i}</text></g>`).join('');
+    ov.innerHTML=`<div class="glass rounded-lg p-7 max-w-2xl w-[92%]">
+      <div class="flex items-center justify-between">
+        <div class="font-kai text-xl text-gold2 tracking-[.3em]">九 连 环</div>
+        <div class="text-xs text-gold/70">步数 <span id="jl-moves" class="text-gold2 text-base">${moves}</span> / 341</div>
+      </div>
+      <div class="gold-line my-3"></div>
+      <svg viewBox="0 0 560 200" class="ring-svg w-full">
+        <rect x="20" y="118" width="520" height="8" rx="4" fill="#5a4632"/>
+        ${rings}
+      </svg>
+      <p id="jl-msg" class="text-[12px] text-[#cdbf9f] leading-6 min-h-[2.5rem]">
+        规则：第 n 环可动，当且仅当第 n-1 环在架上、而前 n-2 环全部解下（第 1、2 环除外）。目标：九环全部解下。</p>
+      <div class="flex gap-2 mt-3">
+        <button id="jl-auto" class="ctrl-btn rounded px-4 py-1.5 text-xs">自动演示（341 步）</button>
+        <button id="jl-reset" class="ctrl-btn rounded px-4 py-1.5 text-xs">复位（全上）</button>
+        <button id="jl-close" class="ctrl-btn rounded px-4 py-1.5 text-xs ml-auto">返回展馆</button>
+      </div>
+    </div>`;
+    ov.classList.remove('hidden');
+    ov.querySelectorAll('.ring').forEach(r=>r.onclick=()=>{
+      const n=+r.dataset.n;
+      if(!canToggle(n)){
+        $('#jl-msg').innerHTML=`<span class="text-[#d98a6a]">第 ${n} 环被锁住——需先让第 ${n-1} 环在架、前 ${n-2} 环全部解下。</span>`;
+        toast('该环当前无法移动：递归约束未满足','err');return;
+      }
+      state[n-1]=state[n-1]?0:1;moves++;render();
+      if(state.every(v=>v===0)){
+        $('#jl-msg').innerHTML='<span class="text-jade">九环尽解！341 步的格雷码递归，正是二进制的古老化身。</span>';
+        toast('九连环解开！','ok');
+      }else{
+        $('#jl-msg').textContent=(state[n-1]?'上':'下')+`第 ${n} 环。当前还剩 ${state.reduce((a,b)=>a+b,0)} 环。`;
+      }
+    });
+    $('#jl-auto').onclick=()=>{
+      const sol=solveNineRings();let i=0;state=new Array(9).fill(1);moves=0;render();
+      $('#jl-msg').textContent='自动演示中：严格按递归合法顺序上下环，共 '+sol.length+' 步…';
+      let acc=0,last=performance.now();
+      const tick=(now)=>{
+        if(!$('#jl-moves'))return;  // 浮层内容已被切换展品清空：终止演示，避免空引用报错
+        acc+=now-last;last=now;
+        while(acc>=20&&i<sol.length){
+          acc-=20;
+          const s=sol[i];state[s.n-1]=s.on?1:0;moves=i+1;
+          $('#jl-moves').textContent=moves;
+          ov.querySelectorAll('.ring').forEach((r,idx)=>{
+            const n=9-idx,on=state[n-1],ok=canToggle(n);
+            r.setAttribute('style',`${ok?'opacity:1':'opacity:.5'}`);
+            r.querySelector('circle:first-child').setAttribute('stroke',on?'#c9a25f':'#5a4632');
+            r.querySelector('circle:last-child').setAttribute('stroke',ok?'#ffe9b8':'none');
+          });
+          i++;
+        }
+        if(state.every(v=>v===0)){
+          $('#jl-auto').disabled=false;
+          $('#jl-msg').innerHTML='<span class="text-jade">演示完成：恰好 341 步，九环尽解。</span>';
+          return;
+        }
+        $('#jl-auto').disabled=true;
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    $('#jl-reset').onclick=()=>{state=new Array(9).fill(1);moves=0;render();};
+    $('#jl-close').onclick=()=>{ov.classList.add('hidden');ov.innerHTML='';};
+  };
+  render();
+}
+Z5.items.push(
+ ['jiulian','九连环','东方拓扑明珠 · Gray Code',
+  '九个圆环套于一柄长环（剑）之上，各环以立柱穿接。上下环并非任意：第 n 环要移动，第 n-1 环必须在架上、前 n-2 环必须全部解下。这一递归约束与格雷码（Gray Code）同构，解九连环恰好需要 341 步。',
+  ['严格的状态递归约束','解法步数 = 格雷码 / 二进制循环递归','九环全解需 341 步'],
+  buildNineRings3D, {autoRotate:true,
+   controlsHtml:`<button id="jl-open" class="ctrl-btn rounded w-full py-2 text-sm tracking-widest">进入九连环拆解台</button>
+   <div class="text-[12px] text-gold/50 leading-5">弹出交互台：点击圆环上/下，或观看 341 步自动演示</div>`,
+   after(){ $('#jl-open').onclick=openJiuLianhuan; }}
+]);
+
+/* ---- 微缩机关盒（可拆解看内部） ---- */
+function buildBox(){
+  const g=G();
+  const W=2.2,H=1.4,D=1.6, t=.1;
+  /* 底板 + 四块壁板（独立可拆，方便看内部暗销结构） */
+  const bottom=simplePiece(W,t,D,woodMat('zitan',1.05),[0,t/2,0],.03);
+  g.add(tagPiece(bottom,'底板（下滑开启）',.6,[0,-.4,0]));
+  const wallF=simplePiece(W,H,t,woodMat('zitan',1.02),[0,H/2,D/2],.03);
+  const wallB=simplePiece(W,H,t,woodMat('zitan',1.02),[0,H/2,-D/2],.03);
+  const wallL=simplePiece(t,H,D,woodMat('zitan',1.02),[-W/2,H/2,0],.03);
+  const wallR=simplePiece(t,H,D,woodMat('huali',1.05),[W/2,H/2,0],.03);
+  g.add(tagPiece(wallF,'前壁板',.45,[0,.2,.4]),tagPiece(wallB,'后壁板',.45,[0,.2,-.4]),
+    tagPiece(wallL,'左壁板（暗按舌）',.5,[-.4,.2,0]),tagPiece(wallR,'顺移侧板',.6,[.5,.1,0]));
+  const panel=simplePiece(W-.1,t,D-.1,woodMat('huali',1.12),[0,H+t/2,0],.03);
+  g.add(tagPiece(panel,'可抽顶板',.65,[0,.7,0]));
+  /* 内部：藏宝暗屉 + 多道走马销 + 子母弹簧暗舌 */
+  const drawerG=new THREE.Group();
+  const drawer=simplePiece(.9,.34,1.1,woodMat('zhu',1.05),[0,.35,0],.03);
+  drawer.userData.noExplode=true;
+  drawerG.add(tagPiece(drawer,'藏宝暗屉',.8,[0,0,.7]));
+  /* 屉内宝物（小金锭/卷轴） */
+  const gem=new THREE.Mesh(new THREE.SphereGeometry(.12,14,12),MAT.bronze);
+  gem.position.set(0,.55,0);gem.castShadow=true;gem.userData.noExplode=true;
+  drawerG.add(tagPiece(gem,'屉中秘宝',.6));
+  g.add(drawerG);
+  /* 暗销：抽屉口的横向锁舌（弹簧） */
+  const bolts=[];
+  [1,-1].forEach(s=>{
+    const bolt=simplePiece(.2,.12,.12,MAT.bronzeDark,[s*.55,.35,D/2-.12],.02);
+    g.add(tagPiece(bolt,'子母弹簧暗舌',.85,[s*.3,.2,.3]));bolts.push(bolt);
+  });
+  /* 走马销（顶板下方的燕尾活销） */
+  const zama=simplePiece(.4,.1,.16,woodMat('huali',1),[0,H-.05,D/2-.12],.02);
+  g.add(tagPiece(zama,'走马销（推入即锁）',.8,[0,.5,.3]));
+  /* 外部暗按舌（左壁三连按） */
+  const btns=[];
+  [1,2,3].forEach(i=>{
+    const b=simplePiece(.1,.12,.16,MAT.bronzeDark,[-W/2-.02,H-.25-i*.22,D/2+.01],.03);
+    g.add(tagPiece(b,`暗按舌 ${i}`,.8,[-.3,.3,.3]));btns.push(b);
+  });
+  /* 拆解时各板移开，露出内部 */
+  g.userData.explodeScale=1.0;
+  wallF.userData.dir=[0,.1,1];wallB.userData.dir=[0,.1,-1];
+  wallL.userData.dir=[-1,.1,0];wallR.userData.dir=[1,.1,0];
+  bottom.userData.dir=[0,-.5,0];panel.userData.dir=[0,1,0];
+  drawerG.userData.dir&&0;
+  g.userData.state={press:0,moved:false,bottom:false,open:false};
+  g.userData.parts={panel,btns,side:wallR,drawer:drawerG,bottom,bolts,zama};
+  /* 让暗屉也参与爆炸（Group 需标签） */
+  tagPiece(drawerG,'暗屉总成',.7,[0,.2,.5]);
+  return g;
+}
+Z5.items.push(
+ ['box','微缩机关盒','百宝鲁班箱 · 连环暗销',
+  '外表无锁孔、无缝隙的一整块光滑硬木方盒，内部却藏有多道交错的走马销与子母弹簧暗舌。须依“左按三响 → 顺移侧板 → 底板下滑”的连环顺序操作，暗销逐级让位，核心藏宝暗屉才会弹出。顺序错误则所有暗舌咬死。',
+  ['暗按舌计数三响，松开第一道销','侧板顺移解除第二道锁','底板下滑触发暗屉弹出'],
+  buildBox, {autoRotate:false,
+   controlsHtml:`
+   <div class="text-[12px] text-gold/70 tracking-widest mb-1">解密步骤（按顺序）</div>
+   <button id="bx-press" class="ctrl-btn rounded w-full py-2 text-xs mb-2">① 左侧暗舌：连按三响（已按 <span id="bx-cnt">0</span>）</button>
+   <button id="bx-side" class="ctrl-btn rounded w-full py-2 text-xs mb-2 opacity-50" disabled>② 顺移侧板</button>
+   <button id="bx-bottom" class="ctrl-btn rounded w-full py-2 text-xs mb-2 opacity-50" disabled>③ 顶板下沉 · 暗屉弹出</button>
+   <div class="gold-line my-2"></div>
+   <button id="bx-explode" class="ctrl-btn rounded w-full py-2 text-xs">拆解盒体 · 查看内部暗销</button>
+   <button id="bx-reset" class="ctrl-btn rounded w-full py-1 text-[12px] mt-2">复位机关盒</button>`,
+    after(){
+      const p=viewer.model.userData.parts, st=viewer.model.userData.state;
+      const gModel=viewer.model;   // 身份守卫：延时回调只允许作用于当前机关盒
+     const BW=2.2;
+    const reset=()=>{
+      st.press=0;st.moved=false;st.bottom=false;st.open=false;
+      viewer.model.userData.gameOffsetActive=false;
+      viewer.setExplode(0,true);$('#explode-slider').value=0;
+      [p.panel,p.side,...p.btns].forEach(b=>{b.userData.gameOffset=null;b.userData.noExplode=false;});
+      p.drawer.position.set(0,0,0);
+      p.bolts.forEach(b=>b.visible=true);p.zama.visible=true;
+      $('#bx-cnt').textContent='0';
+      ['#bx-side','#bx-bottom'].forEach(s=>{$(s).disabled=true;$(s).classList.add('opacity-50');});
+    };
+    $('#bx-press').onclick=()=>{
+      if(st.moved)return;
+      st.press++;$('#bx-cnt').textContent=st.press;SFX.step();
+      viewer.model.userData.gameOffsetActive=true;
+      const b=p.btns[Math.min(st.press-1,2)];
+      b.userData.gameOffset=new THREE.Vector3(.08,0,0);
+      setTimeout(()=>b.userData.gameOffset=null,130);
+      if(st.press===3){$('#bx-side').disabled=false;$('#bx-side').classList.remove('opacity-50');
+        toast('三响落定，第一道暗销让位','ok');}
+    };
+    $('#bx-side').onclick=()=>{
+      if(st.press<3||st.moved){if(st.press<3)toast('暗舌咬死：须先连按三响！','err');return;}
+      st.moved=true;p.side.userData.gameOffset=new THREE.Vector3(.45,0,0);
+      gModel.userData.gameOffsetActive=true;
+      p.side.userData.noExplode=true;SFX.slide();
+      p.bolts.forEach(b=>b.visible=false); // 暗舌让位
+      $('#bx-bottom').disabled=false;$('#bx-bottom').classList.remove('opacity-50');
+      toast('侧板顺移，第二道锁解除','ok');
+    };
+    $('#bx-bottom').onclick=()=>{
+      if(!st.moved)return;
+      st.bottom=true;p.panel.userData.gameOffset=new THREE.Vector3(0,-.7,0);
+      p.zama.visible=false;SFX.assemble();
+      setTimeout(()=>{
+        if(viewer.model!==gModel)return; // 已切到其他展品：丢弃旧弹窗，避免跨路由 DOM 污染
+        st.open=true;p.drawer.position.set(0,0,1.3);SFX.bell();
+        const ov=$('#game-overlay');
+        ov.innerHTML=`<div class="glass rounded-lg p-8 text-center win-glow">
+          <div class="text-4xl">🎁</div>
+          <div class="font-kai text-2xl text-gold2 mt-3 tracking-[.3em]">暗 屉 开 启</div>
+          <p class="text-sm text-[#cdbf9f] mt-3">三道暗销依次让位，鲁班箱吐露其藏。</p>
+          <button id="bx-win-close" class="ctrl-btn rounded-full px-6 py-2 mt-5 text-sm">继续赏玩</button></div>`;
+        ov.classList.remove('hidden');
+        $('#bx-win-close').onclick=()=>ov.classList.add('hidden');
+      },450);
+      toast('顶板下沉，暗屉弹出！','ok');
+    };
+     $('#bx-explode').onclick=()=>{const v=viewer.targetExplode>.5?0:1;
+       viewer.setExplode(v);SFX[v?'explode':'assemble']();};
+     $('#bx-reset').onclick=reset;
+   }}
+]);
+
+/* ---- 鲁班神鸟（木鹊） ---- */
+function buildMuque(){
+  const g=G();
+  const bamboo=woodMat('zhu',1.08),dark=woodMat('zitan',1);
+  /* 鸟身：流线纺锤形（长轴沿 z，朝 +z 为前） */
+  const body=new THREE.Mesh(new THREE.SphereGeometry(.3,18,14),bamboo);
+  body.scale.set(.85,.85,1.9);body.position.set(0,1.5,0);body.castShadow=true;
+  g.add(tagPiece(body,'竹篾鸟身（轻木胎）',.5,[0,.3,0]));
+  /* 头颈上扬、喙尖 */
+  const neck=new THREE.Group();neck.position.set(0,1.62,.4);
+  const neckTube=tube([new THREE.Vector3(0,0,0),new THREE.Vector3(0,.18,.3)],.09,bamboo,12);
+  neck.add(neckTube);
+  g.add(tagPiece(neck,'曲颈（微缩销榫）',.5,[0,.3,.3]));
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.13,14,12),bamboo);
+  head.position.set(0,1.83,.74);head.castShadow=true;g.add(head);
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(.05,.3,8),MAT.bronzeDark);
+  beak.rotation.x=Math.PI/2;beak.position.set(0,1.8,.92);beak.castShadow=true;
+  g.add(tagPiece(beak,'尖喙',.4,[0,.2,.4]));
+  /* 尾羽（沿 -z 后掠分叉） */
+  [0,1,2].forEach(i=>{
+    const f=simplePiece(.1,.02,.62,bamboo,[(i-1)*.06,1.5,-.6],.005);
+    f.rotation.y=(i-1)*.28;
+    g.add(tagPiece(f,i===1?'后掠尾羽':'',.4,[-.2,.1,0]));
+  });
+  /* 翅膀：沿身体左右（±x）展开，翼肋从翼根呈扇形辐射；翼膜轻薄半透明 */
+  function makeWing(side){
+    const wg=new THREE.Group();wg.position.set(0,1.55,.05);
+    const span=1.7,chord=.85,n=8;
+    /* 翼膜：前缘宽、后缘略窄的扇形（自定义 ShapeGeometry），左镜像 */
+    const sh=new THREE.Shape();
+    sh.moveTo(0,0);
+    sh.quadraticCurveTo(span*.5,chord*.55,span,chord*.18);
+    sh.quadraticCurveTo(span*.6,-chord*.12,0,0);
+    const mem=new THREE.Mesh(new THREE.ShapeGeometry(sh,12),
+      new THREE.MeshStandardMaterial({color:0xe3d3a4,side:THREE.DoubleSide,
+        transparent:true,opacity:.68,roughness:.95}));
+    mem.rotation.x=Math.PI/2;
+    if(side<0)mem.scale.x=-1;
+    wg.add(mem);
+    /* 前缘主羽杆（左右同在前缘 z+ 侧） */
+    const lead=tube([new THREE.Vector3(0,0,0),
+      new THREE.Vector3(side*span*.5,.04,chord*.32),
+      new THREE.Vector3(side*span,.08,chord*.16)],.025,dark,12);
+    /* 扇形翼肋（水平面内从根向外辐射，带后掠角） */
+    for(let k=0;k<=n;k++){
+      const a=k/n;
+      const tx=side*span*(.25+a*.75);
+      const tz=chord*(.42-a*.5);
+      const rib=tube([new THREE.Vector3(0,0,0),
+        new THREE.Vector3(tx*.5,.02,tz*.55),new THREE.Vector3(tx,.05,tz)],.012,bamboo,8);
+      wg.add(tagPiece(rib,(k===0&&side>0)?'仿生翼肋（微缩销榫）':'',.45));
+    }
+    if(side>0)wg.add(tagPiece(lead,'前缘主梁（销榫穿接翼根）',.6));
+    else wg.add(lead);
+    return wg;
+  }
+  const wingR=makeWing(1),wingL=makeWing(-1);
+  g.add(wingR,wingL);
+  /* 翼根转轴 + 筋腱扭力弦 */
+  [1,-1].forEach(s=>{
+    const joint=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.2,10),MAT.string);
+    joint.rotation.z=Math.PI/2;joint.position.set(s*.12,1.55,.05);joint.castShadow=true;
+    g.add(tagPiece(joint,s>0?'翼根扭力轴（筋腱弦储能）':'',.85,[s*.3,0,0]));
+  });
+  /* 双腿（飞行时向后收起） */
+  [.08,-.08].forEach(z=>{
+    const leg=tube([new THREE.Vector3(0,1.32,-.2),new THREE.Vector3(0,1.2,-.55)],.025,dark,8);
+    g.add(leg);
+  });
+  let t0=Math.random()*5;
+  g.userData.update=(dt,t)=>{
+    const tt=t+t0;
+    const flap=Math.sin(tt*5)*.65;
+    wingR.rotation.z=flap;wingL.rotation.z=-flap;     // 上下扑翼（绕身体前后轴 z）
+    wingR.rotation.x=.06;wingL.rotation.x=-.06;
+    g.position.y=-.18+Math.sin(tt*2.5)*.05;           // 原地小幅悬浮，避免飞出取景
+    g.rotation.z=Math.sin(tt*2.5)*.04;
+  };
+  g.userData.explodeScale=1.0;
+  g.userData.wings=[wingL,wingR];
+  return g;
+}
+Z5.items.push(
+ ['muque','鲁班神鸟（木鹊）','削竹木为鹊 · 飞三日不下',
+  '《墨子》载公输班削竹木以为鹊，成而飞之，三日不下。以极轻薄的竹篾与微缩销榫搭出仿生翼肋骨架，内部以动物筋腱作扭力储能弦，扑翼储能释放，是中国古人对空气动力学与轻量化构架的最初探索。',
+  ['竹篾翼肋 + 微缩销榫的轻量构架','筋腱扭力弦储存扑翼能量','仿生扑翼，三日不下的传说'],
+  buildMuque, {centerY:-.5,autoRotate:false}
+]);
+
+ZONES.push(Z5);
+
+renderTabs();
+routeFromHash();
+if(!location.hash)history.replaceState(null,'',`#/${currentZone.id}/${currentItem[0]}`);
+$('#load-bar').style.width='100%';
+setTimeout(()=>$('#loader').style.display='none',500);
+</script>
+</body>
+</html>
