@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,59 +8,418 @@
   <meta name="theme-color" content="#f6f5f0">
   <title>作品集 — 灵感，即刻可玩</title>
   <style>
-    :root { --paper: #f6f5f0; --ink: #252921; --muted: #6e7268; --line: #dddfd4; --accent: #c94422; }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; }
-    a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
-    .shell { width: min(1320px, calc(100% - 96px)); margin: auto; }
-    header { min-height: 96px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
-    .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; letter-spacing: 2px; }
-    .mark { display: grid; place-items: center; width: 34px; height: 34px; background: var(--accent); color: white; font-size: 25px; border-radius: 50%; }
-    .header-note, .eyebrow, .serial, footer { font-family: Consolas, "Microsoft YaHei", monospace; }
-    .header-note { font-size: 12px; letter-spacing: 1.5px; color: var(--muted); }
-    .hero { padding: 78px 0 64px; display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
-    .eyebrow { color: var(--accent); font-size: 12px; letter-spacing: 2px; margin: 0 0 22px; }
-    h1 { font-size: clamp(38px, 5.3vw, 72px); line-height: 1.24; letter-spacing: -3px; margin: 0; font-weight: 800; }
-    h1 span { color: var(--accent); }
-    .intro { margin: 24px 0 0; color: var(--muted); font-size: 15px; line-height: 1.9; }
-    .hero-index { flex-shrink: 0; text-align: right; padding-bottom: 5px; }
-    .hero-index strong { display: block; font: italic 86px/1 Georgia, serif; letter-spacing: -6px; }
-    .hero-index span { display: block; margin-top: 14px; font-size: 12px; color: var(--muted); letter-spacing: 3px; }
-    .toolbar { display: flex; justify-content: space-between; gap: 18px; align-items: center; border-top: 1px solid var(--line); padding: 25px 0 30px; }
-    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
-    .filters[hidden] { display: none; }
-    .filter { border: 1px solid var(--line); padding: 10px 19px; background: transparent; border-radius: 30px; cursor: pointer; color: var(--muted); font-size: 13px; transition: background .2s, color .2s; }
-    .filter:hover { border-color: var(--ink); color: var(--ink); }
-    .filter[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: white; }
-    .filter small { margin-left: 8px; opacity: .65; }
-    .result-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 26px; padding-bottom: 76px; }
-    .card { display: block; min-width: 0; }
-    .card[hidden] { display: none; }
-    .cover { position: relative; overflow: hidden; border-radius: 8px; background: #e7e7df; aspect-ratio: 16 / 10; border: 1px solid #2529210d; }
-    .cover img { width: 100%; height: 100%; object-fit: contain; display: block; transition: transform .45s ease; }
-    .card:hover img { transform: scale(1.025); }
-    .launch { position: absolute; right: 14px; bottom: 14px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--paper); color: var(--ink); font-size: 21px; box-shadow: 0 2px 12px #0002; transition: background .2s, color .2s; }
-    .card:hover .launch { background: var(--accent); color: white; }
-    .meta { display: flex; justify-content: space-between; align-items: center; margin: 18px 0 10px; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
-    .category { color: var(--accent); }
-    h2 { font-size: 20px; margin: 0; font-weight: 700; letter-spacing: -.4px; line-height: 1.5; }
-    .description { color: var(--muted); font-size: 13px; line-height: 1.8; margin: 8px 0 0; }
-    footer { padding: 25px 0 32px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 11px; letter-spacing: 1px; }
-    footer a:hover { color: var(--accent); }
-    @media (min-width: 1000px) { .card:first-child { grid-column: span 2; grid-row: span 2; } .card:first-child .cover { aspect-ratio: auto; height: calc(100% - 113px); min-height: 400px; } .card:first-child h2 { font-size: 28px; } }
-    @media (max-width: 999px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .shell { width: calc(100% - 56px); } .hero-index strong { font-size: 70px; } }
-    @media (max-width: 600px) { .shell { width: calc(100% - 36px); } header { min-height: 76px; } .header-note { font-size: 10px; letter-spacing: 0; } .hero { padding: 48px 0 38px; } h1 { letter-spacing: -1.8px; } .hero-index { display: none; } .intro { font-size: 13px; } .grid { grid-template-columns: 1fr; gap: 30px; padding-bottom: 48px; } .toolbar { align-items: flex-start; flex-direction: column; padding: 20px 0; gap: 14px; } .filter { padding: 9px 15px; } footer { font-size: 10px; } }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; } }
+    :root {
+      --paper: #f6f5f0;
+      --ink: #252921;
+      --muted: #6e7268;
+      --line: #dddfd4;
+      --accent: #c94422;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 6px;
+    }
+
+    .shell {
+      width: min(1320px, calc(100% - 96px));
+      margin: auto;
+    }
+
+    header {
+      min-height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      background: var(--accent);
+      color: white;
+      font-size: 25px;
+      border-radius: 50%;
+    }
+
+    .brand-text {
+      display: grid;
+      gap: 3px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-family: Consolas, "Microsoft YaHei", monospace;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+
+    .header-note,
+    .eyebrow,
+    .serial,
+    footer {
+      font-family: Consolas, "Microsoft YaHei", monospace;
+    }
+
+    .header-note {
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+    }
+
+    .hero {
+      padding: 78px 0 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 32px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin: 0 0 22px;
+    }
+
+    h1 {
+      font-size: clamp(38px, 5.3vw, 72px);
+      line-height: 1.24;
+      letter-spacing: -3px;
+      margin: 0;
+      font-weight: 800;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .intro {
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.9;
+    }
+
+    .hero-index {
+      flex-shrink: 0;
+      text-align: right;
+      padding-bottom: 5px;
+    }
+
+    .hero-index strong {
+      display: block;
+      font: italic 86px/1 Georgia, serif;
+      letter-spacing: -6px;
+    }
+
+    .hero-index span {
+      display: block;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 3px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding: 25px 0 30px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filters[hidden] {
+      display: none;
+    }
+
+    .filter {
+      border: 1px solid var(--line);
+      padding: 10px 19px;
+      background: transparent;
+      border-radius: 30px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      transition: background .2s, color .2s;
+    }
+
+    .filter:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .filter[aria-pressed="true"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: white;
+    }
+
+    .filter small {
+      margin-left: 8px;
+      opacity: .65;
+    }
+
+    .result-count {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 40px 26px;
+      padding-bottom: 76px;
+    }
+
+    .card {
+      display: block;
+      min-width: 0;
+    }
+
+    .card[hidden] {
+      display: none;
+    }
+
+    .cover {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #e7e7df;
+      aspect-ratio: 16 / 10;
+      border: 1px solid #2529210d;
+    }
+
+    .cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      transition: transform .45s ease;
+    }
+
+    .card:hover img {
+      transform: scale(1.025);
+    }
+
+    .launch {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 21px;
+      box-shadow: 0 2px 12px #0002;
+      transition: background .2s, color .2s;
+    }
+
+    .card:hover .launch {
+      background: var(--accent);
+      color: white;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 18px 0 10px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .category {
+      color: var(--accent);
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: -.4px;
+      line-height: 1.5;
+    }
+
+    .description {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+      margin: 8px 0 0;
+    }
+
+    footer {
+      padding: 25px 0 32px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    footer a:hover {
+      color: var(--accent);
+    }
+
+    @media (min-width: 1000px) {
+      .card:first-child {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+
+      .card:first-child .cover {
+        aspect-ratio: auto;
+        height: calc(100% - 113px);
+        min-height: 400px;
+      }
+
+      .card:first-child h2 {
+        font-size: 28px;
+      }
+    }
+
+    @media (max-width: 999px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .shell {
+        width: calc(100% - 56px);
+      }
+
+      .hero-index strong {
+        font-size: 70px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .shell {
+        width: calc(100% - 36px);
+      }
+
+      header {
+        min-height: 76px;
+      }
+
+      .header-note {
+        font-size: 10px;
+        letter-spacing: 0;
+      }
+
+      .hero {
+        padding: 48px 0 38px;
+      }
+
+      h1 {
+        letter-spacing: -1.8px;
+      }
+
+      .hero-index {
+        display: none;
+      }
+
+      .intro {
+        font-size: 13px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding-bottom: 48px;
+      }
+
+      .toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 20px 0;
+        gap: 14px;
+      }
+
+      .filter {
+        padding: 9px 15px;
+      }
+
+      footer {
+        font-size: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="shell" id="top">
     <header>
-      <a class="brand" href="./" aria-label="作品集首页"><span class="mark" aria-hidden="true">✳</span>作品集</a>
+      <a class="brand" href="./" aria-label="蓝戒AI知行作品集首页"><span class="mark" aria-hidden="true">✳</span><span
+          class="brand-text"><span class="brand-title">蓝戒AI知行</span><span class="brand-subtitle">作品集</span></span></a>
       <span class="header-note">IDEAS → EXPERIENCES</span>
     </header>
     <main>
@@ -81,39 +441,53 @@
       </nav>
       <section class="grid" aria-label="作品列表">
         <a class="card" data-category="game" href="games/travel-simulator/index.html">
-          <div class="cover"><img src="assets/images/travel-simulator.jpg" alt="国庆旅行模拟器游戏封面" fetchpriority="high"><span class="launch" aria-hidden="true">↗</span></div>
+          <div class="cover"><img src="assets/images/travel-simulator.jpg" alt="国庆旅行模拟器游戏封面" fetchpriority="high"><span
+              class="launch" aria-hidden="true">↗</span></div>
           <div class="meta"><span class="category">模拟游戏 / TRAVEL</span><span class="serial">01</span></div>
-          <h2>国庆旅行模拟器游戏</h2><p class="description">下一站去哪里？开启你的假日旅行。</p>
+          <h2>国庆旅行模拟器游戏</h2>
+          <p class="description">下一站去哪里？开启你的假日旅行。</p>
         </a>
         <a class="card" data-category="3d" href="sunmao-3d/index.html">
-          <div class="cover"><img src="assets/images/tiangongqiaomao-3d-display.jpg" alt="榫卯3D数字展馆封面"><span class="launch" aria-hidden="true">↗</span></div>
+          <div class="cover"><img src="assets/images/tiangongqiaomao-3d-display.jpg" alt="榫卯3D数字展馆封面"><span
+              class="launch" aria-hidden="true">↗</span></div>
           <div class="meta"><span class="category">数字展馆 / 3D</span><span class="serial">02</span></div>
-          <h2>榫卯3D数字展馆</h2><p class="description">方寸之间，探索传统木作的结构之美。</p>
+          <h2>榫卯3D数字展馆</h2>
+          <p class="description">方寸之间，探索传统木作的结构之美。</p>
         </a>
         <a class="card" data-category="game" href="games/ox-alpha/index.html">
-          <div class="cover"><img src="assets/images/huanyeliesha-game.jpg" alt="荒野猎杀游戏封面" loading="lazy"><span class="launch" aria-hidden="true">↗</span></div>
+          <div class="cover"><img src="assets/images/huanyeliesha-game.jpg" alt="荒野猎杀游戏封面" loading="lazy"><span
+              class="launch" aria-hidden="true">↗</span></div>
           <div class="meta"><span class="category">生存游戏 / SURVIVAL</span><span class="serial">03</span></div>
-          <h2>荒野猎杀游戏</h2><p class="description">踏入荒野，迎接未知的生存挑战。</p>
+          <h2>荒野猎杀游戏</h2>
+          <p class="description">踏入荒野，迎接未知的生存挑战。</p>
         </a>
         <a class="card" data-category="game" href="games/niulai/grok-4-6/index.html">
-          <div class="cover"><img src="assets/images/niulai-grok-4-6.jpg" alt="牛来跑酷 Grok 4.6 版封面" loading="lazy"><span class="launch" aria-hidden="true">↗</span></div>
+          <div class="cover"><img src="assets/images/niulai-grok-4-6.jpg" alt="牛来跑酷 Grok 4.6 版封面" loading="lazy"><span
+              class="launch" aria-hidden="true">↗</span></div>
           <div class="meta"><span class="category">跑酷游戏 / GROK 4.6</span><span class="serial">04</span></div>
-          <h2>牛来跑酷 <span>Grok 4.6 版</span></h2><p class="description">一路向前，体验这个版本的跑酷节奏。</p>
+          <h2>牛来跑酷 <span>Grok 4.6 版</span></h2>
+          <p class="description">一路向前，体验这个版本的跑酷节奏。</p>
         </a>
         <a class="card" data-category="game" href="games/niulai/glm-5-3/index.html">
-          <div class="cover"><img src="assets/images/niulai-glm-5-3.jpg" alt="牛来跑酷 GML 5.3 版封面" loading="lazy"><span class="launch" aria-hidden="true">↗</span></div>
+          <div class="cover"><img src="assets/images/niulai-glm-5-3.jpg" alt="牛来跑酷 GML 5.3 版封面" loading="lazy"><span
+              class="launch" aria-hidden="true">↗</span></div>
           <div class="meta"><span class="category">跑酷游戏 / GML 5.3</span><span class="serial">05</span></div>
-          <h2>牛来跑酷 <span>GML 5.3 版</span></h2><p class="description">同一个创意，另一种奔跑的乐趣。</p>
+          <h2>牛来跑酷 <span>GML 5.3 版</span></h2>
+          <p class="description">同一个创意，另一种奔跑的乐趣。</p>
         </a>
         <a class="card" data-category="game" href="games/niulai/gemini-3-7-flash/index.html">
-          <div class="cover"><img src="assets/images/niulai-gemini-3-7-flash.jpg" alt="牛来跑酷 Gemini 3.7 Flash 版封面" loading="lazy"><span class="launch" aria-hidden="true">↗</span></div>
+          <div class="cover"><img src="assets/images/niulai-gemini-3-7-flash.jpg" alt="牛来跑酷 Gemini 3.7 Flash 版封面"
+              loading="lazy"><span class="launch" aria-hidden="true">↗</span></div>
           <div class="meta"><span class="category">跑酷游戏 / GEMINI 3.7 FLASH</span><span class="serial">06</span></div>
-          <h2>牛来跑酷 <span>Gemini 3.7 Flash 版</span></h2><p class="description">继续奔跑，发现不同版本的独特表达。</p>
+          <h2>牛来跑酷 <span>Gemini 3.7 Flash 版</span></h2>
+          <p class="description">继续奔跑，发现不同版本的独特表达。</p>
         </a>
         <a class="card" data-category="3d" href="cz-8a/index.html">
-          <div class="cover"><img src="assets/images/cz-8a.jpg" alt="长征八号甲卫星发射3D模拟封面" loading="lazy"><span class="launch" aria-hidden="true">↗</span></div>
+          <div class="cover"><img src="assets/images/cz-8a.jpg" alt="长征八号甲卫星发射3D模拟封面" loading="lazy"><span
+              class="launch" aria-hidden="true">↗</span></div>
           <div class="meta"><span class="category">航天模拟 / 3D</span><span class="serial">07</span></div>
-          <h2>长征八号甲卫星发射3D模拟</h2><p class="description">从地面到太空，见证升空的震撼瞬间。</p>
+          <h2>长征八号甲卫星发射3D模拟</h2>
+          <p class="description">从地面到太空，见证升空的震撼瞬间。</p>
         </a>
       </section>
     </main>
@@ -137,4 +511,5 @@
     });
   </script>
 </body>
+
 </html>
